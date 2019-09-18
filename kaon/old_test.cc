@@ -12,9 +12,6 @@ using namespace Grid::QCD;
 // std::vector<int> gcoor({32, 32, 32, 64});
 std::vector<int> gcoor({24, 24, 24, 64});
 
-using LatticeKGG = Lattice<iMatrix<iScalar<iScalar<vComplex> >, 4>>;
-using LatticeLorentzColour = Lattice<iMatrix<iScalar<iMatrix<vComplex, 3> >, 4>>;
-
 template<typename vtype>
 inline iColourMatrix<vtype> traceS(const iSpinColourMatrix<vtype> &p) {
   iColourMatrix<vtype> rst;
@@ -51,26 +48,26 @@ LatticeKGG traceC(const LatticeLorentzColour &p) {
   return rst;
 }
 
+using LatticeKGG = Lattice<iMatrix<iScalar<iScalar<vComplex> >, 4>>;
+using LatticeLorentzColour = Lattice<iMatrix<iScalar<iMatrix<vComplex, 3> >, 4>>;
 
 // TODO: 1. add exponential factor stemming from position of Kaon 2. For now, I only do it for one x  3. Do not need to calculate wall source on every site
-LatticeKGG typeI(Env &env, int t_min) {
+LatticeKGG typeI(const Env &env, const std::vector<int> &v, int t_min) {
 
-  LatticeKGG rst_q1_avg(env.grid), rst_q2_avg(env.grid);
-  rst_q1_avg = zero; rst_q2_avg = zero;
+  LatticeKGG rst(env.grid);
+  LatticeKGG rst_q1_avg(env.grid);
+  LatticeKGG rst_q2_avg(env.grid);
 
-  std::vector<LatticePropagator> wl = env.get_wall_l();
-  std::vector<LatticePropagator> ws = env.get_wall_s();
+    std::cout << GridLogMessage << std::endl;
+    std::vector<LatticePropagator> wl = env.get_wall_l();
+    std::vector<LatticePropagator> ws = env.get_wall_s();
+    std::cout << GridLogMessage << std::endl;
 
-  LatticeComplex exp_factor(env.grid); // for calculating cross correlation
-  exp_lat(exp_factor, env.M_K);
-
-  env.xgs_s.erase(env.xgs_s.begin()+1, env.xgs_s.end()); // keep only one point
   for(const auto &x: env.xgs_s) {
     std::cout << "point src x: " << x << std::endl;
 
     // the first loop J-Hw
     LatticePropagator pl = env.get_point_l(x); // pl = L(u, x)
-    print_grid_field_site(pl, {0,0,0,0});
     // LatticePGG loop1(env.grid);
     LatticeLorentzColour loop1(env.grid);
     for(int mu=0; mu<4; ++mu)
@@ -81,11 +78,8 @@ LatticeKGG typeI(Env &env, int t_min) {
         LatticeColourMatrix tmp(env.grid);
         tmp = traceS(gmu5[mu] * pl * gL[rho] * adj(pl));
         pokeLorentz(loop1, tmp, mu, rho);
-
-        print_grid_field_site(tmp, {0,0,0,0});
       }
 
-    print_grid_field_site(loop1, {0,0,0,0});
     LatticeKGG loop1_t(env.grid);
     loop1_t = traceC(loop1);
     std::cout << loop1_t << std::endl;
@@ -102,6 +96,7 @@ LatticeKGG typeI(Env &env, int t_min) {
     typename LatticePropagator::vector_object::scalar_object wall_to_x_l, wall_to_x_s;
     peekSite(wall_to_x_l, wl[t_wall], x);
     peekSite(wall_to_x_s, ws[t_wall], x);
+
 
     for(int rho=0; rho<4; ++rho)
       for(int nu=0; nu<4; ++nu) {
@@ -120,30 +115,21 @@ LatticeKGG typeI(Env &env, int t_min) {
     LatticeLorentzColour loop2(env.grid);
     loop2 = loop2_1 - loop2_2;
 
-    // cross correlation
-    loop1 = loop1 * exp_factor;
+    // TBD: cross correlation -> 
+    //
 
-    FFT theFFT((GridCartesian *)loop1._grid);
-    LatticeLorentzColour loop1_fft(loop1._grid), loop2_fft(loop1._grid);
-    theFFT.FFT_all_dim(loop1_fft, loop1, FFT::forward);
-    theFFT.FFT_all_dim(loop2_fft, loop2, FFT::forward);
-
-    LatticeKGG rst_q1_fft(env.grid), rst_q2_fft(env.grid);
-    rst_q1_fft = traceC(conjugate(loop1_fft)) * traceC(loop2_fft);
-    rst_q2_fft = traceC(conjugate(loop1_fft) * loop2_fft);
-    //   rst_q1 = traceC(loop1) * traceC(loop2);
-    //   rst_q2 = traceC(loop1 * loop2);
-
-    LatticeKGG rst_q1(env.grid), rst_q2(env.grid);
-    theFFT.FFT_all_dim(rst_q1, rst_q1_fft, FFT::backward);
-    theFFT.FFT_all_dim(rst_q2, rst_q2_fft, FFT::backward);
-    // do not need to divide it by V; cancel by the V factor coming from summation over x (position of Hw)
-
-    rst_q1 = rst_q1 * std::exp(- env.M_K * t_wall);
-    rst_q2 = rst_q2 * std::exp(- env.M_K * t_wall);
-    rst_q1_avg += rst_q1;
-    rst_q2_avg += rst_q2;
-
+  // FFT theFFT((GridCartesian *)loop1._grid);
+  // LatticeLorentzColour loop1_fft(loop1._grid), loop2_fft(loop1._grid);
+  // theFFT.FFT_all_dim(loop1_fft, loop1, FFT::forward);
+  // theFFT.FFT_all_dim(loop2_fft, loop2, FFT::forward);
+  //
+  // LatticeKGG rst_q1_fft(env.grid), rst_q2_fft(env.grid);
+  // theFFT.FFT_all_dim(ret_u, ret_u_fft, FFT::backward);
+  //
+  // LatticeKGG rst_q1(env.grid), rst_q2(env.grid);
+  //
+  //   rst_q1 = traceC(loop1) * traceC(loop2);
+  //   rst_q2 = traceC(loop1 * loop2);
 
     // LatticePGG loop2(env.grid);
     // loop2 = loop2_1 - loop2_2;
@@ -172,11 +158,8 @@ LatticeKGG typeI(Env &env, int t_min) {
 
     // rst = (4. / 9.) * l1 * (l2_2 - l2_1);
 
+    break;
   }
-
-
-  LatticeKGG rst(env.grid);
-  rst = (env.wilson_c1 * rst_q1_avg + env.wilson_c2 * rst_q2_avg) * (1. / (double) env.xgs_s.size());
 
   std::cout << GridLogMessage << std::endl;
   return rst;
@@ -210,8 +193,8 @@ int main(int argc, char* argv[])
 
     // /////////////////////
 
-    LatticeKGG t1 = typeI(env, t_min);
-    writeScidac(t1, "/projects/CSC249ADSE03/yidizhao/KGG_config/24ID/typeI/KGG_typeI." + to_string(traj));
+    std::vector<int> v {0,0,0,0};
+    LatticeKGG t1 = typeI(env, v, t_min);
     // LatticePGG t1 = typeI(env, v, t_min);
     // std::cout << t1 << std::endl;
 

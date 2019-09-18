@@ -42,15 +42,14 @@ void form_factor_integrand(LatticePGG &lat, double Mpi_lat) {
 
 
 
-std::vector<double> form_factor(const LatticePGG &three_point, const LatticePGG &leptonic, double hadron_coeff, double Mpi_lat) {
+std::vector<double> form_factor(const LatticePGG &three_point, const LatticePGG &leptonic, double hadron_coeff, double lep_coeff) {
 
-  
 	std::vector<double> ret = mult_HL_cutoff(three_point, leptonic);
 
-  double Fpi = 93. * (Mpi_lat / 135.); // Fpi = 93MeV. Convert Fpi to lattice unit
-  double other_coeff = 8 * M_PI * M_PI * Fpi / Mpi_lat / Mpi_lat / Mpi_lat / Mpi_lat; // F_\pi = 0.092424
+  // double other_coeff = 8 * M_PI * M_PI * Fpi / Mpi_lat / Mpi_lat / Mpi_lat / Mpi_lat;
   std::vector<double> F(ret.size());
-  for(int i=0; i<ret.size(); ++i) F[i] = hadron_coeff * other_coeff * ret[i];
+  for(int i=0; i<ret.size(); ++i) F[i] = hadron_coeff * lep_coeff * ret[i];
+
   return F;
 }
 

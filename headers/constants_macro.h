@@ -6,9 +6,15 @@
 /////////////////////////////////////
 
 // 24ID
+//
 
-// FIXME: there is no this directory. prop-point-src is gone; only chvp-point-src is left
-// chvp-point-src cannot be read with double from float
+
+std::string Kaon_four_point_24ID(int traj) {
+  std::string path = "/projects/CSC249ADSE03/yidizhao/KGG_config/24ID/typeI/KGG_typeI." + std::to_string(traj);
+  assert(dirExists(path));
+  return path;
+}
+
 std::string point_path_24ID(int traj) {
   std::string path = "/home/ljin/application/Public/Muon-GM2-cc/jobs/24D/discon-1/results/prop-hvp ; results=" + std::to_string(traj) + "/huge-data/prop-point-src";
   assert(dirExists(path));

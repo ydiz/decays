@@ -134,7 +134,18 @@ void init_para(int argc, char **argv, Jack_para &para)
     para.traj_sep = 20;
     para.traj_skip = {1450, 1470, 1490};
   }
+  ///////////////////////////// Kaon /////////////////////
+  else if(para.ensemble == "Kaon_24ID") {
+    para.M_h = 0.504154;
+    para.N_h = 100; // FIXME: update this
+    para.Z_V = 0.72672;
 
+    para.lat_size = {24, 24, 24, 64};
+    para.traj_start = 2300;
+    para.traj_end = 2400;
+    para.traj_sep = 100;
+    para.traj_skip = {};
+  }
   else assert(0);
 
   para.hadron_coeff = 1./ (3 * std::sqrt(2)) * para.Z_V * para.Z_V * 2. * para.M_h / para.N_h;
@@ -161,7 +172,15 @@ void init_para(int argc, char **argv, Jack_para &para)
     para.lep_coeff = me / para.M_h * M_PI / 137. / 137. * (1. / beta * std::log((1 + beta) / (1 - beta)));
   }
   else if(para.target=="imag_CUBA3d") para.lep_coeff = 1. / 2. / 137. / 137. * me;
-  else if(para.target=="form_factor") ;
+  else if(para.target=="form_factor") {
+    para.lep_coeff = 2. / std::pow(para.M_h, 4);
+
+    if(para.ensemble.substr(0,4)=="Pion") { // For pion, calculate F / F_ABJ instead of F itself
+      double Fpi = 93. * (para.M_h / 135.); // Fpi = 93MeV. Convert Fpi to lattice unit;  // F_\pi = 0.092424
+      double F_ABJ = 1. / (4. * M_PI * M_PI) / Fpi;
+      para.lep_coeff /= F_ABJ;
+    }
+  }
   else assert(0);
 
 

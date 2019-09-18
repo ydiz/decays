@@ -24,6 +24,9 @@ public:
   GridCartesian *grid;
   std::string ensemble;
   int traj;
+  double M_K; // mass of kaon in lattice unit
+  double wilson_c1; // wilson coefficient for q1
+  double wilson_c2; // wilson coefficient for q2
 
   std::vector<std::vector<int>> xgs_l;
   std::vector<std::vector<int>> xgs_s;
@@ -52,6 +55,13 @@ private:
 Env::Env(const std::vector<int> &_lat, const std::string &_ensemble) {
   grid = SpaceTimeGrid::makeFourDimGrid(_lat, GridDefaultSimd(Nd,vComplex::Nsimd()), GridDefaultMpi());
   ensemble = _ensemble;
+
+  if(ensemble=="24ID") {
+    M_K = 0.504154;
+    wilson_c1 = 1.; // FIXME: need to update wilson coefficient
+    wilson_c2 = 1.;
+  }
+  else assert(0);
 }
 
 void Env::setup_traj(int _traj) {
@@ -64,13 +74,13 @@ void Env::setup_traj(int _traj) {
 
 LatticePropagator Env::get_point_l(const std::vector<int> &src) const {
   LatticePropagator point_prop(grid);
-  read_qlat_propagator(point_prop, point_subdirs_l.at(src));
+  read_qlat_propagator_no_dist(point_prop, point_subdirs_l.at(src));
   return point_prop;
 }
 
 LatticePropagator Env::get_point_s(const std::vector<int> &src) const {
   LatticePropagator point_prop(grid);
-  read_qlat_propagator(point_prop, point_subdirs_s.at(src));
+  read_qlat_propagator_no_dist(point_prop, point_subdirs_s.at(src));
   return point_prop;
 }
 

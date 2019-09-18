@@ -9,6 +9,24 @@
 #include <qlat/grid.h>
 #include <headers/pGG.h>
 
+namespace qlat{
+
+// this function is deleted in new version of QLattice
+inline void gt_inverse(GaugeTransform& gt, const GaugeTransform& gt0)
+{
+  TIMER("gt_inverse");
+  gt.init(geo_resize(gt0.geo));
+  const Geometry& geo = gt.geo;
+  qassert(is_matching_geo_mult(gt.geo, gt0.geo));
+#pragma omp parallel for
+  for (long index = 0; index < geo.local_volume(); ++index) {
+    const Coordinate xl = geo.coordinate_from_index(index);
+    gt.get_elem(xl) = matrix_adjoint(gt0.get_elem(xl));
+  }
+}
+
+}
+
 
 std::vector<int> read_mpi_coor(const std::string &prefix) {
 
@@ -247,8 +265,20 @@ void read_loop(LatticeLoop &lat, const std::string &path) {
 // for both wall and point propagators
 void read_qlat_propagator(LatticePropagator &lat, const std::string &path) {
 	qlat::Propagator4d qlat_prop;
+    // std::cout << GridLogMessage << "before reading" << std::endl;
 	dist_read_field_double_from_float(qlat_prop, path);
+    // std::cout << GridLogMessage << "after reading" << std::endl;
 	grid_convert(lat, qlat_prop);
+    // std::cout << GridLogMessage << "after grid_convert" << std::endl;
+}
+
+void read_qlat_propagator_no_dist(LatticePropagator &lat, const std::string &path) {
+	qlat::Propagator4d qlat_prop;
+    std::cout << GridLogMessage << "no dist before reading" << std::endl;
+	read_field_double_from_float(qlat_prop, path);
+    std::cout << GridLogMessage << "no dist after reading" << std::endl;
+	grid_convert(lat, qlat_prop);
+    // std::cout << GridLogMessage << "no dist after grid_convert" << std::endl;
 }
 
 void read_cheng_PGG(LatticePGG &lat, const std::string &path) {

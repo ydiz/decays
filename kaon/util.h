@@ -20,6 +20,13 @@ void exp_lat(LatticeComplex &lat, double coeff) {
 	}
 }
 
+template<class vobj> 
+void pokeLorentz(Lattice<vobj> &lhs, const Lattice<decltype(peekIndex<LorentzIndex>(vobj(),0,0))> & rhs, int i, int j)
+{
+  PokeIndex<LorentzIndex>(lhs,rhs,i,j);
+}
+
+
 }}
 
 // template<typename T>

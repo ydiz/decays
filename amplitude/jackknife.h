@@ -127,13 +127,21 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
     std::string file = three_point_disc2_32ID(traj);
     readScidac(three_point, file);
     three_point = real(three_point) * pp;
+  }  
+  ////////////////// Kaon //////////////////
+  else if(ensemble == "Kaon_24ID") { // kaon four point function should be (1) a real function, (2) H(0, x); not shift to H(-w/2, w/2)
+    std::string file = Kaon_four_point_24ID(traj);
+    readScidac(three_point, file);
+    three_point = real(three_point) * pp;
   }
   else assert(0);
-  if(target=="form_factor") three_point = three_point / pp;
+
+  if(target=="form_factor" && ensemble!="Pion_24ID_disc") three_point = three_point / pp; // the three point function is <J(0) J(x)|pi >, not <J(-w/2) J(w/2) | pi>
 }
 
 std::vector<double> Jack_para::get_result_with_cutoff(const LatticePGG &three_point, const LatticePGG &leptonic) {
-  if(target=="form_factor") return form_factor(three_point, leptonic, hadron_coeff, M_h);
+  // if(target=="form_factor") return form_factor(three_point, leptonic, hadron_coeff, M_h);
+  if(target=="form_factor") return form_factor(three_point, leptonic, hadron_coeff, lep_coeff);
   else if(target == "real" || target == "real_CUBA3d" || target=="imag_analytic" || target == "imag_CUBA3d") {
     return calculate_decay_amplitude_cutoff(three_point, leptonic, lep_coeff, hadron_coeff);
   }
