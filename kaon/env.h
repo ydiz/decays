@@ -110,14 +110,11 @@ void Env::read_wall_src_props(std::vector<LatticePropagator> &wall_props, char q
 
   std::cout << "reading wall source propagators and applying gauge transformations" << std::endl;
   for(int t=0; t<wall_props[0]._grid->_fdimensions[Tdir]; ++t) {
-    std::cout << GridLogMessage << "before reading" << std::endl;
     if(quark=='l') read_qlat_propagator(wall_props[t], wall_path_l(t));
     else if(quark=='s') read_qlat_propagator(wall_props[t], wall_path_s(t));
     else assert(0);
-    std::cout << GridLogMessage << "after reading" << std::endl;
 
     wall_props[t] = gt * wall_props[t];
-    std::cout << GridLogMessage << "after gt" << std::endl;
   }
 }
 
