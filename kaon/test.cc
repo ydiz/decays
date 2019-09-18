@@ -51,14 +51,25 @@ LatticePGG typeI(const Env &env, const std::vector<int> &v, int t_min) {
     // the second loop J-Hw-K
     LatticePGG loop2(env.grid);
     int T = env.grid->_fdimensions[3];
+    int t_wall = x[3] - T;
 
-    parallel_for(int ss=0; ss<ret._grid->lSites(); ss++){
-
-      std::vector<int> lcoor, gcoor;
-      localIndexToLocalGlobalCoor(ret._grid, ss, lcoor, gcoor);
-
-    int t_wall = leftPoint(v[3], x[3], T) - t_min; // the first argument is the time to be shifted to 0
-    }
+    // parallel_for(int ss=0; ss<ret._grid->lSites(); ss++){
+    //
+    //   std::vector<int> lcoor, gcoor;
+    //   localIndexToLocalGlobalCoor(ret._grid, ss, lcoor, gcoor);
+    //   std::vector<int> &v = gcoor;
+    //   int t_wall = leftPoint(v[3], x[3], T) - t_min;
+    // if(t_wall < 0) t_wall += T; // if wall is on the left side of the current
+    //
+    // typename LatticePropagator::vector_object::scalar_object x_to_v_l, x_to_v_s, wall_to_v_l, wall_to_x_l, wall_to_v_s, wall_to_x_s;
+    // // peekLocalSite(wall_to_xp, wall_props[t_wall], lcoor);
+    // peekLocalSite(x_to_v_l, pl, lcoor);
+    // peekLocalSite(x_to_v_s, ps, v);
+    // peekLocalSite(wall_to_v_l, wl[t_wall], v);
+    // peekLocalSite(wall_to_v_s, ws[t_wall], v);
+    // peekLocalSite(wall_to_x_l, wl[t_wall], x);
+    // peekLocalSite(wall_to_x_s, ws[t_wall], x);
+    // }
 
     int t_wall = leftPoint(v[3], x[3], T) - t_min; // the first argument is the time to be shifted to 0
     if(t_wall < 0) t_wall += T; // if wall is on the left side of the current
