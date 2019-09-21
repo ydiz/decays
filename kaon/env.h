@@ -58,8 +58,8 @@ Env::Env(const std::vector<int> &_lat, const std::string &_ensemble) {
 
   if(ensemble=="24ID") {
     M_K = 0.504154;
-    wilson_c1 = 1.; // FIXME: need to update wilson coefficient
-    wilson_c2 = 1.;
+    wilson_c1 = -0.3735505346; // FIXME: need to update wilson coefficient // this number is Daiqian thesis for mu=1.53GeV
+    wilson_c2 = 1.189590707;
   }
   else assert(0);
 }

@@ -60,8 +60,12 @@ void init_para(int argc, char **argv, Jack_para &para)
       para.BR_coeff = Gamma_coeff / Gamma_photons;
   }
   else if(para.ensemble.substr(0,4)=="Kaon") {
-    //TODO
-    para.BR_coeff = 0.;
+    double m_mu = 105658000;
+    double M_K = 497611000;
+    double beta = std::sqrt(1 - 4*m_mu*m_mu / (M_K*M_K));
+    double Gamma_coeff = 2.0 * beta / (16 * M_PI * M_K); // the first factor 2.0 comes from adding two possible polarizations
+    double Gamma_photons = 7.037567e-12;
+    para.BR_coeff = Gamma_coeff / Gamma_photons;
   }
   else assert(0);
   assert(para.BR_coeff != 0.);
@@ -137,7 +141,8 @@ void init_para(int argc, char **argv, Jack_para &para)
   ///////////////////////////// Kaon /////////////////////
   else if(para.ensemble == "Kaon_24ID") {
     para.M_h = 0.504154;
-    para.N_h = 100; // FIXME: update this
+    para.N_h = 53.3291; // FIXME: update this
+    std::cout << "Using the N_h from 32ID ensemble; Update this when 24ID has more s quark wall propagators" << std::endl;
     para.Z_V = 0.72672;
 
     para.lat_size = {24, 24, 24, 64};
@@ -148,7 +153,16 @@ void init_para(int argc, char **argv, Jack_para &para)
   }
   else assert(0);
 
-  para.hadron_coeff = 1./ (3 * std::sqrt(2)) * para.Z_V * para.Z_V * 2. * para.M_h / para.N_h;
+  // hadron_coeff
+  if(para.ensemble.substr(0,4)=="Pion") {
+    para.hadron_coeff = 1./ (3 * std::sqrt(2)) * para.Z_V * para.Z_V * 2. * para.M_h / para.N_h;
+  }
+  if(para.ensemble.substr(0,4)=="Kaon") {
+    double Vud = 0.97446, Vus = 0.22452;
+    double G_F = 1.1663787e-5 * std::pow(para.M_h / 0.497611, -2); // G_F in lattice unit // unit of G_F is GeV^-2. Thus,  G_{F, lat} / G_F = (M_{K,lat} / M_K)^-2
+    para.hadron_coeff = (G_F * Vud * Vus/ std::sqrt(2)) * para.Z_V * para.Z_V * 2. * para.M_h / para.N_h;
+  }
+  else assert(0);
 
   // trajectoies
   for(int t: para.traj_skip) assert(t > para.traj_start && t < para.traj_end);
