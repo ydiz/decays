@@ -10,7 +10,9 @@
 
 
 std::string Kaon_four_point_24ID(int traj) {
-  std::string path = "/projects/CSC249ADSE03/yidizhao/KGG_config/24ID/typeI/KGG_typeI." + std::to_string(traj);
+  // std::string path = "/projects/CSC249ADSE03/yidizhao/KGG_config/24ID/typeI/old/KGG_typeI." + std::to_string(traj);
+  // std::string path = "/home/yidizhao/cooley/decays/kaon/KGG_typeI." + std::to_string(traj);
+  std::string path = "/home/yidizhao/cooley/decays/kaon/old_config/KGG_typeI." + std::to_string(traj);
   assert(dirExists(path));
   return path;
 }

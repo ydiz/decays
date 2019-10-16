@@ -3,6 +3,39 @@
 namespace Grid {
 namespace QCD {
 
+int left_distance(int t1, int t2, int T) { // the distance from t1 to t2 if you can only move to the left 
+  int tmp = t1 - t2;
+  if(tmp >= 0) return tmp;
+  else return T+tmp;
+}
+
+int right_distance(int t1, int t2, int T) { // the distance from t1 to t2 if you can only move to the right
+  int rst = T - left_distance(t1, t2, T);
+  if(rst==T) return 0;
+  else return rst;
+}
+
+void zero_mask(LatticeComplex &lat, int t_wall, int right_min = 5) {
+  int T = lat._grid->_fdimensions[3];
+  std::vector<int> vec(T);
+  for(int t=0; t<T; ++t) {
+    if(left_distance(t_wall, t, T) < T/2 || right_distance(t_wall, t, T) < right_min) vec[t] = 0.;
+    else vec[t] = 1.;
+  }
+  
+	parallel_for(int ss=0; ss<lat._grid->lSites(); ss++){
+    std::vector<int> lcoor, gcoor;
+    localIndexToLocalGlobalCoor(lat._grid, ss, lcoor, gcoor);
+
+    int t = gcoor[3];
+		typename LatticeComplex::vector_object::scalar_object m;
+		m()()() = Complex(vec[t], 0.);
+		pokeLocalSite(m, lat, lcoor);
+  }
+}
+
+
+
 // return exp(coeff * t_x), where tx is in [-T/2, T/2]
 void exp_lat(LatticeComplex &lat, double coeff) {
 

@@ -18,6 +18,45 @@ std::array<const Gamma, 4> gmu5 = { // gamma_mu * gamma5
 std::array<const GammaL, 4> gL {GammaL(gmu[0]), GammaL(gmu[1]), GammaL(gmu[2]), GammaL(gmu[3])};
 
 
+using LatticeKGG = Lattice<iMatrix<iScalar<iScalar<vComplex> >, 4>>;
+using LatticeLorentzColour = Lattice<iMatrix<iScalar<iMatrix<vComplex, 3> >, 4>>;
+
+template<typename vtype>
+inline iColourMatrix<vtype> traceS(const iSpinColourMatrix<vtype> &p) {
+  iColourMatrix<vtype> rst;
+  rst()() = p()(0,0);
+  for(int mu=1; mu<4; ++mu) rst()() += p()(mu,mu);
+  return rst;
+}
+
+LatticeColourMatrix traceS(const LatticePropagator &p) {
+  LatticeColourMatrix rst(p._grid);
+  parallel_for(int ss=0; ss<p._grid->oSites(); ++ss)
+    rst._odata[ss] = traceS(p._odata[ss]);
+  return rst;
+}
+
+inline iMatrix<iScalar<iScalar<vComplex>>, 4> traceC(const iMatrix<iScalar<iMatrix<vComplex, 3> >, 4> &p) {
+  iMatrix<iScalar<iScalar<vComplex>>, 4> rst;
+  rst = zero;
+  for(int mu=0; mu<4; ++mu)
+    for(int nu=0; nu<4; ++nu)
+      for(int c=0; c<3; ++c) {
+        rst(mu, nu)()() += p(mu, nu)()(c, c);
+      }
+
+  return rst;
+}
+
+
+LatticeKGG traceC(const LatticeLorentzColour &p) {
+  LatticeKGG rst(p._grid);
+  parallel_for(int ss=0; ss<p._grid->oSites(); ++ss) {
+    rst._odata[ss] = traceC(p._odata[ss]);
+  }
+  return rst;
+}
+
 class Env {
 public:
   // std::vector<int> lat_size;
@@ -35,7 +74,9 @@ public:
   LatticePropagator get_point_l(const std::vector<int> &src) const;
   LatticePropagator get_point_s(const std::vector<int> &src) const;
   std::vector<LatticePropagator> get_wall_l() const;
+  LatticePropagator get_wall_l(int t) const;
   std::vector<LatticePropagator> get_wall_s() const;
+  LatticePropagator get_wall_s(int t) const;
 
   Env(const std::vector<int> &_lat, const std::string &_ensemble);
 
@@ -47,6 +88,7 @@ private:
   std::string gauge_transform_path() const;
 
   void read_wall_src_props(std::vector<LatticePropagator> &wall_props, char quark) const;
+  void read_wall_src_props(LatticePropagator &wall_prop, char quark, int t) const;
 
   std::map<std::vector<int>, std::string> point_subdirs_l;
   std::map<std::vector<int>, std::string> point_subdirs_s;
@@ -90,6 +132,11 @@ std::vector<LatticePropagator> Env::get_wall_l() const {
   return wall_props;
 }
 
+LatticePropagator Env::get_wall_l(int t) const {
+  LatticePropagator wall_prop(grid);
+  read_wall_src_props(wall_prop, 'l', t);
+  return wall_prop;
+}
 
 std::vector<LatticePropagator> Env::get_wall_s() const {
   std::vector<LatticePropagator> wall_props(grid->_fdimensions[Tdir], grid);
@@ -97,10 +144,13 @@ std::vector<LatticePropagator> Env::get_wall_s() const {
   return wall_props;
 }
 
+LatticePropagator Env::get_wall_s(int t) const {
+  LatticePropagator wall_prop(grid);
+  read_wall_src_props(wall_prop, 's', t);
+  return wall_prop;
+}
 
 ////////////////////////////
-//
-//
 
 
 void Env::read_wall_src_props(std::vector<LatticePropagator> &wall_props, char quark) const {
@@ -126,6 +176,29 @@ void Env::read_wall_src_props(std::vector<LatticePropagator> &wall_props, char q
 
     wall_props[t] = gt * wall_props[t];
   }
+}
+
+
+void Env::read_wall_src_props(LatticePropagator &wall_prop, char quark, int t) const {
+  using namespace qlat;
+
+  // read gauge transformation
+  GaugeTransform qlat_gtinv;
+  {
+    GaugeTransform qlat_gt;
+    dist_read_field(qlat_gt, gauge_transform_path());
+    to_from_big_endian_64(get_data(qlat_gt)); 
+    gt_inverse(qlat_gtinv, qlat_gt);
+  }
+  LatticeColourMatrix gt(wall_prop._grid);
+  grid_convert(gt, qlat_gtinv);
+
+  std::cout << "reading wall source propagators and applying gauge transformations" << std::endl;
+  if(quark=='l') read_qlat_propagator(wall_prop, wall_path_l(t));
+  else if(quark=='s') read_qlat_propagator(wall_prop, wall_path_s(t));
+  else assert(0);
+
+  wall_prop = gt * wall_prop;
 }
 
 

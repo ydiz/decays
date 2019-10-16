@@ -146,7 +146,9 @@ void init_para(int argc, char **argv, Jack_para &para)
     para.Z_V = 0.72672;
 
     para.lat_size = {24, 24, 24, 64};
-    para.traj_start = 2300;
+    // para.traj_start = 2300;
+    // para.traj_end = 2300;
+    para.traj_start = 2400;
     para.traj_end = 2400;
     para.traj_sep = 100;
     para.traj_skip = {};
