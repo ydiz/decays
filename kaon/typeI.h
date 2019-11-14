@@ -1,10 +1,7 @@
 #pragma once
 
 
-#include <headers/headers.h>
-#include "env.h"
-#include "util.h"
-
+#include "kaon.h"
 
 namespace Grid {
 namespace QCD {

@@ -1,0 +1,2 @@
+mpiicpc -I/sdcc/u/ydzhao/install/Grid/include -I/sdcc/u/ydzhao/install/hdf5-1.10.1/include -I/sdcc/u/ydzhao/install/LIME/include -fopenmp -std=c++11 -xmic-avx512 -D BNL  -I/sdcc/u/ydzhao/decays -I/sdcc/u/ydzhao/src/Qlattice -c test.cc
+mpiicpc -L/sdcc/u/ydzhao/bld/grid/Grid -L/sdcc/u/ydzhao/install/hdf5-1.10.1/lib -L/sdcc/u/ydzhao/install/LIME/lib -fopenmp -g -o test test.o -lGrid -lhdf5_cpp -lnuma -lz -lcrypto -llime -lmpfr -lgmp -lmkl_rt -lstdc++ -lm -lz -lnuma -lhdf5

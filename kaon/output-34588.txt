@@ -1,0 +1,71 @@
+Currently Loaded Modulefiles:
+  1) gcc/6.1.0        2) intel/PSXE2019
+SharedMemoryMpi:  World communicator of size 2
+SharedMemoryMpi:  Node  communicator of size 2
+SharedMemoryMpi: SharedMemoryAllocate 1073741824 SHMOPEN implementation 
+
+__|__|__|__|__|__|__|__|__|__|__|__|__|__|__
+__|__|__|__|__|__|__|__|__|__|__|__|__|__|__
+__|_ |  |  |  |  |  |  |  |  |  |  |  | _|__
+__|_                                    _|__
+__|_   GGGG    RRRR    III    DDDD      _|__
+__|_  G        R   R    I     D   D     _|__
+__|_  G        R   R    I     D    D    _|__
+__|_  G  GG    RRRR     I     D    D    _|__
+__|_  G   G    R  R     I     D   D     _|__
+__|_   GGGG    R   R   III    DDDD      _|__
+__|_                                    _|__
+__|__|__|__|__|__|__|__|__|__|__|__|__|__|__
+__|__|__|__|__|__|__|__|__|__|__|__|__|__|__
+  |  |  |  |  |  |  |  |  |  |  |  |  |  |  
+
+
+Copyright (C) 2015 Peter Boyle, Azusa Yamaguchi, Guido Cossu, Antonin Portelli and other authors
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+Current Grid git commit hash is undefined. Check makefile.
+
+Grid : Message : ================================================ 
+Grid : Message : MPI is initialised and logging filters activated 
+Grid : Message : ================================================ 
+Grid : Message : Requested 1073741824 byte stencil comms buffers 
+Grid : Message : 2.398565 s : Grid Default Decomposition patterns
+Grid : Message : 2.398631 s : 	OpenMP threads : 256
+Grid : Message : 2.398666 s : 	MPI tasks      : 1 1 1 2 
+Grid : Message : 2.398741 s : 	vRealF         : 512bits ; 2 2 2 2 
+Grid : Message : 2.398792 s : 	vRealD         : 512bits ; 1 2 2 2 
+Grid : Message : 2.398899 s : 	vComplexF      : 512bits ; 1 2 2 2 
+Grid : Message : 2.398949 s : 	vComplexD      : 512bits ; 1 1 2 2 
+********************
+traj_start: 2300
+traj_end: 2300
+traj_sep: 100
+traj_num: 1
+********************
+[traj: 2300]
+number of point sources: 512
+point src x: [15 13 0 6]
+Grid : Message : 13.318597 s : IOobject: MPI read I/O /hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/point_l/2300/15,13,0,6
+Grid : Message : 19.875726 s : IOobject:  read  1019215872 bytes in 3.460572 s 294.522 MB/s 
+Grid : Message : 19.876283 s : IOobject: endian and checksum overhead 3.965150 s
+Grid : Message : 19.907681 s : readLatticeObject: vectorize overhead 0.302470 s
+Grid : Message : 19.948255 s : SciDAC checksum A 6bcd55c4
+Grid : Message : 19.950735 s : SciDAC checksum B ce858d8
+Grid : Message : 19.978107 s : Field norm: metadata= 14.2027 / field= 14.2027 / rdiff= 2.02697e-07
+Grid : Message : 23.484680 s : IOobject: MPI read I/O /hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/point_s/2300/15,13,0,6
+Grid : Message : 26.692660 s : IOobject:  read  1019215872 bytes in 2.972308 s 342.904 MB/s 
+Grid : Message : 26.738840 s : IOobject: endian and checksum overhead 0.474930 s
+Grid : Message : 26.121270 s : readLatticeObject: vectorize overhead 0.249650 s
+Grid : Message : 26.180287 s : SciDAC checksum A f2663348
+Grid : Message : 26.181779 s : SciDAC checksum B c64a9dc2
+Grid : Message : 26.359052 s : Field norm: metadata= 1.58651 / field= 1.58651 / rdiff= 7.94048e-08
+t_wall: 50
+Grid : Message : 28.475209 s : IOobject: MPI read I/O /hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/wall_l/2300/50

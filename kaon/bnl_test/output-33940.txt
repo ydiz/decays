@@ -1,0 +1,2 @@
+slurmstepd: error: execve(): /direct/sdcc+u/ydzhao/decays/kaon/test/./convert_wall: No such file or directory
+srun: error: knlhost001: task 0: Exited with exit code 2

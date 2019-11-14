@@ -1,0 +1,18 @@
+Before Grid init
+Before Grid init
+Before Grid init
+Before Grid init
+knlhost093.sdcc.bnl.local:CMA:5be:1bc2700: 30945 us(30945 us): dapl_cma_active: non-consumer REJ, reason=8, DST 10.42.8.103, 17536
+[2:knlhost093.sdcc.bnl.local] unexpected DAPL event 0x4003
+Fatal error in PMPI_Init_thread: Internal MPI error!, error stack:
+MPIR_Init_thread(799): fail failed
+MPID_Init(1769)......: channel initialization failed
+MPIDI_CH3_Init(147)..: fail failed
+(unknown)(): Internal MPI error!
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** STEP 34068.0 ON knlhost084 CANCELLED AT 2019-10-31T14:53:17 ***
+slurmstepd: error: *** STEP 34068.0 ON knlhost084 CANCELLED AT 2019-10-31T14:53:17 ***
+srun: error: knlhost094: task 3: Killed
+srun: error: knlhost093: task 2: Killed
+srun: error: knlhost084: task 0: Killed
+srun: error: knlhost089: task 1: Killed

@@ -1,0 +1,8 @@
+srun: error: knlhost084: task 0: Exited with exit code 2
+slurmstepd: error: execve(): /direct/sdcc+u/ydzhao/decays/kaon/bnl_test/./convert_point: No such file or directory
+slurmstepd: error: execve(): /direct/sdcc+u/ydzhao/decays/kaon/bnl_test/./convert_point: No such file or directory
+srun: error: knlhost094: task 3: Exited with exit code 2
+slurmstepd: error: execve(): /direct/sdcc+u/ydzhao/decays/kaon/bnl_test/./convert_point: No such file or directory
+srun: error: knlhost093: task 2: Exited with exit code 2
+slurmstepd: error: execve(): /direct/sdcc+u/ydzhao/decays/kaon/bnl_test/./convert_point: No such file or directory
+srun: error: knlhost089: task 1: Exited with exit code 2
