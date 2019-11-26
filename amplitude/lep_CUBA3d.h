@@ -127,17 +127,20 @@ void get_leptonic_CUBA3d(const std::string &filename_p1, const std::string &file
 	read_integrals_p3(filename_p3, space_limit, time_limit, data_p3);
 	read_integrals_p1(filename_p1, space_limit, time_limit, data_p1);
 
-	parallel_for(int ss=0; ss<lat._grid->lSites(); ss++){
+	parallel_for(int ss=0; ss<lat.Grid()->lSites(); ss++){
 
-    std::vector<int> lcoor, gcoor;
-    localIndexToLocalGlobalCoor(lat._grid, ss, lcoor, gcoor);
+    Coordinate lcoor, gcoor;
+    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
 
-		double val_p3 = get_integral_site_p3(gcoor, data_p3, lat._grid->_fdimensions, space_limit, time_limit); 
-		double val_p1 = get_integral_site_p1(gcoor, data_p1, lat._grid->_fdimensions, space_limit, time_limit); 
+    std::vector<int> gcoor_v(gcoor.begin(), gcoor.end());
+    std::vector<int> fdims_v(lat.Grid()->_fdimensions.begin(), lat.Grid()->_fdimensions.end());
 
-    std::vector<int> gcoor_p2 = gcoor;
+		double val_p3 = get_integral_site_p3(gcoor_v, data_p3, fdims_v, space_limit, time_limit); 
+		double val_p1 = get_integral_site_p1(gcoor_v, data_p1, fdims_v, space_limit, time_limit); 
+
+    std::vector<int> gcoor_p2 = gcoor_v;
     std::swap(gcoor_p2[0], gcoor_p2[1]); // To calculate the integral with p2, just swap x and y coordinates in the integral with p1;
-		double val_p2 = get_integral_site_p1(gcoor_p2, data_p1, lat._grid->_fdimensions, space_limit, time_limit); 
+		double val_p2 = get_integral_site_p1(gcoor_p2, data_p1, fdims_v, space_limit, time_limit); 
 		
 		typename LatticePGG::vector_object::scalar_object m;
 		m = 0.;

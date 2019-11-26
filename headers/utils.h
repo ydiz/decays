@@ -3,14 +3,7 @@
 namespace Grid {
 namespace QCD {
 
-template<class T>
-void print_grid_field_site(const T &field, const std::vector<int> coor) {
-	using namespace Grid;
-	std::cout << "[ " << coor[0] << " " << coor[1] << " " << coor[2] << " " << coor[3] << " ]" << std::endl;
-	typename T::vector_object::scalar_object site;
-	peekSite(site, field, coor);
-	std::cout << site << std::endl;
-}
+
 
 double linear_interpolation(double x, double x_lower, double y_lower, double x_upper, double y_upper) {
 	return ( (x - x_lower) * y_upper +  (x_upper - x) * y_lower ) / (x_upper - x_lower);
@@ -27,6 +20,13 @@ std::vector<int> my_smod(const std::vector<int> &x, const std::vector<int> &L) {
   return ret;
 }
 
+
+Coordinate my_smod(const Coordinate &x, const Coordinate &L) {
+  Coordinate ret(x.size());
+  for(int i=0; i<x.size(); ++i) ret[i] = my_smod(x[i], L[i]);
+  return ret;
+}
+
 template<class T>
 double len(const std::vector<T> &vec){
   double ret = 0.;
@@ -34,12 +34,13 @@ double len(const std::vector<T> &vec){
   return std::sqrt(ret);
 }
 
-void localIndexToLocalGlobalCoor(GridBase *grid, int ss, std::vector<int> &lcoor, std::vector<int> &gcoor) {
+// void localIndexToLocalGlobalCoor(GridBase *grid, int ss, std::vector<int> &lcoor, std::vector<int> &gcoor) {
+void localIndexToLocalGlobalCoor(GridBase *grid, int ss, Coordinate &lcoor, Coordinate &gcoor) {
   // ss is local index; parallel_for(int ss=0; ss<ret._grid->lSites(); ss++)
   lcoor.resize(4);
   gcoor.resize(4);
   grid->LocalIndexToLocalCoor(ss, lcoor);
-  std::vector<int> processor_coor;
+  Coordinate processor_coor;
   grid->ProcessorCoorFromRank(grid->ThisRank(), processor_coor);
   grid->ProcessorCoorLocalCoorToGlobalCoor(processor_coor, lcoor, gcoor);
 }

@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <boost/program_options.hpp>
-#include "jackknife.h"
+#include "env_bnl.h"
 
 namespace po = boost::program_options;
 
@@ -28,8 +28,12 @@ void init_para(int argc, char **argv, Env &env)
 {
   po::options_description desc("kaon options");
   desc.add_options()("help", "help message")
-                    ("T_wall", po::value<int>(&para.T_wall)->default_value(12))
-                    ("T_u", po::value<int>(&para.time_cutoff_end)->default_value(6))
+                    ("T_wall", po::value<int>(&env.T_wall)->default_value(12))
+                    ("T_u", po::value<int>(&env.T_u)->default_value(6))
+                    ("num_points", po::value<int>(&env.num_points)->default_value(30))
+
+                    ("T_wall_typeII", po::value<int>(&env.T_wall_typeII)->default_value(16))
+                    ("num_pairs", po::value<int>(&env.num_pairs)->default_value(30))
                     ;
 
   po::variables_map vm;
@@ -46,7 +50,13 @@ void init_para(int argc, char **argv, Env &env)
   std::cout << std::string(20, '*') << std::endl;
   std::cout << "T_wall: " << env.T_wall << std::endl;
   std::cout << "T_u: " << env.T_u << std::endl;
+  std::cout << "num_points: " << env.num_points << std::endl;
   std::cout << std::string(20, '*') << std::endl;
+  std::cout << "T_wall_typeII: " << env.T_wall_typeII << std::endl;
+  std::cout << "num_pairs: " << env.num_pairs << std::endl;
+  std::cout << std::string(20, '*') << std::endl;
+
+  assert(env.T_u <= env.T_wall);
 }
 
 

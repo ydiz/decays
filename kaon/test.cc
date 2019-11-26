@@ -8,15 +8,15 @@ using namespace Grid::QCD;
 // std::vector<int> gcoor({32, 32, 32, 64});
 std::vector<int> gcoor({24, 24, 24, 64});
 
-LatticeKGG test_t1_q1(Env &env, int t_min, int T_u) {
+LatticeKGG test_t1_q1(Env &env) {
 
   LatticeKGG rst_q1_avg(env.grid), rst_q2_avg(env.grid);
   rst_q1_avg = Zero(); rst_q2_avg = Zero();
 
   // env.xgs_s.erase(env.xgs_s.begin()+1, env.xgs_s.end()); // FIXME: keep only one point
   std::cout << "number of point sources: " << env.xgs_s.size() << std::endl;
-  // env.xgs_s.resize(100);
-  env.xgs_s.resize(30);
+  // env.xgs_s.resize(30);
+  env.xgs_s.resize(env.num_points);
   for(const auto &x: env.xgs_s) {
     std::cout << "point src x: " << x << std::endl;
 
@@ -37,12 +37,13 @@ LatticeKGG test_t1_q1(Env &env, int t_min, int T_u) {
     LatticePropagator ps = env.get_point(x, 's');
 
     int T = env.grid->_fdimensions[3];
-    int t_wall = x[3] - t_min;
+    // int t_wall = x[3] - t_min;
+    int t_wall = x[3] - env.T_wall;
     if(t_wall < 0) t_wall += T;
     std::cout << "t_wall: " << t_wall << std::endl;
 
     LatticeComplex exp_factor(env.grid);
-    expUMinusTwall(exp_factor, t_wall, x[3], T_u, env.M_K);
+    expUMinusTwall(exp_factor, t_wall, x[3], env.T_u, env.M_K);
     // std::cout << exp_factor << std::endl;
     // assert(0);
     loop1 = loop1 * exp_factor;
@@ -86,8 +87,8 @@ LatticeKGG test_t1_q1(Env &env, int t_min, int T_u) {
     std::cout << GridLogMessage << "after fft" << std::endl;
 
     // print_grid_field_site(rst_q1, {1,2,3,4});
+    rst_q1 = rst_q1 * (T / double((2 * env.T_u + 1))); // number of pairs to sum over is not V T. It is V * (2 * T_u + 1) 
 
-    // rst_q1 = rst_q1 * std::exp(- env.M_K * t_wall); // FIXME:
     print_grid_field_site(rst_q1, {1,2,3,4});
     rst_q1_avg += rst_q1;
   }
@@ -104,6 +105,7 @@ int main(int argc, char* argv[])
 {
   Grid_init(&argc, &argv);
 
+
   // int traj_start = 2300, traj_end = 2400, traj_sep = 100; // for 24ID, kaon wall
   int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
   int traj_num = (traj_end - traj_start) / traj_sep + 1;
@@ -118,13 +120,15 @@ int main(int argc, char* argv[])
 
   // int t_min = 20;
   // int t_min = 12;
-  int T_wall = 20;
-  int T_u = 4;
+  // int T_wall = 20;
+  // int T_u = 4;
   Env env(gcoor, "24ID");
+  init_para(argc, argv, env);
+
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
     env.setup_traj(traj);
 
-    LatticeKGG t1 = test_t1_q1(env, T_wall, T_u);
+    LatticeKGG t1 = test_t1_q1(env);
     // LatticeKGG t1 = typeI(env, t_min);
     writeScidac(t1, "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/KGG/KGG_typeI." + to_string(traj));
 

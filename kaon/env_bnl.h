@@ -14,6 +14,14 @@ public:
   double wilson_c1; // wilson coefficient for q1
   double wilson_c2; // wilson coefficient for q2
 
+  int T_wall;
+  int T_u;
+  int num_points;
+
+  // type II
+  int T_wall_typeII;
+  int num_pairs;
+
   std::vector<std::vector<int>> xgs_l;
   std::vector<std::vector<int>> xgs_s;
 

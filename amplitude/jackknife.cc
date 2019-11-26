@@ -22,13 +22,13 @@ int main(int argc, char* argv[])
 {
 
   Grid_init(&argc, &argv);
-  std::vector<int> mpi_coor = GridDefaultMpi();
-  begin(&argc, &argv, Coordinate(mpi_coor[0], mpi_coor[1], mpi_coor[2], mpi_coor[3]));
+  // std::vector<int> mpi_coor = GridDefaultMpi();
+  // begin(&argc, &argv, Coordinate(mpi_coor[0], mpi_coor[1], mpi_coor[2], mpi_coor[3]));
 
   Jack_para para;
   init_para(argc, argv, para);
 
-  GridCartesian * grid = SpaceTimeGrid::makeFourDimGrid(para.lat_size, GridDefaultSimd(Nd,vComplex::Nsimd()), mpi_coor);
+  GridCartesian * grid = SpaceTimeGrid::makeFourDimGrid(para.lat_size, GridDefaultSimd(Nd,vComplex::Nsimd()), GridDefaultMpi());
 
   LatticePGG leptonic(grid);
   para.get_leptonic(leptonic); // generate leptonic part

@@ -8,3 +8,5 @@
 #ifdef BNL
 #include "env_bnl.h"
 #endif
+
+#include "kaon_init.h"

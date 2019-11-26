@@ -7,12 +7,13 @@ namespace QCD {
 
 void form_factor_integrand(LatticePGG &lat, double Mpi_lat) {
 
-	parallel_for(int ss=0; ss<lat._grid->lSites(); ss++){
+	parallel_for(int ss=0; ss<lat.Grid()->lSites(); ss++){
 
-    std::vector<int> lcoor, gcoor;
-    localIndexToLocalGlobalCoor(lat._grid, ss, lcoor, gcoor);
+    // std::vector<int> lcoor, gcoor;
+    Coordinate lcoor, gcoor;
+    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
 
-    gcoor = my_smod(gcoor, lat._grid->_fdimensions);
+    gcoor = my_smod(gcoor, lat.Grid()->_fdimensions);
 
     double w = std::sqrt(gcoor[0]*gcoor[0] + gcoor[1]*gcoor[1] + gcoor[2]*gcoor[2]);
 
@@ -46,7 +47,6 @@ std::vector<double> form_factor(const LatticePGG &three_point, const LatticePGG 
 
 	std::vector<double> ret = mult_HL_cutoff(three_point, leptonic);
 
-  // double other_coeff = 8 * M_PI * M_PI * Fpi / Mpi_lat / Mpi_lat / Mpi_lat / Mpi_lat;
   std::vector<double> F(ret.size());
   for(int i=0; i<ret.size(); ++i) F[i] = hadron_coeff * lep_coeff * ret[i];
 

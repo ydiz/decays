@@ -16,5 +16,5 @@ export OMP_PROC_BIND=spread
 
 #run the application:
 # srun -n 1 -c 64 --cpu_bind=cores ./convert_wall --mpi 1.1.1.1
-srun -n 1 -c 64 --cpu_bind=cores ./test --mpi 1.1.1.1
+mpirun -n 1 ./typeIII --mpi 1.1.1.2 --decomposition 
 

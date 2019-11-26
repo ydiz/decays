@@ -91,7 +91,7 @@ void Jack_para::get_leptonic(LatticePGG &lat) {
 // return <Jmu(-w/2) Jnu(w/2) |pi> / hadron_coeff
 void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
 
-	static LatticeComplex pp(three_point._grid); 
+	static LatticeComplex pp(three_point.Grid()); 
   static bool pp_initialzed = false;
   if(!pp_initialzed) {
     get_translational_factor(pp, M_h); // translational factor 

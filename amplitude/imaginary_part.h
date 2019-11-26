@@ -7,12 +7,13 @@ namespace QCD {
 
 void imag_part(LatticePGG &lat, double Mpi_lat) {
 
-	parallel_for(int ss=0; ss<lat._grid->lSites(); ss++){
+	parallel_for(int ss=0; ss<lat.Grid()->lSites(); ss++){
 
-    std::vector<int> lcoor, gcoor;
-    localIndexToLocalGlobalCoor(lat._grid, ss, lcoor, gcoor);
+    // std::vector<int> lcoor, gcoor;
+    Coordinate lcoor, gcoor;
+    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
 
-    gcoor = my_smod(gcoor, lat._grid->_fdimensions);
+    gcoor = my_smod(gcoor, lat.Grid()->_fdimensions);
 
     double w = std::sqrt(gcoor[0]*gcoor[0] + gcoor[1]*gcoor[1] + gcoor[2]*gcoor[2] );
 

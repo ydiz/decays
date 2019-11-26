@@ -8,25 +8,28 @@ namespace Grid{
 namespace QCD{
 
 std::vector<double> mult_HL_cutoff(const LatticePGG &hadronic, const LatticePGG &leptonic) {
-  LatticeComplex tmp(hadronic._grid);
+  LatticeComplex tmp(hadronic.Grid());
   tmp = 0.;
 
-  parallel_for(int ss=0; ss<tmp._grid->oSites(); ++ss){
-    tmp[ss]()()() = hadronic[ss]()()(0, 1) * leptonic[ss]()()(0, 1) + hadronic[ss]()()(1, 0) * leptonic[ss]()()(1, 0); 
-    tmp[ss]()()() += hadronic[ss]()()(0, 2) * leptonic[ss]()()(0, 2) + hadronic[ss]()()(2, 0) * leptonic[ss]()()(2, 0); 
-    tmp[ss]()()() += hadronic[ss]()()(2, 1) * leptonic[ss]()()(2, 1) + hadronic[ss]()()(1, 2) * leptonic[ss]()()(1, 2); 
+  auto tmp_v = tmp.View();
+  auto h_v = hadronic.View();
+  auto l_v = leptonic.View();
+  parallel_for(int ss=0; ss<tmp.Grid()->oSites(); ++ss){
+    tmp_v[ss]()()() = h_v[ss]()()(0, 1) * l_v[ss]()()(0, 1) + h_v[ss]()()(1, 0) * l_v[ss]()()(1, 0); 
+    tmp_v[ss]()()() += h_v[ss]()()(0, 2) * l_v[ss]()()(0, 2) + h_v[ss]()()(2, 0) * l_v[ss]()()(2, 0); 
+    tmp_v[ss]()()() += h_v[ss]()()(2, 1) * l_v[ss]()()(2, 1) + h_v[ss]()()(1, 2) * l_v[ss]()()(1, 2); 
   }
 
   // // int space_cutoff = 16;
   // int space_cutoff = 6;
   // std::cout << "space cutoff: " << space_cutoff << std::endl;
-  // parallel_for(int ss=0; ss<tmp._grid->lSites(); ss++){
+  // parallel_for(int ss=0; ss<tmp.Grid()->lSites(); ss++){
   //   std::vector<int> lcoor, gcoor;
-  //   localIndexToLocalGlobalCoor(tmp._grid, ss, lcoor, gcoor);
+  //   localIndexToLocalGlobalCoor(tmp.Grid(), ss, lcoor, gcoor);
   //
-  //   if( (gcoor[0]>space_cutoff && gcoor[0]<tmp._grid->_fdimensions[0] - space_cutoff) ||
-  //       (gcoor[1]>space_cutoff && gcoor[1]<tmp._grid->_fdimensions[1] - space_cutoff) ||
-  //       (gcoor[2]>space_cutoff && gcoor[2]<tmp._grid->_fdimensions[2] - space_cutoff)  ) {
+  //   if( (gcoor[0]>space_cutoff && gcoor[0]<tmp.Grid()->_fdimensions[0] - space_cutoff) ||
+  //       (gcoor[1]>space_cutoff && gcoor[1]<tmp.Grid()->_fdimensions[1] - space_cutoff) ||
+  //       (gcoor[2]>space_cutoff && gcoor[2]<tmp.Grid()->_fdimensions[2] - space_cutoff)  ) {
   //
   //     typename LatticeComplex::vector_object::scalar_object tmp_site; //  this has to be defined within parallel_for
   //     tmp_site = 0.;
@@ -34,7 +37,7 @@ std::vector<double> mult_HL_cutoff(const LatticePGG &hadronic, const LatticePGG 
   //   }
   // }
 
-  int T = hadronic._grid->_fdimensions[Tdir];
+  int T = hadronic.Grid()->_fdimensions[Tdir];
 
   std::vector<iSinglet<Complex>> ret(T);
   sliceSum(tmp, ret, Tdir);

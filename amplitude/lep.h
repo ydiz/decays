@@ -62,14 +62,16 @@ void get_leptonic(const std::string &filename, LatticePGG &lat, int space_limit,
 	std::vector<std::vector<double>> data;
 	read_integrals(filename, space_limit, time_limit, data);
 
-	parallel_for(int ss=0; ss<lat._grid->lSites(); ss++){
+	parallel_for(int ss=0; ss<lat.Grid()->lSites(); ss++){
 
-    std::vector<int> lcoor, gcoor;
-    localIndexToLocalGlobalCoor(lat._grid, ss, lcoor, gcoor);
+    Coordinate lcoor, gcoor;
+    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
 
-    gcoor = my_smod(gcoor, lat._grid->_fdimensions);
+    gcoor = my_smod(gcoor, lat.Grid()->_fdimensions);
 
-		double val = get_integral_site(gcoor, data, lat._grid->_fdimensions, space_limit, time_limit); 
+    std::vector<int> gcoor_v(gcoor.begin(), gcoor.end());
+    std::vector<int> fdims_v(lat.Grid()->_fdimensions.begin(), lat.Grid()->_fdimensions.end());
+		double val = get_integral_site(gcoor_v, data, fdims_v, space_limit, time_limit); 
 
 		typename LatticePGG::vector_object::scalar_object m;
 		m = 0.;

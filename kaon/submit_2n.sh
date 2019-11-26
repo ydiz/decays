@@ -22,5 +22,6 @@ export OMP_PROC_BIND=spread
 # srun -n 2 -c 64 --cpu_bind=cores ./convert_point --mpi 1.1.1.2 --decomposition 
 # srun -n 2 -c 64 --cpu_bind=cores ./test2 --mpi 1.1.1.2 --decomposition 
 # srun -n 2 -c 64 --cpu_bind=cores ./test --mpi 1.1.1.2 --decomposition 
-mpirun -n 2 ./test --mpi 1.1.1.2 --decomposition 
+# mpirun -n 2 ./test --mpi 1.1.1.2 --decomposition 
+mpirun -n 2 ./typeIII --mpi 1.1.1.2 --decomposition 
 

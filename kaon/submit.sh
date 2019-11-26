@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -N 4
+#SBATCH -N 8
 #SBATCH -J kaon
 ###SBATCH --mail-user=yz3210@columbia.edu
 ###SBATCH --mail-type=ALL
@@ -19,5 +19,6 @@ export OMP_PROC_BIND=spread
 #run the application:
 # srun -n 4 -c 64 --cpu_bind=cores ./convert_wall --mpi 1.1.1.4 --decomposition 
 # srun -n 4 -c 64 --cpu_bind=cores ./convert_point --mpi 1.1.1.4 --decomposition 
-srun -n 4 -c 64 --cpu_bind=cores ./test --mpi 1.1.1.4 --decomposition 
+# mpirun -n 8 ./typeIII --mpi 1.1.2.4 --decomposition 
+mpirun -n 8 ./typeII --mpi 1.1.2.4 --decomposition 
 

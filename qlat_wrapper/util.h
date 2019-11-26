@@ -6,7 +6,7 @@
 #include <fstream>
 #include <assert.h>
 
-#include <qlat/grid.h>
+// #include <qlat/grid.h>
 #include <headers/pGG.h>
 
 namespace qlat{
@@ -75,7 +75,8 @@ void grid_convert(Grid::QCD::LatticeLoop& grid_loop, const qlat::FieldM<qlat::Co
 #pragma omp parallel for
   for (long index = 0; index < geo.local_volume(); ++index) {
     const qlat::Coordinate xl = geo.coordinate_from_index(index); // get  local coordinate
-    std::vector<int> coor = grid_convert(xl); // just copy the four components of xl to a vector<int>
+    // std::vector<int> coor = grid_convert(xl); // just copy the four components of xl to a vector<int>
+    std::vector<int> coor(xl.begin(), xl.end()); // just copy the four components of xl to a vector<int>
 
     qlat::Vector<qlat::Complex> qlat_loop_site = qlat_loop.get_elems_const(xl); // qlat_loop_site is a vector of Complex; vector size is 16
 		assert(qlat_loop_site.size()==4);
@@ -87,7 +88,8 @@ void grid_convert(Grid::QCD::LatticeLoop& grid_loop, const qlat::FieldM<qlat::Co
 		// std::copy(p_qlat, p_qlat + 16, (Complex *)&grid_loop_site);	
 		std::copy(qlat_loop_site.data(), qlat_loop_site.data() + 4, (Complex *)&grid_loop_site);	
 
-    pokeLocalSite(grid_loop_site, grid_loop, coor);
+    Coordinate c(coor);
+    pokeLocalSite(grid_loop_site, grid_loop, c);
   }
 }
 
@@ -101,7 +103,8 @@ void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::PionGGElemField& 
 #pragma omp parallel for
   for (long index = 0; index < geo.local_volume(); ++index) {
     const qlat::Coordinate xl = geo.coordinate_from_index(index); // get  local coordinate
-    std::vector<int> coor = grid_convert(xl); // just copy the four components of xl to a vector<int>
+    // std::vector<int> coor = grid_convert(xl); // just copy the four components of xl to a vector<int>
+    std::vector<int> coor(xl.begin(), xl.end()); // just copy the four components of xl to a vector<int>
     auto ms = qlat_pgg.get_elems_const(xl); // ms is a vector of WilsonMatrix; vector size is 1
 		// qlat::WilsonMatrix qlat_prop_site = ms[0];
 		auto qlat_pgg_site = ms[0];
@@ -114,7 +117,9 @@ void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::PionGGElemField& 
 	
 		std::copy(p_qlat, p_qlat + 16, (Complex *)&grid_pgg_site);	
 
-    pokeLocalSite(grid_pgg_site, grid_pgg, coor);
+    // pokeLocalSite(grid_pgg_site, grid_pgg, coor);
+    Coordinate c(coor);
+    pokeLocalSite(grid_pgg_site, grid_pgg, c);
   }
 }
 
@@ -127,7 +132,8 @@ void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::FieldM<qlat::Comp
 #pragma omp parallel for
   for (long index = 0; index < geo.local_volume(); ++index) {
     const qlat::Coordinate xl = geo.coordinate_from_index(index); // get  local coordinate
-    std::vector<int> coor = grid_convert(xl); // just copy the four components of xl to a vector<int>
+    // std::vector<int> coor = grid_convert(xl); // just copy the four components of xl to a vector<int>
+    std::vector<int> coor(xl.begin(), xl.end()); // just copy the four components of xl to a vector<int>
 
     qlat::Vector<qlat::Complex> qlat_pgg_site = qlat_pgg.get_elems_const(xl); // qlat_pgg_site is a vector of Complex; vector size is 16
 		assert(qlat_pgg_site.size()==16);
@@ -139,12 +145,14 @@ void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::FieldM<qlat::Comp
 		// std::copy(p_qlat, p_qlat + 16, (Complex *)&grid_pgg_site);	
 		std::copy(qlat_pgg_site.data(), qlat_pgg_site.data() + 16, (Complex *)&grid_pgg_site);	
 
-    pokeLocalSite(grid_pgg_site, grid_pgg, coor);
+    // pokeLocalSite(grid_pgg_site, grid_pgg, coor);
+    Coordinate c(coor);
+    pokeLocalSite(grid_pgg_site, grid_pgg, c);
   }
 }
 
 
-void grid_convert(Grid::QCD::LatticeColourMatrix& grid_gt, const qlat::GaugeTransform& qlat_gt)
+void grid_convert(Grid::LatticeColourMatrix& grid_gt, const qlat::GaugeTransform& qlat_gt)
 {
   using namespace Grid;
   using namespace Grid::QCD;
@@ -152,7 +160,8 @@ void grid_convert(Grid::QCD::LatticeColourMatrix& grid_gt, const qlat::GaugeTran
 #pragma omp parallel for
   for (long index = 0; index < geo.local_volume(); ++index) {
     const qlat::Coordinate xl = geo.coordinate_from_index(index); // get  local coordinate
-    std::vector<int> coor = grid_convert(xl); // just copy the four components of xl to a vector<int>
+    // std::vector<int> coor = grid_convert(xl); // just copy the four components of xl to a vector<int>
+    std::vector<int> coor(xl.begin(), xl.end()); // just copy the four components of xl to a vector<int>
     auto ms = qlat_gt.get_elems_const(xl); // ms is a vector of WilsonMatrix; vector size is 1
 		// qlat::WilsonMatrix qlat_prop_site = ms[0];
 		auto qlat_gt_site = ms[0];
@@ -165,13 +174,15 @@ void grid_convert(Grid::QCD::LatticeColourMatrix& grid_gt, const qlat::GaugeTran
 	
 		std::copy(p_qlat, p_qlat + 9, (Complex *)&grid_gt_site);	
 
-    pokeLocalSite(grid_gt_site, grid_gt, coor);
+    // pokeLocalSite(grid_gt_site, grid_gt, coor);
+    Coordinate c(coor);
+    pokeLocalSite(grid_gt_site, grid_gt, c);
   }
 }
 
 template<class T> // T can be ComplexF or ComplexD
 typename std::enable_if<std::is_same<T, Grid::ComplexF>::value || std::is_same<T, Grid::ComplexD>::value, void>::type 
-grid_convert(Grid::Lattice<Grid::QCD::iSpinColourMatrix<typename TypeMap<T>::type >>& grid_prop, const qlat::Propagator4dT<T>& qlat_prop)
+grid_convert(Grid::Lattice<Grid::iSpinColourMatrix<typename TypeMap<T>::type >>& grid_prop, const qlat::Propagator4dT<T>& qlat_prop)
 {
   using namespace Grid;
   using namespace Grid::QCD;
@@ -179,13 +190,14 @@ grid_convert(Grid::Lattice<Grid::QCD::iSpinColourMatrix<typename TypeMap<T>::typ
 #pragma omp parallel for
   for (long index = 0; index < geo.local_volume(); ++index) {
     const qlat::Coordinate xl = geo.coordinate_from_index(index); // get  local coordinate
-    std::vector<int> coor = grid_convert(xl); // just copy the four components of xl to a vector<int>
+    // std::vector<int> coor = grid_convert(xl); // just copy the four components of xl to a vector<int>
+    std::vector<int> coor(xl.begin(), xl.end()); // just copy the four components of xl to a vector<int>
     auto ms = qlat_prop.get_elems_const(xl); // ms is a vector of WilsonMatrix; vector size is 1
 	// qlat::WilsonMatrix qlat_prop_site = ms[0];
 		auto qlat_prop_site = ms[0];
 		assert(ms.size()==1);
 		
-		Grid::QCD::iSpinColourMatrix< T > grid_prop_site;
+		Grid::iSpinColourMatrix< T > grid_prop_site;
 		assert(sizeof(qlat_prop_site) == sizeof(grid_prop_site));
 
 		T *p_qlat = (T *)&qlat_prop_site; // T is either ComplexF or ComplexD
@@ -199,7 +211,9 @@ grid_convert(Grid::Lattice<Grid::QCD::iSpinColourMatrix<typename TypeMap<T>::typ
 				grid_prop_site()(grid_spin_row, grid_spin_column)(grid_color_row, grid_color_column) = *(p_qlat + 12*row + column);
 			}
 
-		pokeLocalSite(grid_prop_site, grid_prop, coor);
+		// pokeLocalSite(grid_prop_site, grid_prop, coor);
+    Coordinate c(coor);
+		pokeLocalSite(grid_prop_site, grid_prop, c);
   }
 }
 
