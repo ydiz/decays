@@ -102,7 +102,8 @@ std::string wall_path_ud_48I(int traj, int t) {
 ////////////////////////////////////
 
 std::string three_point_24ID(int traj) {
-  std::string path = "/gpfs/mira-fs1/projects/HadronicLight_4/ctu/hlbl/hlbl-pion/TwoPointWallCorrField/24D-0.00107/ama/t-min=0010/results=" + std::to_string(traj) + "/avg ; type=0";    
+  // std::string path = "/gpfs/mira-fs1/projects/HadronicLight_4/ctu/hlbl/hlbl-pion/TwoPointWallCorrField/24D-0.00107/ama/t-min=0010/results=" + std::to_string(traj) + "/avg ; type=0";    
+  std::string path = "/home/ljin/application/Public/Qlat-CPS-cc/jobs/em-corr/results/24D-0.00107/results=" + std::to_string(traj) + "/contraction-with-point/pion_gg/decay_cheng";    
   assert(dirExists(path));
   return path;
 }
@@ -121,10 +122,11 @@ std::string three_point_disc2_32ID(int traj) {
 }
 
 std::string three_point_32ID(int traj) {
-	std::string str_traj = std::to_string(traj);
-	if(str_traj.size()==3) str_traj = "0" + str_traj;
-
-  std::string path = "/gpfs/mira-fs1/projects/HadronicLight_4/ctu/hlbl/hlbl-pion/TwoPointWallCorrField/32D-0.00107/ama/t-min=0010/results=" + str_traj + "/avg ; type=0";    
+	// std::string str_traj = std::to_string(traj);
+	// if(str_traj.size()==3) str_traj = "0" + str_traj;
+  //
+  // std::string path = "/gpfs/mira-fs1/projects/HadronicLight_4/ctu/hlbl/hlbl-pion/TwoPointWallCorrField/32D-0.00107/ama/t-min=0010/results=" + str_traj + "/avg ; type=0";    
+  std::string path = "/home/ljin/application/Public/Qlat-CPS-cc/jobs/em-corr/results/32D-0.00107/results=" + std::to_string(traj) + "/contraction-with-point/pion_gg/decay_cheng";    
   assert(dirExists(path));
   return path;
 }

@@ -100,22 +100,26 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
 
   if(ensemble == "Pion_32ID") {
     std::string file = three_point_32ID(traj); 
-    read_cheng_PGG(three_point, file);
+    // read_cheng_PGG(three_point, file);
+    read_PGG(three_point, file);
     three_point = imag(three_point) * pp;
   }
   else if(ensemble == "Pion_32IDF") {
     std::string file = three_point_path_32IDF(traj);
-    read_luchang_PGG(three_point, file); // FIXME: change this after cheng generated his three point functions
+    // read_luchang_PGG(three_point, file); // FIXME: change this after cheng generated his three point functions
+    read_PGG(three_point, file);
     three_point = imag(three_point) * pp;
   }
   else if(ensemble == "Pion_48I") {
     std::string file = three_point_48I(traj);
-    read_luchang_PGG(three_point, file); // FIXME: change this after cheng generated his three point functions
+    // read_luchang_PGG(three_point, file); // FIXME: change this after cheng generated his three point functions
+    read_PGG(three_point, file);
+    print_grid_field_site(three_point, {1,1,1,1});
     three_point = imag(three_point) * pp;
   }
   else if(ensemble == "Pion_24ID") {
     std::string file = three_point_24ID(traj);
-    read_cheng_PGG(three_point, file);
+    read_PGG(three_point, file);
     three_point = imag(three_point) * pp;
   }
   else if(ensemble == "Pion_24ID_disc") {

@@ -295,18 +295,29 @@ void read_qlat_propagator_no_dist(LatticePropagator &lat, const std::string &pat
     // std::cout << GridLogMessage << "no dist after grid_convert" << std::endl;
 }
 
-void read_cheng_PGG(LatticePGG &lat, const std::string &path) {
-  qlat::PionGGElemField qlat_pgg;
-  dist_read_field(qlat_pgg, path);
+
+void read_PGG(LatticePGG &lat, const std::string &path) {
+  qlat::FieldM<qlat::Complex, 16> qlat_pgg;
+  // std::cout << "before reading: "<< path << std::endl;
+  qlat::read_field(qlat_pgg, path);
+  // std::cout << "after reading" << std::endl;
+  qlat::to_from_big_endian_64(qlat::get_data(qlat_pgg));
+
   grid_convert(lat, qlat_pgg);
 }
 
-void read_luchang_PGG(LatticePGG &lat, const std::string &path) {
-  // qlat::PionGGElemField qlat_pgg;
-  qlat::FieldM<Complex, 16> qlat_pgg;
-  qlat::dist_read_field_double(qlat_pgg, path);
-  grid_convert(lat, qlat_pgg);
-}
+// void read_cheng_PGG(LatticePGG &lat, const std::string &path) {
+//   qlat::PionGGElemField qlat_pgg;
+//   dist_read_field(qlat_pgg, path);
+//   grid_convert(lat, qlat_pgg);
+// }
+//
+// void read_luchang_PGG(LatticePGG &lat, const std::string &path) {
+//   // qlat::PionGGElemField qlat_pgg;
+//   qlat::FieldM<Complex, 16> qlat_pgg;
+//   qlat::dist_read_field_double(qlat_pgg, path);
+//   grid_convert(lat, qlat_pgg);
+// }
 
 }}
 
