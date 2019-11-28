@@ -117,7 +117,8 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
       std::string file_fission = three_point_path(traj, ensemble, "fission");
       read_luchang_PGG(three_point_fission, file_fission);
 
-      three_point = 0.5 * (transpose(three_point) + three_point_fission); // average over "decay" and "fission"
+      // three_point = 0.5 * (transpose(three_point) + three_point_fission); // average over "decay" and "fission"
+      three_point = 0.5 * (three_point + get_reflection(three_point_fission)); // average over "decay" and "fission"
 
       static LatticeComplex luchang_exp(three_point.Grid());
       static bool luchange_exp_initialzed = false;
