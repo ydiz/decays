@@ -8,6 +8,9 @@ namespace Grid{
 namespace QCD{
 
 std::vector<double> mult_HL_cutoff(const LatticePGG &hadronic, const LatticePGG &leptonic) {
+      print_grid_field_site(hadronic, {1,2,3,4});
+      print_grid_field_site(hadronic, {16,14,20,1});
+      // print_grid_field_site(leptonic, {1,2,3,4});
   LatticeComplex tmp(hadronic.Grid());
   tmp = 0.;
 
@@ -41,6 +44,7 @@ std::vector<double> mult_HL_cutoff(const LatticePGG &hadronic, const LatticePGG 
 
   std::vector<iSinglet<Complex>> ret(T);
   sliceSum(tmp, ret, Tdir);
+  std::cout << "ret: " << ret << std::endl;
 
   std::vector<double> ret_real(T / 2 + 1);
   ret_real[0] = ret[0]()()().real();

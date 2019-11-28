@@ -49,6 +49,7 @@ int main(int argc, char* argv[])
     para.get_three_point(three_point, traj);
 
     std::vector<double> cutoffs = para.get_result_with_cutoff(three_point, leptonic);
+    std::cout <<"cutoffs: " << cutoffs << std::endl;
 
     int traj_idx = (traj - para.traj_start) / para.traj_sep - skipped;
     for(int time_cutoff = para.time_cutoff_start; time_cutoff <= para.time_cutoff_end; ++time_cutoff) {
