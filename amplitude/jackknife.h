@@ -98,29 +98,54 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
     pp_initialzed = true;
   }
 
-  if(ensemble == "Pion_32ID") {
-    std::string file = three_point_32ID(traj); 
-    // read_cheng_PGG(three_point, file);
-    read_PGG(three_point, file);
-    three_point = imag(three_point) * pp;
-  }
-  else if(ensemble == "Pion_32IDF") {
-    std::string file = three_point_path_32IDF(traj);
-    // read_luchang_PGG(three_point, file); // FIXME: change this after cheng generated his three point functions
-    read_PGG(three_point, file);
-    three_point = imag(three_point) * pp;
-  }
-  else if(ensemble == "Pion_48I") {
-    std::string file = three_point_48I(traj);
-    // read_luchang_PGG(three_point, file); // FIXME: change this after cheng generated his three point functions
-    read_PGG(three_point, file);
-    print_grid_field_site(three_point, {1,1,1,1});
-    three_point = imag(three_point) * pp;
-  }
-  else if(ensemble == "Pion_24ID") {
-    std::string file = three_point_24ID(traj);
-    read_PGG(three_point, file);
-    three_point = imag(three_point) * pp;
+  // if(ensemble == "Pion_32ID") {
+  //   std::string file = three_point_32ID(traj); 
+  //   // read_cheng_PGG(three_point, file);
+  //   read_PGG(three_point, file);
+  //   three_point = imag(three_point) * pp;
+  // }
+  // else if(ensemble == "Pion_32IDF") {
+  //   std::string file = three_point_path_32IDF(traj);
+  //   // read_luchang_PGG(three_point, file); // FIXME: change this after cheng generated his three point functions
+  //   read_PGG(three_point, file);
+  //   three_point = imag(three_point) * pp;
+  // }
+  // else if(ensemble == "Pion_48I") {
+  //   std::string file = three_point_48I(traj);
+  //   // read_luchang_PGG(three_point, file); // FIXME: change this after cheng generated his three point functions
+  //   read_PGG(three_point, file);
+  //   print_grid_field_site(three_point, {1,1,1,1});
+  //   three_point = imag(three_point) * pp;
+  // }
+  // else if(ensemble == "Pion_24ID") {
+  //   std::string file = three_point_24ID(traj);
+  //   read_PGG(three_point, file);
+  //   three_point = imag(three_point) * pp;
+  // }
+  if(ensemble == "Pion_24ID" || ensemble == "Pion_32ID" || ensemble == "Pion_32IDF" || ensemble == "Pion_48I") {
+    bool useCheng = false, useLuchang = true;
+    // bool useCheng = true, useLuchang = false;
+    assert((useCheng && useLuchang) == false);
+
+    if(useCheng) {
+      std::string file = three_point_path(traj, ensemble, "decay_cheng");
+      read_cheng_PGG(three_point, file);
+      three_point = imag(three_point) * pp;
+    }
+    if(useLuchang) {
+      std::string file = three_point_path(traj, ensemble, "decay");
+      read_luchang_PGG(three_point, file);
+
+      LatticePGG three_point_fission(three_point.Grid());
+      std::string file2 = three_point_path(traj, ensemble, "fission");
+      read_luchang_PGG(three_point_fission, file);
+
+      three_point = 0.5 * (transpose(three_point) + three_point_fission);
+
+      std::map<std::string, double> tmins {{"24ID", 10.}, {"32ID", 10.}, {"32IDF", 14.}, {"48I", 16.}};
+      three_point = three_point * std::exp(M_h * tmins[ensemble]);
+      three_point = real(three_point) * pp;
+    }
   }
   else if(ensemble == "Pion_24ID_disc") {
     std::string file = three_point_disc_24ID(traj);

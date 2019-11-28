@@ -123,7 +123,7 @@ void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::PionGGElemField& 
   }
 }
 
-// For luchang's three point function 
+// For cheng's three point function 
 void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::FieldM<qlat::Complex, 16>& qlat_pgg)
 {
   using namespace Grid;
@@ -150,6 +150,40 @@ void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::FieldM<qlat::Comp
     pokeLocalSite(grid_pgg_site, grid_pgg, c);
   }
 }
+
+
+
+// For luchang's three point function // file "decay" and "fission"
+// Here, input is a 8x8 matrix. mu=0-7, nu=0-7; we take only the top left submatrix
+// see https://rbc.phys.columbia.edu/rbc_ukqcd/individual_postings/luchang/0001%20pion-gg%20status/
+void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::FieldM<qlat::Complex, 64>& qlat_pgg)
+{
+  using namespace Grid;
+  using namespace Grid::QCD;
+  const qlat::Geometry& geo = qlat_pgg.geo;
+#pragma omp parallel for
+  for (long index = 0; index < geo.local_volume(); ++index) {
+    const qlat::Coordinate xl = geo.coordinate_from_index(index); // get  local coordinate
+    // std::vector<int> coor = grid_convert(xl); // just copy the four components of xl to a vector<int>
+    std::vector<int> coor(xl.begin(), xl.end()); // just copy the four components of xl to a vector<int>
+
+    qlat::Vector<qlat::Complex> qlat_pgg_site = qlat_pgg.get_elems_const(xl); // qlat_pgg_site is a vector of Complex; vector size is 16
+		assert(qlat_pgg_site.size()==64);
+		
+		PGGElem grid_pgg_site;
+
+    for(int mu=0; mu<4; ++mu) {
+      std::copy(qlat_pgg_site.data() + 8*mu, qlat_pgg_site.data() + 8*mu + 4, ((Complex *)&grid_pgg_site)+4*mu);	
+    }
+
+    // pokeLocalSite(grid_pgg_site, grid_pgg, coor);
+    Coordinate c(coor);
+    pokeLocalSite(grid_pgg_site, grid_pgg, c);
+  }
+}
+
+
+
 
 
 void grid_convert(Grid::LatticeColourMatrix& grid_gt, const qlat::GaugeTransform& qlat_gt)
@@ -296,15 +330,26 @@ void read_qlat_propagator_no_dist(LatticePropagator &lat, const std::string &pat
 }
 
 
-void read_PGG(LatticePGG &lat, const std::string &path) {
+void read_cheng_PGG(LatticePGG &lat, const std::string &path) { // read file xxxxx/decay_cheng
   qlat::FieldM<qlat::Complex, 16> qlat_pgg;
-  // std::cout << "before reading: "<< path << std::endl;
+    std::cout << GridLogMessage << "before reading" << std::endl;
   qlat::read_field(qlat_pgg, path);
-  // std::cout << "after reading" << std::endl;
+    std::cout << GridLogMessage << "after reading" << std::endl;
   qlat::to_from_big_endian_64(qlat::get_data(qlat_pgg));
 
   grid_convert(lat, qlat_pgg);
 }
+
+
+void read_luchang_PGG(LatticePGG &lat, const std::string &path) { // read file xxxxx/decay, and xxxx/fission
+  qlat::FieldM<qlat::Complex, 64> qlat_pgg;
+    std::cout << GridLogMessage << "before reading" << std::endl;
+  qlat::read_field(qlat_pgg, path);
+    std::cout << GridLogMessage << "after reading" << std::endl;
+  qlat::to_from_big_endian_64(qlat::get_data(qlat_pgg));
+  grid_convert(lat, qlat_pgg);
+}
+
 
 // void read_cheng_PGG(LatticePGG &lat, const std::string &path) {
 //   qlat::PionGGElemField qlat_pgg;
