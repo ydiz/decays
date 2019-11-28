@@ -100,44 +100,34 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
 
 
   if(ensemble == "Pion_24ID" || ensemble == "Pion_32ID" || ensemble == "Pion_32IDF" || ensemble == "Pion_48I") {
-    // bool useCheng = false, useLuchang = true;  // use luchang's propagator // the same as (cheng's + fission) * 0.5
-    bool useCheng = true, useLuchang = false; // use cheng's propagator
+    bool useCheng = false, useLuchang = true;  // use luchang's propagator // the same as (cheng's + fission) * 0.5
+    // bool useCheng = true, useLuchang = false; // use cheng's propagator
     assert((useCheng && useLuchang) == false);
 
     if(useCheng) {
       std::string file = three_point_path(traj, ensemble, "decay_cheng");
       read_cheng_PGG(three_point, file);
-
-      // three_point = transpose(three_point);
       three_point = imag(three_point) * pp;
-      // print_grid_field_site(three_point, {1,1,1,1});
-      // print_grid_field_site(three_point, {20,20,20,5});
     }
     if(useLuchang) {
       std::string file = three_point_path(traj, ensemble, "decay");
       read_luchang_PGG(three_point, file);
 
-      // LatticePGG three_point_fission(three_point.Grid());
-      // std::string file_fission = three_point_path(traj, ensemble, "fission");
-      // read_luchang_PGG(three_point_fission, file_fission);
-      //
-      // three_point = 0.5 * (transpose(three_point) + three_point_fission);
+      LatticePGG three_point_fission(three_point.Grid());
+      std::string file_fission = three_point_path(traj, ensemble, "fission");
+      read_luchang_PGG(three_point_fission, file_fission);
 
-      std::cout << "testing" << std::endl;
-      three_point = three_point * std::exp(M_h * 10.);
+      three_point = 0.5 * (transpose(three_point) + three_point_fission); // average over "decay" and "fission"
 
-      LatticePGG three_point_cheng(three_point.Grid());
-      std::string file_cheng = three_point_path(traj, ensemble, "decay_cheng");
-      read_cheng_PGG(three_point_cheng, file_cheng);
-      three_point = imag(three_point_cheng) - transpose(real(three_point));
-      std::cout << "norm2: " << norm2(three_point) << std::endl;
-      std::cout << three_point << std::endl;
-      assert(0);
+      static LatticeComplex luchang_exp(three_point.Grid());
+      static bool luchange_exp_initialzed = false;
+      if(!luchange_exp_initialzed) {
+        std::map<std::string, double> tmins {{"Pion_24ID", 10.}, {"Pion_32ID", 10.}, {"Pion_32IDF", 14.}, {"Pion_48I", 16.}};
+        get_luchang_exp_factor(luchang_exp, M_h, tmins.at(ensemble)); // can be optimized; do not calculate every time
+        luchange_exp_initialzed = true;
+      }
 
-      // std::cout << "transpose" << std::endl;
-      // three_point = transpose(three_point);
-      std::map<std::string, double> tmins {{"Pion_24ID", 10.}, {"Pion_32ID", 10.}, {"Pion_32IDF", 14.}, {"Pion_48I", 16.}};
-      three_point = three_point * std::exp(M_h * tmins.at(ensemble));
+      three_point = three_point * luchang_exp; // multiply it by exp(Mpi * t_pi)
       three_point = real(three_point) * pp;
       // print_grid_field_site(three_point, {1,1,1,1});
       // print_grid_field_site(three_point, {20,20,20,5});
