@@ -109,7 +109,8 @@ std::string three_point_path(int traj, const std::string &ensemble, const std::s
 
   if(target=="decay" || target=="fission" || target=="decay_cheng") path += target;
   else throw("target unknown");
-  assert(dirExists(path));
+
+  if(ensemble!="Pion_64I") assert(dirExists(path)); // for 64I, I have to add "_type_1" and "_type_2" to the file name later.
   return path;
 }
 

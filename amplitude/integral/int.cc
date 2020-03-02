@@ -23,6 +23,7 @@
 // #define M_PION 0.08049 // 48I
 #define M_PION 0.05903 // 64I
 
+// #define M_PION 0.078 // 48I if physical pi0 mass; for studying the error from wrong pion mass
 
 // #define L_LIMIT 12 // 24ID
 // #define L_LIMIT 16  // 32ID, 32IDF
@@ -147,8 +148,8 @@ int main (void)
   int w0_max = T_LIMIT;
   double beta = get_beta(target);
   std::cout << "M_H (in lattice unit): " << M_PION << std::endl;
-  std::cout << "w: [" << -w_max << ", " << w_max << "]" << std::endl;
-  std::cout << "w0: [" << -w0_max << ", " << w0_max << "]" << std::endl;
+  std::cout << "w: [" << 0 << ", " << w_max << "]" << std::endl;
+  std::cout << "w0: [" << 0 << ", " << w0_max << "]" << std::endl;
   std::cout << "beta: " << beta << std::endl;
   std::cout << std::string(30, '*') << std::endl;
   std::cout << "Upper limit of integral: " << upper << std::endl;
