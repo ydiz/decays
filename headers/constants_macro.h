@@ -93,10 +93,6 @@ std::string wall_path_ud_48I(int traj, int t) {
 }
 
 
-
-
-
-
 /////////////////////////////////////
 // Pion three point functions
 ////////////////////////////////////
@@ -108,6 +104,7 @@ std::string three_point_path(int traj, const std::string &ensemble, const std::s
   else if(ensemble=="Pion_32ID") path = "/home/ljin/application/Public/Qlat-CPS-cc/jobs/em-corr/results/32D-0.00107/results=" + std::to_string(traj) + "/contraction-with-point/pion_gg/";    
   else if(ensemble=="Pion_32IDF") path = "/home/ljin/application/Public/Qlat-CPS-cc/jobs/em-corr/results/32Dfine-0.0001/results=" + std::to_string(traj) + "/contraction-with-point/pion_gg/";    
   else if(ensemble=="Pion_48I") path = "/home/ljin/application/Public/Qlat-CPS-cc/jobs/em-corr/results/48I-0.00078/results=" + std::to_string(traj) + "/contraction-with-point/pion_gg/";    
+  else if(ensemble=="Pion_64I") path = "/home/ljin/application/Public/Muon-GM2-cc/jobs/final-run/64I/run/results/64I-0.000678/results=1290/contraction-with-points/pion_gg/";    
   else throw("ensemble unknown");
 
   if(target=="decay" || target=="fission" || target=="decay_cheng") path += target;

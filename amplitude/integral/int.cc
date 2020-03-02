@@ -20,15 +20,18 @@
 // #define M_PION 0.13975 // 24ID
 // #define M_PION 0.139474 // 32ID
 // #define M_PION 0.10468 // 32IDF
-#define M_PION 0.08049 // 48I
+// #define M_PION 0.08049 // 48I
+#define M_PION 0.05903 // 64I
 
 
-// #define L_LIMIT 12
-// #define L_LIMIT 16  
-#define L_LIMIT 24 
+// #define L_LIMIT 12 // 24ID
+// #define L_LIMIT 16  // 32ID, 32IDF
+// #define L_LIMIT 24 // 48I
+#define L_LIMIT 32 // 64I
 
-// #define T_LIMIT 16
-#define T_LIMIT 24
+// #define T_LIMIT 16 // 24ID, 32ID, 32IDF
+// #define T_LIMIT 24 // 48I
+#define T_LIMIT 32 // 64I
 
 const std::string target("Pion");
 
