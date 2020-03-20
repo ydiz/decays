@@ -81,7 +81,9 @@ void Env::setup_traj(int _traj) {
 
 std::vector<LatticePropagator> Env::get_wall(char quark) const {
   int T = grid->_fdimensions[Tdir];
-  std::vector<LatticePropagator> wall_props(T, grid);
+  // std::cout << "zzzzzzzzzzzzzzzzzzzz" << std::endl;
+  std::vector<LatticePropagator> wall_props(T, grid);  // sometimes this fails, do not know why.
+  // std::cout << "yyyyyyyyyyyyyyyyyyyyyy" << std::endl;
   for(int t=0; t<T; ++t) {
     readScidac_prop_f2d(wall_props[t], wall_path(t, quark));
   }
@@ -111,6 +113,7 @@ std::string Env::point_path(const std::vector<int> &src, char quark) const {
   std::string path;
   if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2CSL(src);
   else assert(0);
+  std::cout << "reading from " << path << std::endl;
   assert(dirExists(path));
   return path;
 }
@@ -119,6 +122,7 @@ std::string Env::wall_path(int t, char quark) const {
   std::string path;
   if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/wall_" + std::string(1, quark) + "/"  + std::to_string(traj) + "/" + std::to_string(t);
   else assert(0);
+  std::cout << "reading from " << path << std::endl;
   assert(dirExists(path));
   return path;
 }
