@@ -110,16 +110,26 @@ void init_para(int argc, char **argv, Jack_para &para)
     para.N_h = 85.866659;
     para.Z_V = 0.71076;
 
-    para.lat_size = {48, 48, 48, 96};
-    para.traj_start = 990;
+    para.traj_start = 990; // the old three point functions that Luchang accidentally deleted
     para.traj_end = 1850;
     para.traj_sep = 20;
     para.traj_skip = {1050,1070,1150,1170,1190,1230,1250,1270,1450,1470,1490,1810,1830};
   }
+  else if(para.ensemble == "Pion_48I_pqpm") { // partially_quenched_pion_mass
+    para.M_h = 0.0783812;
+    para.N_h = 87.1353496;
+    para.Z_V = 0.71076;
+
+    para.lat_size = {48, 48, 48, 96};
+    para.traj_start = 630;
+    para.traj_end = 1250;
+    para.traj_sep = 10;
+    para.traj_skip = {720, 760, 800, 840, 860, 880, 900, 920, 940, 960, 980, 990, 1000, 1010, 1020, 1030, 1040, 1060, 1080,
+                      1090, 1100, 1110, 1120, 1130, 1140, 1160, 1180, 1200, 1210, 1220, 1240};
+  }
   else if(para.ensemble == "Pion_64I") {
-    para.M_h = 0.05903;
-    // para.N_h = TBD;
-    para.N_h = 100; // TBDTBD
+    para.M_h = 0.057328; // this is different from the 2014 paper. This is the pion mass used to calculate propagator, which is different from the light quark mass in generating the ensemble which is in the 2014 paper.  
+    para.N_h = 107.01; 
     para.Z_V = 0.74293;
 
     para.lat_size = {64, 64, 64, 128};
