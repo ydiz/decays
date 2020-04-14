@@ -180,7 +180,8 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
   }
   else assert(0);
 
-  if(target=="form_factor" && ensemble!="Pion_24ID_disc") three_point = three_point / pp; // the three point function is <J(0) J(x)|pi >, not <J(-w/2) J(w/2) | pi>
+  if(target=="form_factor") three_point = three_point / pp; // the three point function is <J(0) J(x)|pi >, not <J(-w/2) J(w/2) | pi>
+  // if(target=="form_factor" && ensemble!="Pion_24ID_disc") three_point = three_point / pp; // the three point function is <J(0) J(x)|pi >, not <J(-w/2) J(w/2) | pi>
 }
 
 std::vector<double> Jack_para::get_result_with_cutoff(const LatticePGG &three_point, const LatticePGG &leptonic) {
