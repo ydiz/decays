@@ -1,4 +1,4 @@
-#include "connected.h"
+// #include "connected.h"
 #include "disc.h"
 
 // std::vector<int> gcoor({32, 32, 32, 64});
@@ -13,8 +13,8 @@ using namespace Grid::QCD;
 int main(int argc, char* argv[])
 {
   Grid_init(&argc, &argv);
-  std::vector<int> mpi_coor = GridDefaultMpi();
-  begin(&argc, &argv, Coordinate(mpi_coor[0], mpi_coor[1], mpi_coor[2], mpi_coor[3]));
+  Grid::Coordinate mpi_coor = GridDefaultMpi();
+  begin(&argc, &argv, qlat::Coordinate(mpi_coor[0], mpi_coor[1], mpi_coor[2], mpi_coor[3]));
   GridCartesian * grid = SpaceTimeGrid::makeFourDimGrid(gcoor, GridDefaultSimd(Nd,vComplex::Nsimd()), mpi_coor);
 
   string ensemble = "24ID";
@@ -22,8 +22,8 @@ int main(int argc, char* argv[])
   int t_min = 20; // should be consistent with calculating loop2
   double Mpi = 0.13975;
 
-  int traj_start = 1000, traj_end = 2290, traj_sep = 10; // need to have both loop and wall src propagators 
-  // int traj_start = 2240, traj_end = 2290, traj_sep = 10; // need to have both loop and wall src propagators 
+  // int traj_start = 1000, traj_end = 2290, traj_sep = 10; // need to have both loop and wall src propagators 
+  int traj_start = 2060, traj_end = 2290, traj_sep = 10; // need to have both loop and wall src propagators 
   std::vector<int> traj_skip {1020, 1060, 1100, 1340};
   std::cout << "traj_start: " << traj_start << std::endl;
   std::cout << "traj_end: " << traj_end << std::endl;
@@ -44,7 +44,8 @@ int main(int argc, char* argv[])
 
     LatticePGG disc(grid);
     calculate_disc(disc, "24ID", traj, t_min, Mpi);
-    writeScidac(disc, "/projects/CSC249ADSE03/yidizhao/pGG_config/" + ensemble + "/disc/t-min="+ std::to_string(t_min) + "/pGG_disc." + std::to_string(traj));
+    // writeScidac(disc, "/projects/CSC249ADSE03/yidizhao/pGG_config/" + ensemble + "/disc/t-min="+ std::to_string(t_min) + "/pGG_disc." + std::to_string(traj));
+    writeScidac(disc, "/home/yidizhao/cooley/pGG_config/" + ensemble + "/disc/t-min="+ std::to_string(t_min) + "/pGG_disc." + std::to_string(traj));
 
     std::cout.flush();
 

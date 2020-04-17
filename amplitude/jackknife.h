@@ -114,12 +114,9 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
 
       std::string file_decay = three_point_path(traj, ensemble, "decay");
       if(ensemble=="Pion_64I" || ensemble=="Pion_48I_pqpm") { // for 64I and new 48I luchange did not add type1 and type2 to final "decay"
-        LatticePGG decay1(three_point.Grid());
-        LatticePGG decay2(three_point.Grid());
-        read_luchang_PGG(decay1, file_decay+"_type_1");
-        read_luchang_PGG(decay2, file_decay+"_type_2");
-        three_point = decay1 + decay2;
 
+        read_luchang_PGG(three_point, file_decay+"_type_1");  // Luchang's type II contraction is the complex conjugate of type I
+        three_point = 2. * real(three_point);
         if(ensemble=="Pion_64I") {
           three_point = three_point * 16.;
         std::cout << "Luchang missed a factor of 16, so I am multiplying the three point function by 16 here. Remove this once Luchange fixed this bug." << std::endl;
@@ -127,14 +124,13 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
       }
       else read_luchang_PGG(three_point, file_decay);
 
+
       LatticePGG three_point_fission(three_point.Grid());
       std::string file_fission = three_point_path(traj, ensemble, "fission");
       if(ensemble=="Pion_64I"|| ensemble=="Pion_48I_pqpm") {
-        LatticePGG fission1(three_point.Grid());
-        LatticePGG fission2(three_point.Grid());
-        read_luchang_PGG(fission1, file_fission + "_type_1");
-        read_luchang_PGG(fission2, file_fission + "_type_2");
-        three_point_fission = fission1 + fission2;
+
+        read_luchang_PGG(three_point_fission, file_fission + "_type_1");
+        three_point_fission = 2. * real(three_point_fission);
 
         if(ensemble=="Pion_64I") {
           three_point_fission = three_point_fission * 16.;
@@ -142,10 +138,10 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
         }
       }
       else read_luchang_PGG(three_point_fission, file_fission);
-      // read_luchang_PGG(three_point_fission, file_fission);
 
-      // three_point = 0.5 * (transpose(three_point) + three_point_fission); // average over "decay" and "fission"
       three_point = 0.5 * (three_point + get_reflection(three_point_fission)); // average over "decay" and "fission"
+      //
+      // // three_point = get_reflection(three_point_fission); // only "fission"
 
       static LatticeComplex luchang_exp(three_point.Grid());
       static bool luchange_exp_initialized = false;

@@ -1,5 +1,5 @@
 #include <qlat/qlat.h>
-#include <qlat/grid.h>
+// #include <qlat/grid.h>
 
 #include <headers/headers.h>
 // #include "qlat_wrapper/qlat_wrapper.h"
@@ -20,8 +20,8 @@ std::vector<double> kaon_corr(int traj, GridBase *grid) {
 
   for(int t=0; t<T; ++t) {
 
-    std::string path_d = wall_path_ud_32D(traj, t);
-    std::string path_s = wall_path_strange_32D(traj, t);
+    std::string path_d = wall_path_ud_32ID(traj, t);
+    std::string path_s = wall_path_strange_32ID(traj, t);
     read_qlat_propagator(prop_d, path_d);
     read_qlat_propagator(prop_s, path_s);
 
@@ -53,9 +53,9 @@ std::vector<double> pion_corr(int traj, GridBase *grid) {
 
   for(int t=0; t<T; ++t) {
 
-    // std::string path = wall_path_ud_32D(traj, t);
+    std::string path = wall_path_ud_32ID(traj, t);
     // std::string path = wall_path_24ID(traj, t);
-    std::string path = wall_path_ud_48I(traj, t);
+    // std::string path = wall_path_ud_48I(traj, t);
     read_qlat_propagator(prop, path);
 
     std::vector<typename LatticePropagator::vector_object::scalar_object> slice_sum;
@@ -85,23 +85,27 @@ using namespace Grid;
 using namespace Grid::QCD;
 
 
-// std::vector<int> gcoor({32, 32, 32, 64});
+std::vector<int> gcoor({32, 32, 32, 64});
 // std::vector<int> gcoor({24, 24, 24, 64});
-std::vector<int> gcoor({48, 48, 48, 96});
+// std::vector<int> gcoor({48, 48, 48, 96});
+
+// For a new ensemble, 
+
 
 int main(int argc, char* argv[])
 {
   Grid_init(&argc, &argv);
-  std::vector<int> mpi_coor = GridDefaultMpi();
-  begin(&argc, &argv, Coordinate(mpi_coor[0], mpi_coor[1], mpi_coor[2], mpi_coor[3]));
+  // std::vector<int> mpi_coor = GridDefaultMpi();
+  Grid::Coordinate mpi_coor = GridDefaultMpi();
+  begin(&argc, &argv, qlat::Coordinate(mpi_coor[0], mpi_coor[1], mpi_coor[2], mpi_coor[3]));
 
   GridCartesian * grid = SpaceTimeGrid::makeFourDimGrid(gcoor, GridDefaultSimd(Nd,vComplex::Nsimd()), mpi_coor); 
 	LatticePropagator prop(grid);
 
-	// int traj_start = 200, traj_end = 430, traj_sep = 10; // for 32IDF
+	int traj_start = 200, traj_end = 430, traj_sep = 10; // for 32IDF
 	// int traj_start = 1200, traj_end = 1200, traj_sep = 10; 
 	// int traj_start = 2370, traj_end = 2510, traj_sep = 10; // for 24ID
-	int traj_start = 1490, traj_end = 1730, traj_sep = 20; // for 48I  (We also have traj 1290-1430)
+	// int traj_start = 1490, traj_end = 1730, traj_sep = 20; // for 48I  (We also have traj 1290-1430)
   int traj_num = (traj_end - traj_start) / traj_sep + 1;
 
 	std::cout << std::string(20, '*') << std::endl;

@@ -54,7 +54,7 @@ std::string loop_path_24ID(int traj) {
 
 // 32ID
 
-std::string wall_path_strange_32D(int traj, int t) {
+std::string wall_path_strange_32ID(int traj, int t) {
   std::string path = "/home/ljin/application/Public/Qlat-CPS-cc/jobs/wall-src-strange/results/32D-0.00107/results="+ std::to_string(traj) + "/huge-data/wall_src_propagator/strange ; t=" + std::to_string(t);
   assert(dirExists(path));
   return path;
@@ -67,7 +67,7 @@ std::string wall_path_ud_32ID(int traj, int t) {
 }
 
 
-std::string gauge_transform_path_32D(int traj) {
+std::string gauge_transform_path_32ID(int traj) {
 	return "/home/ljin/application/Public/Qlat-CPS-cc/jobs/32D/wall-src/results/32D-0.00107/results=" + std::to_string(traj) + "/huge-data/gauge-transform";
 }
 
@@ -103,20 +103,22 @@ std::string three_point_path(int traj, const std::string &ensemble, const std::s
   if(ensemble=="Pion_24ID") path = "/home/ljin/application/Public/Qlat-CPS-cc/jobs/em-corr/results/24D-0.00107/results=" + std::to_string(traj) + "/contraction-with-point/pion_gg/";    
   else if(ensemble=="Pion_32ID") path = "/home/ljin/application/Public/Qlat-CPS-cc/jobs/em-corr/results/32D-0.00107/results=" + std::to_string(traj) + "/contraction-with-point/pion_gg/";    
   else if(ensemble=="Pion_32IDF") path = "/home/ljin/application/Public/Qlat-CPS-cc/jobs/em-corr/results/32Dfine-0.0001/results=" + std::to_string(traj) + "/contraction-with-point/pion_gg/";    
-  else if(ensemble=="Pion_48I") path = "/home/ljin/application/Public/Qlat-CPS-cc/jobs/em-corr/results/48I-0.00078/results=" + std::to_string(traj) + "/contraction-with-point/pion_gg/";    
-  else if(ensemble=="Pion_64I") path = "/home/ljin/application/Public/Muon-GM2-cc/jobs/final-run/64I/run/results/64I-0.000678/results=1290/contraction-with-points/pion_gg/";    
+  else if(ensemble=="Pion_48I") path = "/home/ljin/application/Public/Qlat-CPS-cc/jobs/em-corr/results/48I-0.00078/results=" + std::to_string(traj) + "/contraction-with-point/pion_gg/";   // the old three point functions that Luchang accidentally deleted 
+  else if(ensemble=="Pion_48I_pqpm") path = "/home/ljin/application/Public/Muon-GM2-cc/jobs/final-run/48I/run/results/48I-0.00078/results=" + std::to_string(traj) + "/contraction-with-points/pion_gg/";    
+  else if(ensemble=="Pion_64I") path = "/home/ljin/application/Public/Muon-GM2-cc/jobs/final-run/64I/run/results/64I-0.000678/results="  + std::to_string(traj) +  "/contraction-with-points/pion_gg/";    
   else throw("ensemble unknown");
 
   if(target=="decay" || target=="fission" || target=="decay_cheng") path += target;
   else throw("target unknown");
 
-  if(ensemble!="Pion_64I") assert(dirExists(path)); // for 64I, I have to add "_type_1" and "_type_2" to the file name later.
+  if(ensemble!="Pion_64I" && ensemble!="Pion_48I_pqpm") assert(dirExists(path)); // for 64I and 48I_pqpm, I have to add "_type_1" and "_type_2" to the file name later.
   return path;
 }
 
 
 std::string three_point_disc_24ID(int traj) {
-  std::string path = "/projects/CSC249ADSE03/yidizhao/pGG_config/24ID/disc/t-min=20/pGG_disc." + std::to_string(traj);
+  std::string path = "/home/yidizhao/cooley/pGG_config/24ID/disc/t-min=20/pGG_disc." + std::to_string(traj);
+  // std::string path = "/projects/CSC249ADSE03/yidizhao/pGG_config/24ID/disc/t-min=20/pGG_disc." + std::to_string(traj);
   // std::string path = "/projects/CSC249ADSE03/yidizhao/pGG_config/24ID/disc/t-min=10/pGG_disc." + std::to_string(traj);
   assert(dirExists(path));
   return path;
