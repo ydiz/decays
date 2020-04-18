@@ -124,6 +124,21 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
       }
       else read_luchang_PGG(three_point, file_decay);
 
+      // Luchang's test
+      // parallel_for(int ss=0; ss<three_point.Grid()->lSites(); ss++){
+      //   Coordinate lcoor, gcoor;
+      //   localIndexToLocalGlobalCoor(three_point.Grid(), ss, lcoor, gcoor);
+      //
+      //   int T = three_point.Grid()->_fdimensions[Tdir];
+      //
+      //   typename LatticePGG::vector_object::scalar_object m;
+      //   peekLocalSite(m, three_point, lcoor);
+      //   int t = gcoor[Tdir];
+      //   if(t > T/2) m = Zero();
+      //   else if(t < T/2 && t > 0) m = 2. * m;    // Use only the portion when sink if further from the poin wall
+      //   pokeLocalSite(m, three_point, lcoor);
+      // }
+      //
 
       LatticePGG three_point_fission(three_point.Grid());
       std::string file_fission = three_point_path(traj, ensemble, "fission");
@@ -141,7 +156,7 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
 
       three_point = 0.5 * (three_point + get_reflection(three_point_fission)); // average over "decay" and "fission"
       //
-      // // three_point = get_reflection(three_point_fission); // only "fission"
+      // // // three_point = get_reflection(three_point_fission); // only "fission"
 
       static LatticeComplex luchang_exp(three_point.Grid());
       static bool luchange_exp_initialized = false;
