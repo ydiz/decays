@@ -64,13 +64,13 @@ void integrateDivonne(
       &nregions, &neval, &fail,
       integral.data(), error.data(), prob.data());
 
-	std::cout << cur_time  << "s	eval = " << neval << " fail = " << fail<< std::endl;
-	for(int i=0; i<ncomp; ++i) {
-		std::cout << cur_time << "s	ncomp " << i << ": integral = " << integral[i] 
-							<< " error = " << error[i] << " prob = " << prob[i] << std::endl;
-	}
-
-	std::cout << std::string(20, '-') << std::endl;
+	// std::cout << cur_time  << "s	eval = " << neval << " fail = " << fail<< std::endl;
+	// for(int i=0; i<ncomp; ++i) {
+	// 	std::cout << cur_time << "s	ncomp " << i << ": integral = " << integral[i] 
+	// 						<< " error = " << error[i] << " prob = " << prob[i] << std::endl;
+	// }
+  //
+	// std::cout << std::string(20, '-') << std::endl;
 }
 
 template <class F>
