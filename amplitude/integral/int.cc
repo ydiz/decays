@@ -16,17 +16,21 @@
 
 // ================ ensemble parameters ===================
 
-const std::string ensemble = "64I";
-// const std::string ensemble = "48I_pqdm";
+// const std::string ensemble = "64I";
+const std::string ensemble = "48I_pqdm";
+
+
 const std::string target = "Pion";
 
 // ================ integration parameters ===================
 const double lower = 0.00001;
-const double upper = 50; // = 30;
-// const double epsrel = 1e-6; // = 1e-4;
-const double epsrel = 1e-4; // = 1e-4;
+const double upper = 10;    // For 64I, Differences of using 10 and 20 are negligible, except for very large w and w0, where the difference can be ~0.5%; but the hadronic part is supposed to be small and suppress the leptonic part. so I will choose 10
+// const double upper = 20; 
+const double epsrel = 1e-8;  // The difference between 10e-8 and 10e-6 is small; For 64I, at site w=1 w0=0 where the difference is largest, the difference of final result is ~0.3%.
+// const double epsrel = 1e-6; 
 
-
+// const double upper = 50; // wrong!!! Too large; When using Cuhre, result would be wrong for large w0
+// const double epsrel = 1e-4; // wrong!!! Too small!!! Especially for w0=0, where the results depends to a large extent on the cancellation of three integrals 
 
 
 
@@ -36,6 +40,7 @@ const double epsrel = 1e-4; // = 1e-4;
 
 
 //================= code ===============================
+
 
 class Ensemble_info {
 public:
@@ -85,7 +90,6 @@ double f2(double p, void *params) {
   double sin_pw, cos_pw;
   sincos(p * w, &sin_pw, &cos_pw);
 
-  // return std::exp(-p * w0) / (M_PION + 2 * p) * (cos_pw - sin_pw / (p * w));
   return std::exp(-p * w0) / (M_pi + 2 * p) * (cos_pw - sin_pw / (p * w));
 }
 
@@ -131,7 +135,6 @@ std::vector<double> Func::operator()(const std::vector<double>& v) const{
 
 	double p = v[0] * p_interval; // p: [0, p_interval]
 	double c = 2. * v[1] - 1.; // cos: [-1, 1]
-	// double Epe = std::sqrt(p*p + (M_PION/2.)*(M_PION/2.) - 2 * p * pe * c);
 	double Epe = std::sqrt(p*p + (M_pi/2.) * (M_pi/2.) - 2 * p * pe * c);
 
   double w = paras[0];
@@ -140,7 +143,6 @@ std::vector<double> Func::operator()(const std::vector<double>& v) const{
   double sin_pw, cos_pw;
   sincos(p * w, &sin_pw, &cos_pw);
 
-  // ans[0] =  std::exp(-Epe * w0) / (Epe * (- M_PION*M_PION + 4. * pe * pe * c * c)) * (cos_pw - sin_pw / (p * w));
   ans[0] =  std::exp(-Epe * w0) / (Epe * (- M_pi * M_pi + 4. * pe * pe * c * c)) * (cos_pw - sin_pw / (p * w));
 
   ans[0] *= 2. * p_interval;
@@ -149,12 +151,22 @@ std::vector<double> Func::operator()(const std::vector<double>& v) const{
 }
 
 template<class T>
-double integrate_CUBA(T func, double eps_rel, int &fail)
+double integrate_CUBA(T func, double eps_rel, double &estimated_err,int &fail)
 {
   std::vector<double> integral, error, prob;
   int nregions, neval;
 
-	integrateCuhre(integral, error, prob, nregions, neval, fail, 3, 1, func, 0., eps_rel);
+  // int flag = 3; // verbose level: 0-3;
+  int flag = 0; // verbose level: 0-3;
+  int ndim = 2; // dimension of integral, i.e. dimension of x
+  int ncomp = 1; // dimension of return value (value of the integral), i.e. dimension of y
+
+
+  // Cuhre is much faster than Divonne, and scales better w.r.t. eps_rel; but the estimated error in Cuhre may not be reliable
+	integrateCuhre(integral, error, prob, nregions, neval, fail, ndim, ncomp, func, 0., eps_rel, flag);
+	// integrateDivonne(integral, error, prob, nregions, neval, fail, ndim, ncomp, func, 0., eps_rel, flag); // Got segmentation fault; do not know why
+
+  estimated_err = error[0];
   return integral[0];
 }
 
@@ -185,53 +197,52 @@ int main (void)
   f3.p_interval = upper;
 
 
-  /////////////////// test////////////////////
-  int w = 1, w0 = 21;
-  double ret3;
-  int fail;
-  f3.paras = {double(w), double(w0)};
-
-  for(double epsrel: {1e-4, 1e-5, 1e-6, 1e-7}) {
-  ret3 = integrate_CUBA(f3, epsrel, fail);
-  std::cout << "epsrel: " << epsrel << " \t ret3: " << ret3 << std::endl;
-  }
-  // std::cout << "CUBA fail: " << fail << std::endl;
-  assert(fail==0);
-
-  assert(0);
-  /////////////////// end of test////////////////////
+  // /////////////////// test////////////////////
+  // int w = 1, w0 = 21;
+  // double ret3;
+  // int fail;
+  // f3.paras = {double(w), double(w0)};
+  //
+  // // for(double epsrel: {1e-4}) {
+  // // for(double epsrel: {1e-4, 1e-5, 1e-6, 1e-7}) {
+  // for(double epsrel: {1e-4, 1e-5}) {
+  //   ret3 = integrate_CUBA(f3, epsrel, fail);
+  //   std::cout << "epsrel: " << epsrel << " \t ret3: " << ret3 << std::endl;
+  // }
+  // // std::cout << "CUBA fail: " << fail << std::endl;
+  // assert(fail==0);
+  //
+  // assert(0);
+  // /////////////////// end of test////////////////////
 
 
   for(int w=0; w<=w_max; ++w) 
     for(int w0=0; w0<=w0_max; ++w0) {
       std::cout << "w=" << w << " w0=" << w0 << std::endl;
 
-      double ret, ret1, ret2, ret3, error;
+      double ret, ret1, ret2, ret3, est_err1, est_err2, est_err3;
       if(w==0) ret =0.;
       else {
-        std::vector<double> params1 {double(w), double(w0)};
-        integrate_qawc(f1, params1, lower, upper, M_pi/2., 0, epsrel, workspace, ret1, error);
-        // std::cout << "qawc estimated error: " << error << std::endl;
+        std::vector<double> params1 = {double(w), double(w0)};
+        integrate_qawc(f1, params1, lower, upper, M_pi/2., 0, epsrel, workspace, ret1, est_err1);
 
-        std::vector<double> params2 {double(w), double(w0), M_pi};
-        integrate_qags(f2, params2, lower, upper, 0, epsrel, workspace, ret2, error);
-        // std::cout << "qsgs estimated error: " << error << std::endl;
+        std::vector<double> params2 = {double(w), double(w0), M_pi};
+        integrate_qags(f2, params2, lower, upper, 0, epsrel, workspace, ret2, est_err2);
 
         int fail;
         f3.paras = {double(w), double(w0)};
-        ret3 = integrate_CUBA(f3, epsrel, fail);
-        // std::cout << "CUBA fail: " << fail << std::endl;
+        ret3 = integrate_CUBA(f3, epsrel, est_err3, fail);
         assert(fail==0);
 
         double coef1 = - std::exp(0.5 * M_pi * w0) / w / w * M_PI / (f3.pe * M_pi) * log_beta;
         double coef2 = std::exp(-0.5 * M_pi * w0) / w / w * M_PI / (f3.pe * M_pi) * log_beta;
         double coef3 = 2.0 * M_PI / w / w;
-        std::cout << "c1:\t" << coef1 << '\t' << ret1   << std::endl;
-        std::cout << "c2:\t" << coef2 << '\t' << ret2   << std::endl;
-        std::cout << "c3:\t" << coef3 << '\t' << ret3   << std::endl;
-        ret = coef1 * ret1 
-              + coef2 * ret2
-              + coef3 * ret3;
+
+        // std::cout << "c1:\t" << coef1 << "\t I1: " << ret1 << "\t estimated error: " << est_err1 << std::endl;
+        // std::cout << "c2:\t" << coef2 << "\t I2: " << ret2 << "\t estimated error: " << est_err2 << std::endl;
+        // std::cout << "c3:\t" << coef3 << "\t I3: " << ret3 << "\t estimated error: " << est_err3 << std::endl;
+
+        ret = coef1 * ret1 + coef2 * ret2 + coef3 * ret3;
       }
       std::cout << std::setprecision(10) << "integral = " << ret  << std::endl;
   }
