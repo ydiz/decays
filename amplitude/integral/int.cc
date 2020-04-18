@@ -10,43 +10,21 @@
 
 #include "cuba_wrapper.h"
 
-// // For different ensembles, only need to change M_PION, L_LIMIT and target
 // w_x from -L_LIMIT to +L_LIMIT
 // w_0 from -T_LIMIT to +T_LIMIT
-// target determines the value of beta
-
-// // For now, my L_LIMIT is always L / 2;
-
-// ================= physical parameters ========================
-
-// // #define M_PION 0.13975 // 24ID
-// // #define M_PION 0.139474 // 32ID
-// // #define M_PION 0.10468 // 32IDF
-// // #define M_PION 0.08049 // 48I
-// // #define M_PION 0.0783812 // 48I_pqpm, partially quenched pion mass
-// #define M_PION 0.057328 // 64I
-//
-// // #define M_PION 0.078 // 48I if physical pi0 mass; for studying the error from wrong pion mass
-//
-// // #define L_LIMIT 12 // 24ID
-// // #define L_LIMIT 16  // 32ID, 32IDF
-// // #define L_LIMIT 24 // 48I, 48I_pqpm
-// #define L_LIMIT 32 // 64I
-//
-// // #define T_LIMIT 16 // 24ID, 32ID, 32IDF
-// // #define T_LIMIT 24 // 48I
-// #define T_LIMIT 32 // 64I
+// // For now, my L_LIMIT is always L / 2, T_LIMIT is T / 4
 
 // ================ ensemble parameters ===================
 
 const std::string ensemble = "64I";
+// const std::string ensemble = "48I_pqdm";
 const std::string target = "Pion";
 
 // ================ integration parameters ===================
 const double lower = 0.00001;
 const double upper = 50; // = 30;
-const double epsrel = 1e-6; // = 1e-4;
-// const double epsrel = 1e-4; // = 1e-4;
+// const double epsrel = 1e-6; // = 1e-4;
+const double epsrel = 1e-4; // = 1e-4;
 
 
 
@@ -185,30 +163,14 @@ gsl_integration_workspace * workspace = gsl_integration_workspace_alloc (1000);
 
 int main (void)
 {
-
-
-// ensemble_info.at("64I");
-
-  std::cout << ensemble_info.at("64I").M_pi << std::endl;
-
   double M_pi = ensemble_info.at(ensemble).M_pi;
   std::vector<int> fcoor = ensemble_info.at(ensemble).fcoor;
 
-  // std::vector<int> fcoor {64,64,64,128};
-  
   int w_max = int(fcoor[0] / 2 * std::sqrt(3)) + 1;
   int w0_max = fcoor[3] / 4;
 
-  // int w_max = int(L_LIMIT * std::sqrt(3)) + 1;
-  // int w0_max = T_LIMIT;
-
-  // double M_pi = M_PION;
-
-
-
   double beta = get_beta(target);
   double log_beta = std::log((1 + beta) / (1 - beta));
-
 
   std::cout << "M_H (in lattice unit): " << M_pi << std::endl;
   std::cout << "w: [" << 0 << ", " << w_max << "]" << std::endl;
@@ -221,6 +183,24 @@ int main (void)
   
   Func f3(beta, M_pi);
   f3.p_interval = upper;
+
+
+  /////////////////// test////////////////////
+  int w = 1, w0 = 21;
+  double ret3;
+  int fail;
+  f3.paras = {double(w), double(w0)};
+
+  for(double epsrel: {1e-4, 1e-5, 1e-6, 1e-7}) {
+  ret3 = integrate_CUBA(f3, epsrel, fail);
+  std::cout << "epsrel: " << epsrel << " \t ret3: " << ret3 << std::endl;
+  }
+  // std::cout << "CUBA fail: " << fail << std::endl;
+  assert(fail==0);
+
+  assert(0);
+  /////////////////// end of test////////////////////
+
 
   for(int w=0; w<=w_max; ++w) 
     for(int w0=0; w0<=w0_max; ++w0) {
@@ -243,9 +223,15 @@ int main (void)
         // std::cout << "CUBA fail: " << fail << std::endl;
         assert(fail==0);
 
-        ret = - std::exp(0.5 * M_pi * w0) / w / w * M_PI / (f3.pe * M_pi) * log_beta * ret1 
-              + std::exp(-0.5 * M_pi * w0) / w / w * M_PI / (f3.pe * M_pi) * log_beta * ret2
-              + 2.0 * M_PI / w / w * ret3;
+        double coef1 = - std::exp(0.5 * M_pi * w0) / w / w * M_PI / (f3.pe * M_pi) * log_beta;
+        double coef2 = std::exp(-0.5 * M_pi * w0) / w / w * M_PI / (f3.pe * M_pi) * log_beta;
+        double coef3 = 2.0 * M_PI / w / w;
+        std::cout << "c1:\t" << coef1 << '\t' << ret1   << std::endl;
+        std::cout << "c2:\t" << coef2 << '\t' << ret2   << std::endl;
+        std::cout << "c3:\t" << coef3 << '\t' << ret3   << std::endl;
+        ret = coef1 * ret1 
+              + coef2 * ret2
+              + coef3 * ret3;
       }
       std::cout << std::setprecision(10) << "integral = " << ret  << std::endl;
   }
