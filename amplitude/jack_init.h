@@ -34,8 +34,8 @@ void init_para(int argc, char **argv, Jack_para &para)
                     // ("traj_end", po::value<int>(&para.traj_end)->default_value(1000))
                     // ("traj_sep", po::value<int>(&para.traj_sep)->default_value(10))
                     // ("traj_skip", po::value<std::string>()->default_value(""))
-                    ("time_cutoff_start", po::value<int>(&para.time_cutoff_start)->default_value(1))
-                    ("time_cutoff_end", po::value<int>(&para.time_cutoff_end)->default_value(16))
+                    // ("time_cutoff_start", po::value<int>(&para.time_cutoff_start)->default_value(1))
+                    // ("time_cutoff_end", po::value<int>(&para.time_cutoff_end)->default_value(16))
                     ("target", po::value<std::string>(&para.target)->default_value(""))
                     ("file_p3", po::value<std::string>(&para.file_p3)->default_value(""))
                     ("file_p1", po::value<std::string>(&para.file_p1)->default_value(""))
@@ -194,10 +194,7 @@ void init_para(int argc, char **argv, Jack_para &para)
 
   // reading leptonic part
   para.leptonic_space_limit = para.lat_size[0] / 2; // for reading leptonic part // this should match the CUBA calculation of leptonic part
-  // para.leptonic_time_limit = 16; // for reading leptonic part // this should match the CUBA calculation of leptonic part
   para.leptonic_time_limit = para.lat_size[3] / 4; // for reading leptonic part // this should match the CUBA calculation of leptonic part
-  para.time_cutoff_num = para.time_cutoff_end - para.time_cutoff_start + 1;
-  assert(para.time_cutoff_end <= para.leptonic_time_limit); // If target requires reading integrals, larger time cutoff does not make any sense since leptonic part is 0.
 
   // leptonic part
   // me is in eV; all other masses are in lattice unit
@@ -248,10 +245,6 @@ void init_para(int argc, char **argv, Jack_para &para)
   std::cout << "traj_sep: " << para.traj_sep << std::endl;
   std::cout << "traj_skip: " << para.traj_skip << std::endl;
   std::cout << "traj_num: " << para.traj_num << std::endl;
-  std::cout << std::string(20, '*') << std::endl;
-  std::cout << "time_cutoff_start: " << para.time_cutoff_start << std::endl;
-  std::cout << "time_cutoff_end: " << para.time_cutoff_end << std::endl;
-  std::cout << "time_cutoff_num: " << para.time_cutoff_num << std::endl;
   std::cout << std::string(20, '*') << std::endl;
 
 }

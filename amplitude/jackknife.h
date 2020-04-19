@@ -72,7 +72,6 @@ struct Jack_para {
   std::vector<int> lat_size;
   std::vector<int> traj_skip; // skip these trajectories
   int traj_start, traj_end, traj_sep, traj_num;
-  int time_cutoff_start, time_cutoff_end, time_cutoff_num;
 
   void get_leptonic(LatticePGG &lat);
   void get_three_point(LatticePGG &three_point, int traj);
