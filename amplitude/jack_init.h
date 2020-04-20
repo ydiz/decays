@@ -34,8 +34,8 @@ void init_para(int argc, char **argv, Jack_para &para)
                     // ("traj_end", po::value<int>(&para.traj_end)->default_value(1000))
                     // ("traj_sep", po::value<int>(&para.traj_sep)->default_value(10))
                     // ("traj_skip", po::value<std::string>()->default_value(""))
-                    ("time_cutoff_start", po::value<int>(&para.time_cutoff_start)->default_value(1))
-                    ("time_cutoff_end", po::value<int>(&para.time_cutoff_end)->default_value(16))
+                    // ("time_cutoff_start", po::value<int>(&para.time_cutoff_start)->default_value(1))
+                    // ("time_cutoff_end", po::value<int>(&para.time_cutoff_end)->default_value(16))
                     ("target", po::value<std::string>(&para.target)->default_value(""))
                     ("file_p3", po::value<std::string>(&para.file_p3)->default_value(""))
                     ("file_p1", po::value<std::string>(&para.file_p1)->default_value(""))
@@ -78,11 +78,9 @@ void init_para(int argc, char **argv, Jack_para &para)
     para.Z_V = 0.7267;
 
     para.lat_size = {24, 24, 24, 64};
-    // para.traj_start = 2260;
     para.traj_start = 1010;
     para.traj_end = 2640;
     para.traj_sep = 10;
-    // para.traj_skip = {2360, 2520, 2540, 2580};
     para.traj_skip = {1020,1060,1100,1150,1160,1170,1180,1190,1200,1210,1220,1230,1240,1250,1260,1270,1280,1290,1300,1310,1320,1330,1340,1350,1360,1370,1380,1390,1400,1410,1420,1430,1440,1450,1460,1470,1480,1490,1500,1510,1520,1530,1540,1550,1560,1570,1580,1590,1600,1610,1620,1630,1640,1650,1660,1670,1680,1690,1700,1710,1720,1730,1740,1750,1760,1770,1780,1790,1800,1810,1820,1830,1840,1850,1860,1870,1880,1890,1910,1920,1930,1940,1950,1960,1970,1980,1990,2000,2010,2020,2030,2040,2050,2060,2070,2080,2090,2100,2110,2120,2130,2140,2150,2160,2170,2180,2190,2200,2210,2220,2230,2240,2250,2360,2520,2540,2580};
   }
   else if(para.ensemble == "Pion_32ID") {
@@ -91,11 +89,9 @@ void init_para(int argc, char **argv, Jack_para &para)
     para.Z_V = 0.7260;
 
     para.lat_size = {32, 32, 32, 64};
-    // para.traj_start = 980;
     para.traj_start = 690;
     para.traj_end = 1370;
     para.traj_sep = 10;
-    // para.traj_skip = {};
     para.traj_skip = {770,790,800,810,820,830,840,850,860,870,880,890,900,910,920,930,940,950,960,970,980,990};
   }
   else if(para.ensemble == "Pion_32IDF") {
@@ -104,12 +100,9 @@ void init_para(int argc, char **argv, Jack_para &para)
     para.Z_V = 0.68339;
 
     para.lat_size = {32, 32, 32, 64};
-    // para.traj_start = 270;
-    // para.traj_end = 430;
     para.traj_start = 500;
     para.traj_end = 1270;
     para.traj_sep = 10;
-    // para.traj_skip = {};
     para.traj_skip = {650,670,690,700,750,790,800,810,1100,1110,1120,1130,1140,1220,1230,1240,1250};
   }
   else if(para.ensemble == "Pion_48I") {
@@ -117,14 +110,33 @@ void init_para(int argc, char **argv, Jack_para &para)
     para.N_h = 85.866659;
     para.Z_V = 0.71076;
 
-    para.lat_size = {48, 48, 48, 96};
-    // para.traj_start = 1290;
-    // para.traj_end = 1730;
-    para.traj_start = 990;
+    para.traj_start = 990; // the old three point functions that Luchang accidentally deleted
     para.traj_end = 1850;
     para.traj_sep = 20;
-    // para.traj_skip = {1450, 1470, 1490};
     para.traj_skip = {1050,1070,1150,1170,1190,1230,1250,1270,1450,1470,1490,1810,1830};
+  }
+  else if(para.ensemble == "Pion_48I_pqpm") { // partially_quenched_pion_mass
+    para.M_h = 0.0783812;
+    para.N_h = 87.1353496;
+    para.Z_V = 0.71076;
+
+    para.lat_size = {48, 48, 48, 96};
+    para.traj_start = 630;
+    para.traj_end = 1250;
+    para.traj_sep = 10;
+    para.traj_skip = {720, 760, 800, 840, 860, 880, 900, 920, 940, 960, 980, 990, 1000, 1010, 1020, 1030, 1040, 1060, 1080,
+                      1090, 1100, 1110, 1120, 1130, 1140, 1160, 1180, 1200, 1210, 1220, 1240};
+  }
+  else if(para.ensemble == "Pion_64I") {
+    para.M_h = 0.057328; // this is different from the 2014 paper. This is the pion mass used to calculate propagator, which is different from the light quark mass in generating the ensemble which is in the 2014 paper.  
+    para.N_h = 107.01; 
+    para.Z_V = 0.74293;
+
+    para.lat_size = {64, 64, 64, 128};
+    para.traj_start = 1290;
+    para.traj_end = 2490;
+    para.traj_sep = 20;
+    para.traj_skip = {1350,1550,1590,1630,1770,1890,1930,1970,2010,2050,2090,2130};
   }
   else if(para.ensemble == "Pion_24ID_disc") {
     para.M_h = 0.13975;
@@ -182,10 +194,7 @@ void init_para(int argc, char **argv, Jack_para &para)
 
   // reading leptonic part
   para.leptonic_space_limit = para.lat_size[0] / 2; // for reading leptonic part // this should match the CUBA calculation of leptonic part
-  // para.leptonic_time_limit = 16; // for reading leptonic part // this should match the CUBA calculation of leptonic part
   para.leptonic_time_limit = para.lat_size[3] / 4; // for reading leptonic part // this should match the CUBA calculation of leptonic part
-  para.time_cutoff_num = para.time_cutoff_end - para.time_cutoff_start + 1;
-  assert(para.time_cutoff_end <= para.leptonic_time_limit); // If target requires reading integrals, larger time cutoff does not make any sense since leptonic part is 0.
 
   // leptonic part
   // me is in eV; all other masses are in lattice unit
@@ -236,10 +245,6 @@ void init_para(int argc, char **argv, Jack_para &para)
   std::cout << "traj_sep: " << para.traj_sep << std::endl;
   std::cout << "traj_skip: " << para.traj_skip << std::endl;
   std::cout << "traj_num: " << para.traj_num << std::endl;
-  std::cout << std::string(20, '*') << std::endl;
-  std::cout << "time_cutoff_start: " << para.time_cutoff_start << std::endl;
-  std::cout << "time_cutoff_end: " << para.time_cutoff_end << std::endl;
-  std::cout << "time_cutoff_num: " << para.time_cutoff_num << std::endl;
   std::cout << std::string(20, '*') << std::endl;
 
 }

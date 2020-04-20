@@ -1,7 +1,7 @@
 #pragma once
 
 #include <qlat/qlat.h>
-#include <qlat/grid.h>
+// #include <qlat/grid.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <headers/headers.h>

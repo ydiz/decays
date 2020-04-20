@@ -72,7 +72,6 @@ struct Jack_para {
   std::vector<int> lat_size;
   std::vector<int> traj_skip; // skip these trajectories
   int traj_start, traj_end, traj_sep, traj_num;
-  int time_cutoff_start, time_cutoff_end, time_cutoff_num;
 
   void get_leptonic(LatticePGG &lat);
   void get_three_point(LatticePGG &three_point, int traj);
@@ -99,7 +98,7 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
   }
 
 
-  if(ensemble == "Pion_24ID" || ensemble == "Pion_32ID" || ensemble == "Pion_32IDF" || ensemble == "Pion_48I") {
+  if(ensemble == "Pion_24ID" || ensemble == "Pion_32ID" || ensemble == "Pion_32IDF" || ensemble == "Pion_48I" || ensemble == "Pion_48I_pqpm" || ensemble=="Pion_64I") {
     bool useCheng = false, useLuchang = true;  // use luchang's propagator // the same as (cheng's + fission) * 0.5
     // bool useCheng = true, useLuchang = false; // use cheng's propagator
     assert((useCheng && useLuchang) == false);
@@ -109,23 +108,62 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
       read_cheng_PGG(three_point, file);
       three_point = imag(three_point) * pp;
     }
+
     if(useLuchang) {
-      std::string file = three_point_path(traj, ensemble, "decay");
-      read_luchang_PGG(three_point, file);
+
+      std::string file_decay = three_point_path(traj, ensemble, "decay");
+      if(ensemble=="Pion_64I" || ensemble=="Pion_48I_pqpm") { // for 64I and new 48I luchange did not add type1 and type2 to final "decay"
+
+        read_luchang_PGG(three_point, file_decay+"_type_1");  // Luchang's type II contraction is the complex conjugate of type I
+        three_point = 2. * real(three_point);
+        if(ensemble=="Pion_64I") {
+          three_point = three_point * 16.;
+        std::cout << "Luchang missed a factor of 16, so I am multiplying the three point function by 16 here. Remove this once Luchange fixed this bug." << std::endl;
+        }
+      }
+      else read_luchang_PGG(three_point, file_decay);
+
+      // Luchang's test
+      // parallel_for(int ss=0; ss<three_point.Grid()->lSites(); ss++){
+      //   Coordinate lcoor, gcoor;
+      //   localIndexToLocalGlobalCoor(three_point.Grid(), ss, lcoor, gcoor);
+      //
+      //   int T = three_point.Grid()->_fdimensions[Tdir];
+      //
+      //   typename LatticePGG::vector_object::scalar_object m;
+      //   peekLocalSite(m, three_point, lcoor);
+      //   int t = gcoor[Tdir];
+      //   if(t > T/2) m = Zero();
+      //   else if(t < T/2 && t > 0) m = 2. * m;    // Use only the portion when sink if further from the poin wall
+      //   pokeLocalSite(m, three_point, lcoor);
+      // }
+      //
 
       LatticePGG three_point_fission(three_point.Grid());
       std::string file_fission = three_point_path(traj, ensemble, "fission");
-      read_luchang_PGG(three_point_fission, file_fission);
+      if(ensemble=="Pion_64I"|| ensemble=="Pion_48I_pqpm") {
 
-      // three_point = 0.5 * (transpose(three_point) + three_point_fission); // average over "decay" and "fission"
+        read_luchang_PGG(three_point_fission, file_fission + "_type_1");
+        three_point_fission = 2. * real(three_point_fission);
+
+        if(ensemble=="Pion_64I") {
+          three_point_fission = three_point_fission * 16.;
+          std::cout << "Luchang missed a factor of 16, so I am multiplying the three point function by 16 here. Remove this once Luchange fixed this bug." << std::endl;
+        }
+      }
+      else read_luchang_PGG(three_point_fission, file_fission);
+
       three_point = 0.5 * (three_point + get_reflection(three_point_fission)); // average over "decay" and "fission"
+      //
+      // // // three_point = get_reflection(three_point_fission); // only "fission"
 
       static LatticeComplex luchang_exp(three_point.Grid());
-      static bool luchange_exp_initialzed = false;
-      if(!luchange_exp_initialzed) {
-        std::map<std::string, double> tmins {{"Pion_24ID", 10.}, {"Pion_32ID", 10.}, {"Pion_32IDF", 14.}, {"Pion_48I", 16.}};
+      static bool luchange_exp_initialized = false;
+      if(!luchange_exp_initialized) {
+        std::map<std::string, double> tmins {{"Pion_24ID", 10.}, {"Pion_32ID", 10.}, {"Pion_32IDF", 14.}, 
+                                                {"Pion_48I", 16.}, {"Pion_48I_pqpm", 16.}, {"Pion_64I", 22.}};
         get_luchang_exp_factor(luchang_exp, M_h, tmins.at(ensemble)); // can be optimized; do not calculate every time
-        luchange_exp_initialzed = true;
+        luchange_exp_initialized = true;
       }
 
       three_point = three_point * luchang_exp; // multiply it by exp(Mpi * t_pi)
@@ -152,7 +190,8 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
   }
   else assert(0);
 
-  if(target=="form_factor" && ensemble!="Pion_24ID_disc") three_point = three_point / pp; // the three point function is <J(0) J(x)|pi >, not <J(-w/2) J(w/2) | pi>
+  if(target=="form_factor") three_point = three_point / pp; // the three point function is <J(0) J(x)|pi >, not <J(-w/2) J(w/2) | pi>
+  // if(target=="form_factor" && ensemble!="Pion_24ID_disc") three_point = three_point / pp; // the three point function is <J(0) J(x)|pi >, not <J(-w/2) J(w/2) | pi>
 }
 
 std::vector<double> Jack_para::get_result_with_cutoff(const LatticePGG &three_point, const LatticePGG &leptonic) {
