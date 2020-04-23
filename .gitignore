@@ -1,7 +1,7 @@
 # Blacklist everything
 *
 
-# Whitelist all directories
+# Whitelist all directories  # Must do this before Whitelist the files
 !*/
 
 # Whitelist the file you're interested in.
