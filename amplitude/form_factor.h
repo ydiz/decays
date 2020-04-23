@@ -43,9 +43,9 @@ void form_factor_integrand(LatticePGG &lat, double Mpi_lat) {
 
 
 
-std::vector<double> form_factor(const LatticePGG &three_point, const LatticePGG &leptonic, double hadron_coeff, double lep_coeff) {
+std::vector<double> form_factor(const LatticePGG &three_point, const LatticePGG &leptonic, double hadron_coeff, double lep_coeff, const std::string &cutoff_type) {
 
-	std::vector<double> ret = mult_HL_cutoff(three_point, leptonic);
+	std::vector<double> ret = mult_HL_cutoff(three_point, leptonic, cutoff_type);
 
   std::vector<double> F(ret.size());
   for(int i=0; i<ret.size(); ++i) F[i] = hadron_coeff * lep_coeff * ret[i];

@@ -4,10 +4,23 @@
 #include <dirent.h>
 #include <headers/headers.h>
 
+
+// user declared OpenMP reduction for C++ vectors of a specific type:
+
+#pragma omp declare reduction(vec_double_plus : std::vector<double> : \
+                              std::transform(omp_out.begin(), omp_out.end(), omp_in.begin(), omp_out.begin(), std::plus<double>())) \
+initializer(omp_priv = decltype(omp_orig)(omp_orig.size()))
+
+
+
+
 namespace Grid{
 namespace QCD{
 
-std::vector<double> mult_HL_cutoff(const LatticePGG &hadronic, const LatticePGG &leptonic) {
+std::vector<double> mult_HL_cutoff(const LatticePGG &hadronic, const LatticePGG &leptonic, const std::string &cutoff_type) {
+
+  int T = hadronic.Grid()->_fdimensions[Tdir];
+
   LatticeComplex tmp(hadronic.Grid());
   tmp = 0.;
 
@@ -20,32 +33,37 @@ std::vector<double> mult_HL_cutoff(const LatticePGG &hadronic, const LatticePGG 
     tmp_v[ss]()()() += h_v[ss]()()(2, 1) * l_v[ss]()()(2, 1) + h_v[ss]()()(1, 2) * l_v[ss]()()(1, 2); 
   }
 
-  // // int space_cutoff = 16;
-  // int space_cutoff = 6;
-  // std::cout << "space cutoff: " << space_cutoff << std::endl;
-  // parallel_for(int ss=0; ss<tmp.Grid()->lSites(); ss++){
-  //   std::vector<int> lcoor, gcoor;
-  //   localIndexToLocalGlobalCoor(tmp.Grid(), ss, lcoor, gcoor);
-  //
-  //   if( (gcoor[0]>space_cutoff && gcoor[0]<tmp.Grid()->_fdimensions[0] - space_cutoff) ||
-  //       (gcoor[1]>space_cutoff && gcoor[1]<tmp.Grid()->_fdimensions[1] - space_cutoff) ||
-  //       (gcoor[2]>space_cutoff && gcoor[2]<tmp.Grid()->_fdimensions[2] - space_cutoff)  ) {
-  //
-  //     typename LatticeComplex::vector_object::scalar_object tmp_site; //  this has to be defined within parallel_for
-  //     tmp_site = 0.;
-  //     pokeLocalSite(tmp_site, tmp, lcoor);
-  //   }
-  // }
 
-  int T = hadronic.Grid()->_fdimensions[Tdir];
+  std::vector<double> ret_real(T / 2 + 1, 0); // [0, T/2] // Finally, in jackknife.cc, we are only using [0, T/4] 
 
-  std::vector<iSinglet<Complex>> ret(T);
-  sliceSum(tmp, ret, Tdir);
+  if(cutoff_type == "time") {
+    std::vector<iSinglet<Complex>> ret(T);
+    sliceSum(tmp, ret, Tdir);
 
-  std::vector<double> ret_real(T / 2 + 1);
-  ret_real[0] = ret[0]()()().real();
-  ret_real[T/2] = ret[T/2]()()().real();
-  for(int i=1; i<ret_real.size()-1; ++i) ret_real[i] = ret[i]()()().real() + ret[T-i]()()().real(); // add t and -t
+    ret_real[0] = ret[0]()()().real();
+    ret_real[T/2] = ret[T/2]()()().real();
+    for(int i=1; i<ret_real.size()-1; ++i) ret_real[i] = ret[i]()()().real() + ret[T-i]()()().real(); // add t and -t
+  }
+  else if(cutoff_type == "4D") {
+    // parallel_for(int ss=0; ss<hadronic.Grid()->lSites(); ss++){
+    // #pragma omp parallel for reduction(vec_double_plus : res)  # must use reduction to prevent data race
+    for(int ss=0; ss<hadronic.Grid()->lSites(); ss++){
+      Coordinate lcoor, gcoor;
+      localIndexToLocalGlobalCoor(hadronic.Grid(), ss, lcoor, gcoor);
+
+      gcoor = my_smod(gcoor, hadronic.Grid()->_fdimensions);
+      double d = std::sqrt(gcoor[0]*gcoor[0] + gcoor[1]*gcoor[1] + gcoor[2]*gcoor[2] + gcoor[3]*gcoor[3]);
+
+      if(int(d) <= T/2) {
+        typename LatticeComplex::vector_object::scalar_object m;
+        peekLocalSite(m, tmp, lcoor); // tmp = hadronic * leptonic
+        ret_real[int(d)] += m()()().real();
+      }
+    }
+    hadronic.Grid()->GlobalSumVector(ret_real.data(), ret_real.size()); // Sum over Nodes
+  }
+  else assert(0);
+
 
   std::vector<double> ret_cumulative(T / 2 + 1);
   ret_cumulative[0] = ret_real[0];
@@ -57,8 +75,8 @@ std::vector<double> mult_HL_cutoff(const LatticePGG &hadronic, const LatticePGG 
 
 // // L_{mu nu}(w) = lepton_coeff * leptonic
 // // H_{mu nu}(w) = <0| Jmu(w/2) Jnu(-w/2) |pi> = hadron_coeff * three piont function
-std::vector<double> calculate_decay_amplitude_cutoff(const LatticePGG &three_point, const LatticePGG &leptonic, double lepton_coeff, double hadron_coeff) { 
-	std::vector<double> ret = mult_HL_cutoff(three_point, leptonic);
+std::vector<double> calculate_decay_amplitude_cutoff(const LatticePGG &three_point, const LatticePGG &leptonic, double lepton_coeff, double hadron_coeff, const std::string &cutoff_type) { 
+	std::vector<double> ret = mult_HL_cutoff(three_point, leptonic, cutoff_type);
 
   std::vector<double> amplitude_M(ret.size());
   for(int i=0; i<ret.size(); ++i) amplitude_M[i] = hadron_coeff * lepton_coeff * ret[i];

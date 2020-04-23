@@ -44,9 +44,6 @@ std::vector<RealD> jack_stats(const std::vector<RealD>& data)
   for(int i=0; i<N; i++){ jack_samples[i] = jack_mean(data,i); }
   jack_stats[1] = jack_std(jack_samples, jack_stats[0]);
 
-  std::cout << "jackknife average: " << jack_stats[0] << std::endl;
-  std::cout << "jackknife error: " << jack_stats[1] << std::endl;
-
   return jack_stats;
 }
 
@@ -62,32 +59,74 @@ struct Jack_para {
   double BR_coeff; // decay rate = BR_coeff * |M|^2; BR does not contain lattice quantities. (use physical electron and pion mass)
 
   // leptonic part
-  std::string target;
+  std::vector<std::string> targets;
   std::string file_p3;
   std::string file_p1;
-  double lep_coeff;
   double leptonic_space_limit;
   double leptonic_time_limit;
+
+  std::string cutoff_type;
+
+  std::string output_prefix;
 
   std::vector<int> lat_size;
   std::vector<int> traj_skip; // skip these trajectories
   int traj_start, traj_end, traj_sep, traj_num;
 
-  void get_leptonic(LatticePGG &lat);
+  LatticePGG get_leptonic(GridCartesian *grid, const std::string &target);
+  double get_lep_coef(const std::string &target);
   void get_three_point(LatticePGG &three_point, int traj);
-  std::vector<double> get_result_with_cutoff(const LatticePGG &hadronic, const LatticePGG &leptonic);
+  std::vector<double> get_result_with_cutoff(const LatticePGG &hadronic, const LatticePGG &leptonic, const std::string &target);
   
 };
 
-void Jack_para::get_leptonic(LatticePGG &lat) {
+LatticePGG Jack_para::get_leptonic(GridCartesian * grid, const std::string &target) {
+    LatticePGG lat(grid);
   if(target == "real_CUBA3d" || target == "imag_CUBA3d") get_leptonic_CUBA3d(file_p1, file_p3, lat, leptonic_space_limit, leptonic_time_limit);
   else if(target == "real") Grid::QCD::get_leptonic(file_p3, lat, leptonic_space_limit, leptonic_time_limit);
   else if(target == "imag_analytic") imag_part(lat, M_h);
   else if(target == "form_factor") form_factor_integrand(lat, M_h); // technically this is not leptonic part; but for convience I put it in get_leptonic function
   else assert(0);
+
+  // For form_factor, the three point function should be <J(0) J(x)|pi >, while the get_three_point function returns <Jmu(-w/2) Jnu(w/2) |pi>; so I add an exponential factor to the leptonic part
+  if(target=="form_factor") {
+	  LatticeComplex pp(grid); 
+    get_translational_factor(pp, M_h); // translational factor 
+    lat = lat / pp; 
+  }
+
+  return lat;
 }
 
-// return <Jmu(-w/2) Jnu(w/2) |pi> / hadron_coeff
+double Jack_para::get_lep_coef(const std::string &target) {
+  // me is in eV; all other masses are in lattice unit
+  double lep_coef;
+  double me = 511000; // Unit is eV
+  if(target=="real") lep_coef = 2. / (M_PI) / 137. / 137. * me;
+  else if(target=="real_CUBA3d") lep_coef = 1. / (2 * M_PI) / 137. / 137. * me;
+  else if(target=="imag_analytic") {
+    double Mpi = 135000000;  
+    double beta = std::sqrt(1 - 4*me*me / (Mpi*Mpi)); //FIXME: change this for kaon -> mu+ mu-
+    lep_coef = me / M_h * M_PI / 137. / 137. * (1. / beta * std::log((1 + beta) / (1 - beta)));
+  }
+  else if(target=="imag_CUBA3d") lep_coef = 1. / 2. / 137. / 137. * me;
+  else if(target=="form_factor") {
+    lep_coef = 2. / std::pow(M_h, 4);
+
+    if(ensemble.substr(0,4)=="Pion") { // For pion, calculate F / F_ABJ instead of F itself
+      double Fpi = 93. * (M_h / 135.); // Fpi = 93MeV. Convert Fpi to lattice unit;  // F_\pi = 0.092424
+      double F_ABJ = 1. / (4. * M_PI * M_PI) / Fpi;
+      lep_coef /= F_ABJ;
+    }
+  }
+  else assert(0);
+
+  return lep_coef;
+}
+
+
+
+// always return <Jmu(-w/2) Jnu(w/2) |pi> / hadron_coeff
 void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
 
 	static LatticeComplex pp(three_point.Grid()); 
@@ -123,22 +162,6 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
       }
       else read_luchang_PGG(three_point, file_decay);
 
-      // Luchang's test
-      // parallel_for(int ss=0; ss<three_point.Grid()->lSites(); ss++){
-      //   Coordinate lcoor, gcoor;
-      //   localIndexToLocalGlobalCoor(three_point.Grid(), ss, lcoor, gcoor);
-      //
-      //   int T = three_point.Grid()->_fdimensions[Tdir];
-      //
-      //   typename LatticePGG::vector_object::scalar_object m;
-      //   peekLocalSite(m, three_point, lcoor);
-      //   int t = gcoor[Tdir];
-      //   if(t > T/2) m = Zero();
-      //   else if(t < T/2 && t > 0) m = 2. * m;    // Use only the portion when sink if further from the poin wall
-      //   pokeLocalSite(m, three_point, lcoor);
-      // }
-      //
-
       LatticePGG three_point_fission(three_point.Grid());
       std::string file_fission = three_point_path(traj, ensemble, "fission");
       if(ensemble=="Pion_64I"|| ensemble=="Pion_48I_pqpm") {
@@ -154,8 +177,6 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
       else read_luchang_PGG(three_point_fission, file_fission);
 
       three_point = 0.5 * (three_point + get_reflection(three_point_fission)); // average over "decay" and "fission"
-      //
-      // // // three_point = get_reflection(three_point_fission); // only "fission"
 
       static LatticeComplex luchang_exp(three_point.Grid());
       static bool luchange_exp_initialized = false;
@@ -175,7 +196,6 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
   else if(ensemble == "Pion_24ID_disc") {
     std::string file = three_point_disc_24ID(traj);
     readScidac(three_point, file);
-    // three_point = imag(three_point) * pp;
   }
   else if(ensemble == "Pion_32ID_disc2") {
     std::string file = three_point_disc2_32ID(traj);
@@ -189,16 +209,13 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
     three_point = real(three_point) * pp;
   }
   else assert(0);
-
-  if(target=="form_factor") three_point = three_point / pp; // the three point function is <J(0) J(x)|pi >, not <J(-w/2) J(w/2) | pi>
-  // if(target=="form_factor" && ensemble!="Pion_24ID_disc") three_point = three_point / pp; // the three point function is <J(0) J(x)|pi >, not <J(-w/2) J(w/2) | pi>
 }
 
-std::vector<double> Jack_para::get_result_with_cutoff(const LatticePGG &three_point, const LatticePGG &leptonic) {
-  // if(target=="form_factor") return form_factor(three_point, leptonic, hadron_coeff, M_h);
-  if(target=="form_factor") return form_factor(three_point, leptonic, hadron_coeff, lep_coeff);
+std::vector<double> Jack_para::get_result_with_cutoff(const LatticePGG &three_point, const LatticePGG &leptonic, const std::string &target) {
+  double lep_coeff = get_lep_coef(target);
+  if(target=="form_factor") return form_factor(three_point, leptonic, hadron_coeff, lep_coeff, cutoff_type);
   else if(target == "real" || target == "real_CUBA3d" || target=="imag_analytic" || target == "imag_CUBA3d") {
-    return calculate_decay_amplitude_cutoff(three_point, leptonic, lep_coeff, hadron_coeff);
+    return calculate_decay_amplitude_cutoff(three_point, leptonic, lep_coeff, hadron_coeff, cutoff_type);
   }
   else assert(0);
 }
