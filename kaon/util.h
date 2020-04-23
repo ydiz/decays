@@ -175,10 +175,6 @@ M_K: kaon mass on the lattice
     int dist_to_Hw = abs_distance(xt, t_x, T);
     // if(left_dist>T/2) m()()() = Complex(0., 0.);
     // if(left_dist>T/2 - 8) m()()() = Complex(0., 0.); // FIXME: 
-    // if(left_dist>T/2 - 16) m()()() = Complex(0., 0.); // FIXME: 
-    // if(left_dist>T/2 - 20) m()()() = Complex(0., 0.); // FIXME: 
-    // if(left_dist>T/2 - 24) m()()() = Complex(0., 0.); // FIXME: 
-    // if(left_dist>T/2 - 18) m()()() = Complex(0., 0.); // FIXME: 
     if(dist_to_Hw > T_u) m()()() = Complex(0., 0.); // FIXME: 
     else {
       int left_dist = left_distance(xt, t_wall, T);
@@ -196,6 +192,13 @@ void pokeLorentz(Lattice<vobj> &lhs, const Lattice<decltype(peekIndex<LorentzInd
 {
   PokeIndex<LorentzIndex>(lhs,rhs,i,j);
 }
+
+
+void conjugateU(LatticePropagator &prop) {
+  // To change the P[U] to P[U^*], we use P[U^*] = (C * gamma_5) P[U]^* (C * gamma_5)^{-1} = (C * gamma_5) P[U]^* gamma_5 C^{-1}
+  prop = - ((gmu[2] * gmu[4] * g5) * conjugate(prop) * (g5 * gmu[2] * gmu[4]));
+}
+
 
 
 }}
