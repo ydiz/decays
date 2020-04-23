@@ -1,7 +1,11 @@
+# Blacklist everything
 *
 
-!**/*.cc
-!**/*.h
+# Whitelist all directories
+!*/
 
+# Whitelist the file you're interested in.
+!*.cc
+!*.h
 !.gitignore
 
