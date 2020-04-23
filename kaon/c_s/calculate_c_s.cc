@@ -76,11 +76,14 @@ int main(int argc, char* argv[])
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
     env.setup_traj(traj);
 
-    std::vector<LatticePropagator> wl = env.get_wall('l');
-    std::cout << "xxxx" << std::endl;
-    std::vector<LatticePropagator> ws = env.get_wall('s'); // will have error when creating the second vector<LatticePropagator>; Do not know why.
-    std::cout << "xxxx" << std::endl;
-    assert(0);
+    // std::vector<LatticePropagator> wl = env.get_wall('l');
+    // std::cout << "xxxx" << std::endl;
+    // std::vector<LatticePropagator> ws = env.get_wall('s'); // will have error when creating the second vector<LatticePropagator>; Do not know why.
+    // std::cout << "xxxx" << std::endl;
+    // assert(0);
+
+    LatticeColourMatrix gt(env.grid);
+    readScidac(gt, env.gauge_transform_path());
 
     for(int t_K=0; t_K<T; ++t_K) { // iterate through the position of Kaon wall
     // for(int t_K=0; t_K<1; ++t_K) {
@@ -108,8 +111,13 @@ int main(int argc, char* argv[])
         for(int xt=0; xt<T; ++xt) diagram1_Q2[traj_idx][t_sep - t_sep_min][t_K][xt] = TensorRemove(rst_Q2_slice_sum[(t_K+xt)%T]); 
 
         // diagram_sBar_d 
+
+        // For L(t_pi, t_K), the 
+        LatticePropagator wl_K_Coulomb = env.toCoulombSink(gt, wl_K);
+
         std::vector<typename LatticePropagator::vector_object::scalar_object> wl_K_sliceSum;
-        sliceSum(wl_K, wl_K_sliceSum, Tdir);
+        // sliceSum(wl_K, wl_K_sliceSum, Tdir);
+        sliceSum(wl_K_Coulomb, wl_K_sliceSum, Tdir);
         typename LatticePropagator::vector_object::scalar_object wl_tpi_tK = wl_K_sliceSum[t_pi];
         
         LatticeComplex rst_sBar_d(env.grid);
@@ -122,7 +130,7 @@ int main(int argc, char* argv[])
 
     ++traj_idx;
   }
-    // It might be better to add coefficients in python code, not here.
+    // It might be better to add coefficients in python code, not here. // so that in here we calculate only contractions.
 // TBD: add coefficents, sqrt(2) / 2 or - sqrt(2) / 2  !!!!!
 // diagram1_Q1[traj][t_sep][t_K][x_t]; already shifted -> x_t=0 is the position of kaon
   std::cout << "diagram1 Q1: " << diagram1_Q1 << std::endl;
