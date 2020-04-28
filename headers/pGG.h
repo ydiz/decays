@@ -9,10 +9,18 @@
 namespace Grid {
 namespace QCD {
 
+
 // to use Scidac, we cannot make PGGElem have only one level (like iMatrix<Complex, 4>)
 using PGGElem = iScalar<iScalar<iMatrix<Complex, 4>>>;
 using vPGGElem = iScalar<iScalar<iMatrix<vComplex, 4>>>;
 using LatticePGG = Lattice<vPGGElem>;
+
+using LatticePropagatorSite = typename LatticePropagator::vector_object::scalar_object;
+using LatticeComplexSite = typename LatticeComplex::vector_object::scalar_object;
+using LatticePGGSite = typename LatticePGG::vector_object::scalar_object;
+
+
+
 
 // translational factor
 void get_translational_factor(LatticeComplex &lat, double Mpi) {

@@ -1,5 +1,44 @@
 #pragma once
 
+// #include <sys/sysinfo.h>
+
+void print_memory() {
+  using namespace std;
+
+  map<string, double> memInfo; // item -> memory in GB
+  ifstream f("/proc/meminfo");
+  while(f) {
+    string item, tmp;
+    long long int size;
+
+    f >> item >> size;
+    getline(f, tmp); // move to the next line
+
+    if(!item.empty()) {
+      item.pop_back(); // remove last character
+      memInfo[item] = double(size) / 1024 / 1024;
+    }
+  }
+  // for(auto [s, i]: memInfo) std::cout << s << " " << i << " KB" << std::endl;
+
+  std::cout << "MemTotal: " << memInfo["MemTotal"] << " GB " << std::endl;
+  std::cout << "Non cache/buffer MemUsed: " << memInfo["MemTotal"] - memInfo["MemFree"] - memInfo["Buffers"] - memInfo["Cached"] << " GB " << std::endl;
+  std::cout << "Buffers/Cached: " << memInfo["Buffers"] + memInfo["Cached"] << " GB " << std::endl;
+  std::cout << "MemAvailable: " << memInfo["MemAvailable"] << " GB " << std::endl; // Memavailable is roughly memfree + buffers + cached,
+
+  // // sysinfo does not contain information about Cached
+  // struct sysinfo memInfo; 
+  // sysinfo(&memInfo);
+  //
+  // double totalMem = double(memInfo.totalram) * memInfo.mem_unit / 1024 / 1024 / 1024; // in GB
+  // double freeMem = double(memInfo.freeram) * memInfo.mem_unit / 1024 / 1024 / 1024; // in GB
+  // std::cout << "total memory: " << totalMem << " GB" << std::endl;
+  // std::cout << "Used memory: " << totalMem - freeMem << " GB" << std::endl;
+  // std::cout << "Free memory: " << freeMem << " GB" << std::endl;
+}
+
+
+
 namespace Grid {
 namespace QCD {
 
@@ -46,7 +85,7 @@ void localIndexToLocalGlobalCoor(GridBase *grid, int ss, Coordinate &lcoor, Coor
 }
 
 
-// distance between two points with periodic boundary condition
+// distance between two points with periodic boundary condition // always positive
 int distance(int t1, int t2, int T) {
   int tmp = std::abs(t1 - t2);
   if(tmp <= T/2) return tmp;

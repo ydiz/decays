@@ -9,6 +9,7 @@ public:
   // std::vector<int> lat_size;
   GridCartesian *grid;
   std::string ensemble;
+  std::string out_prefix;
   int traj;
   double M_K; // mass of kaon in lattice unit
   double wilson_c1; // wilson coefficient for q1
@@ -16,7 +17,7 @@ public:
 
   int T_wall;
   int T_u;
-  int num_points;
+  int N_pt_src; // number of point sources to average over; -1 means use all 
 
   // type II
   int T_wall_typeII;
@@ -63,6 +64,9 @@ Env::Env(const std::vector<int> &_lat, const std::string &_ensemble) {
   grid = SpaceTimeGrid::makeFourDimGrid(_lat, GridDefaultSimd(Nd,vComplex::Nsimd()), GridDefaultMpi());
   ensemble = _ensemble;
 
+  out_prefix = "/home/G-parity/ydzhao/24ID/results/";
+  assert(dirExists(out_prefix));
+
   if(ensemble=="24ID") {
     M_K = 0.504154;
     wilson_c1 = -0.3735505346; // FIXME: need to update wilson coefficient // this number is Daiqian thesis for mu=1.53GeV
@@ -81,12 +85,17 @@ void Env::setup_traj(int _traj) {
 
 std::vector<LatticePropagator> Env::get_wall(char quark) const {
   int T = grid->_fdimensions[Tdir];
-  // std::cout << "zzzzzzzzzzzzzzzzzzzz" << std::endl;
+  std::cout << "before allocating vector of wall source propagators" << std::endl;
+  print_memory();
   std::vector<LatticePropagator> wall_props(T, grid);  // sometimes this fails, do not know why.
-  // std::cout << "yyyyyyyyyyyyyyyyyyyyyy" << std::endl;
+  std::cout << "after allocating vector of wall source propagators" << std::endl;
+  print_memory();
   for(int t=0; t<T; ++t) {
     readScidac_prop_f2d(wall_props[t], wall_path(t, quark));
+    print_memory();
   }
+  std::cout << "after reading wall source propagators" << std::endl;
+  print_memory();
   return wall_props;
 }
 
@@ -103,6 +112,7 @@ LatticePropagator Env::toCoulombSink(const LatticeColourMatrix &gt, const Lattic
   return out;
 }
 
+
 LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const {
   LatticePropagator point_prop(grid);
   readScidac_prop_f2d(point_prop, point_path(src, quark));
@@ -117,7 +127,7 @@ LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const 
 
 std::string Env::point_path(const std::vector<int> &src, char quark) const {
   std::string path;
-  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2CSL(src);
+  if(ensemble=="24ID") path = "/home/G-parity/ydzhao/24ID/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2CSL(src);
   else assert(0);
   std::cout << "reading from " << path << std::endl;
   assert(dirExists(path));
@@ -126,7 +136,7 @@ std::string Env::point_path(const std::vector<int> &src, char quark) const {
 
 std::string Env::wall_path(int t, char quark) const {
   std::string path;
-  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/wall_" + std::string(1, quark) + "/"  + std::to_string(traj) + "/" + std::to_string(t);
+  if(ensemble=="24ID") path = "/home/G-parity/ydzhao/24ID/wall_" + std::string(1, quark) + "/"  + std::to_string(traj) + "/" + std::to_string(t);
   else assert(0);
   std::cout << "reading from " << path << std::endl;
   assert(dirExists(path));
@@ -135,7 +145,7 @@ std::string Env::wall_path(int t, char quark) const {
 
 std::string Env::gauge_transform_path() const {
   std::string path;
-  if(ensemble=="24ID") path = "TBD";
+  if(ensemble=="24ID") path = "/home/G-parity/ydzhao/24ID/gauge_transform/" + std::to_string(traj);
   else assert(0);
   assert(dirExists(path));
   return path;
