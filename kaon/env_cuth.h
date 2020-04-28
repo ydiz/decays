@@ -92,10 +92,7 @@ std::vector<LatticePropagator> Env::get_wall(char quark) const {
   print_memory();
   for(int t=0; t<T; ++t) {
     readScidac_prop_f2d(wall_props[t], wall_path(t, quark));
-    print_memory();
   }
-  std::cout << "after reading wall source propagators" << std::endl;
-  print_memory();
   return wall_props;
 }
 
