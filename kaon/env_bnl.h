@@ -9,6 +9,7 @@ public:
   // std::vector<int> lat_size;
   GridCartesian *grid;
   std::string ensemble;
+  std::string out_prefix;
   int traj;
   double M_K; // mass of kaon in lattice unit
   double wilson_c1; // wilson coefficient for q1
@@ -16,7 +17,7 @@ public:
 
   int T_wall;
   int T_u;
-  int num_points;
+  int N_pt_src; // number of point sources to average over; -1 means use all 
 
   // type II
   int T_wall_typeII;
@@ -63,6 +64,9 @@ Env::Env(const std::vector<int> &_lat, const std::string &_ensemble) {
   grid = SpaceTimeGrid::makeFourDimGrid(_lat, GridDefaultSimd(Nd,vComplex::Nsimd()), GridDefaultMpi());
   ensemble = _ensemble;
 
+  out_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/results/";
+  assert(dirExists(out_prefix));
+
   if(ensemble=="24ID") {
     M_K = 0.504154;
     wilson_c1 = -0.3735505346; // FIXME: need to update wilson coefficient // this number is Daiqian thesis for mu=1.53GeV
@@ -81,9 +85,11 @@ void Env::setup_traj(int _traj) {
 
 std::vector<LatticePropagator> Env::get_wall(char quark) const {
   int T = grid->_fdimensions[Tdir];
-  // std::cout << "zzzzzzzzzzzzzzzzzzzz" << std::endl;
+  std::cout << "before allocating vector of wall source propagators" << std::endl;
+  print_memory();
   std::vector<LatticePropagator> wall_props(T, grid);  // sometimes this fails, do not know why.
-  // std::cout << "yyyyyyyyyyyyyyyyyyyyyy" << std::endl;
+  std::cout << "after allocating vector of wall source propagators" << std::endl;
+  print_memory();
   for(int t=0; t<T; ++t) {
     readScidac_prop_f2d(wall_props[t], wall_path(t, quark));
   }
