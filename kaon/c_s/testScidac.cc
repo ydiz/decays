@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 // #include <Grid/Grid.h>
+=======
+>>>>>>> 3c63df76e252c0fe6d63c6f2634fc315f64df691
 #include "../kaon.h"
 
 // using namespace qlat;
@@ -22,7 +25,11 @@ int main(int argc, char* argv[])
   // writeScidac(lat, "./xx");
     std::cout << "reading" << std::endl;
   // readScidac(lat, "./xx");
+<<<<<<< HEAD
   readScidac(lat, "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/gauge_transform/2300");
+=======
+  readScidac(lat, "./2300");
+>>>>>>> 3c63df76e252c0fe6d63c6f2634fc315f64df691
     std::cout << "finished" << std::endl;
   Grid_finalize();
 

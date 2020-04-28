@@ -24,6 +24,8 @@ const std::string target = "Pion";
 
 // ================ integration parameters ===================
 const double lower = 0.00001;
+
+// upper should depend on T, the lattice sites in time direction
 const double upper = 10;    // For 64I, Differences of using 10 and 20 are negligible, except for very large w and w0, where the difference can be ~0.5%; but the hadronic part is supposed to be small and suppress the leptonic part. so I will choose 10
 // const double upper = 20; 
 const double epsrel = 1e-8;  // The difference between 10e-8 and 10e-6 is small; For 64I, at site w=1 w0=0 where the difference is largest, the difference of final result is ~0.3%.
