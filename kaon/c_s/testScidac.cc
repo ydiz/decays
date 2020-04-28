@@ -1,4 +1,5 @@
-#include <Grid/Grid.h>
+// #include <Grid/Grid.h>
+#include "../kaon.h"
 
 // using namespace qlat;
 using namespace std;
@@ -17,10 +18,11 @@ int main(int argc, char* argv[])
 
   LatticeColourMatrix lat(grid);
   lat = 1.;
-    std::cout << "writing" << std::endl;
-  writeScidac(lat, "./xx");
+  //   std::cout << "writing" << std::endl;
+  // writeScidac(lat, "./xx");
     std::cout << "reading" << std::endl;
-  readScidac(lat, "./xx");
+  // readScidac(lat, "./xx");
+  readScidac(lat, "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/gauge_transform/2300");
     std::cout << "finished" << std::endl;
   Grid_finalize();
 

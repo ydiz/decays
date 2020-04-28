@@ -25,6 +25,7 @@ int main(int argc, char* argv[])
     std::string gt_path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/luchang/gauge_transform_and_wall_l/results=" + std::to_string(traj) + "/huge-data/gauge-transform";
     qlat::GaugeTransform qlat_gt;
     qlat::dist_read_field(qlat_gt, gt_path);
+    qlat::to_from_big_endian_64(qlat::get_data(qlat_gt));  // Must have this!!!!
 
     LatticeColourMatrix gt(grid);
     grid_convert(gt, qlat_gt);
