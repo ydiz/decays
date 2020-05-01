@@ -62,6 +62,8 @@ std::vector<std::vector<int>> Env::get_xgs(char quark) {
 
 Env::Env(const std::vector<int> &_lat, const std::string &_ensemble) {
   grid = SpaceTimeGrid::makeFourDimGrid(_lat, GridDefaultSimd(Nd,vComplex::Nsimd()), GridDefaultMpi());
+  grid->show_decomposition();
+
   ensemble = _ensemble;
 
   out_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/results/";

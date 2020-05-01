@@ -23,9 +23,6 @@ std::array<const Gamma, 4> gmu5 = { // gamma_mu * gamma5
 std::array<const GammaL, 4> gL {GammaL(gmu[0]), GammaL(gmu[1]), GammaL(gmu[2]), GammaL(gmu[3])};
 
 
-using LatticeKGG = Lattice<iMatrix<iScalar<iScalar<vComplex> >, 4>>;
-using LatticeLorentzColour = Lattice<iMatrix<iScalar<iMatrix<vComplex, 3> >, 4>>;
-// using LatticeLorentzVector = Lattice<iVector<iScalar<iScalar<vComplex> >, 4>>;
 
 template<typename vtype>
 inline iColourMatrix<vtype> traceS(const iSpinColourMatrix<vtype> &p) {
@@ -90,29 +87,6 @@ std::vector<int> CSL2coor(const std::string& s) {
 }
 
 
-int abs_distance(int t1, int t2, int T) { // |t1 - t2|, result is betwen [0, T/2]
-  int rst = std::abs(t1 - t2);
-  if(rst>T/2) rst = T - rst;
-  return rst;
-}
-
-int left_distance(int t1, int t2, int T) { // the distance from t1 to t2 if you can only move to the left 
-  int tmp = t1 - t2;
-  if(tmp >= 0) return tmp;
-  else return T+tmp;
-}
-
-int right_distance(int t1, int t2, int T) { // the distance from t1 to t2 if you can only move to the right
-  int rst = T - left_distance(t1, t2, T);
-  if(rst==T) return 0;
-  else return rst;
-}
-
-int left_time(int t1, int t2, int T) {
-  int dist = left_distance(t1, t2, T);
-  if(dist<T/2) return t2;
-  else return t1;
-}
 
 void zero_mask(LatticeComplex &lat, int t_wall, int right_min = 5) {
   int T = lat.Grid()->_fdimensions[3];
@@ -154,37 +128,6 @@ void exp_lat(LatticeComplex &lat, double coeff) {
 	}
 }
 
-// return exp(M_K * (u_0 - t_x))
-void expUMinusTwall(LatticeComplex &lat, int t_wall, int t_x, int T_u, double M_K) {
-  /*
-t_wall: position in wall
-t_x: position of Hw
-T_u: window size. Keep only points between [x - T_u, x+T_u]
-M_K: kaon mass on the lattice
-   */
-
-  int T = lat.Grid()->_fdimensions[3];
-	parallel_for(int ss=0; ss<lat.Grid()->lSites(); ss++){
-    Coordinate lcoor, gcoor;
-    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
-
-		typename LatticeComplex::vector_object::scalar_object m;
-
-		double val;
-		int xt = gcoor[Tdir];
-    int dist_to_Hw = abs_distance(xt, t_x, T);
-    // if(left_dist>T/2) m()()() = Complex(0., 0.);
-    // if(left_dist>T/2 - 8) m()()() = Complex(0., 0.); // FIXME: 
-    if(dist_to_Hw > T_u) m()()() = Complex(0., 0.); // FIXME: 
-    else {
-      int left_dist = left_distance(xt, t_wall, T);
-      val = std::exp(M_K * left_dist); // translation factor
-      m()()() = Complex(val, 0.);
-    }
-
-		pokeLocalSite(m, lat, lcoor);
-	}
-}
 
 
 template<class vobj> 

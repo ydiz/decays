@@ -51,8 +51,6 @@ int main(int argc, char* argv[])
   // init_para(argc, argv, env);
   env.N_pt_src = 1;  // FIXME: keep only one point
 
-  env.grid->show_decomposition();
-
   const int T = env.grid->_fdimensions[3];
 
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
@@ -61,16 +59,16 @@ int main(int argc, char* argv[])
     if(env.N_pt_src != -1) env.xgs_s.erase(env.xgs_s.begin() + env.N_pt_src, env.xgs_s.end());
 
     LatticePropagator Lxx(env.grid);
-    Lxx = 1.0; // FIXME: Should use A2A propagator! I am setting one for test.
+    Lxx = 1.0; // FIXME: For Q1 and Q2, if we set Lxx = 1.0, the resulting contraction would be zero (e.g. rmp_D1Q1K).
 
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');
 
     // save average of all point sources
-    LatticePGG rst_D1Q1K_allsrc(env.grid), rst_D1Q2K_allsrc(env.grid), rst_D1Q1Kbar_allsrc(env.grid), rst_D1Q2Kbar_allsrc(env.grid); 
-    LatticePGG rst_D2Q1K_allsrc(env.grid), rst_D2Q2K_allsrc(env.grid), rst_D2Q1Kbar_allsrc(env.grid), rst_D2Q2Kbar_allsrc(env.grid); 
-    LatticePGG rst_sBar_d_D1_allsrc(env.grid), rst_sBar_d_D2_allsrc(env.grid); 
-    vector<LatticePGG*> rst_vec_allsrc= {&rst_D1Q1K_allsrc, &rst_D1Q2K_allsrc, &rst_D1Q1Kbar_allsrc, &rst_D1Q2Kbar_allsrc, 
+    LatticeKGG rst_D1Q1K_allsrc(env.grid), rst_D1Q2K_allsrc(env.grid), rst_D1Q1Kbar_allsrc(env.grid), rst_D1Q2Kbar_allsrc(env.grid); 
+    LatticeKGG rst_D2Q1K_allsrc(env.grid), rst_D2Q2K_allsrc(env.grid), rst_D2Q1Kbar_allsrc(env.grid), rst_D2Q2Kbar_allsrc(env.grid); 
+    LatticeKGG rst_sBar_d_D1_allsrc(env.grid), rst_sBar_d_D2_allsrc(env.grid); 
+    vector<LatticeKGG*> rst_vec_allsrc= {&rst_D1Q1K_allsrc, &rst_D1Q2K_allsrc, &rst_D1Q1Kbar_allsrc, &rst_D1Q2Kbar_allsrc, 
                                    &rst_D2Q1K_allsrc, &rst_D2Q2K_allsrc, &rst_D2Q1Kbar_allsrc, &rst_D2Q2Kbar_allsrc, 
                                    &rst_sBar_d_D1_allsrc, &rst_sBar_d_D2_allsrc};
     for(auto rst: rst_vec_allsrc) *rst = Zero();
@@ -80,6 +78,7 @@ int main(int argc, char* argv[])
       LatticePropagator pl = env.get_point(v, 'l'); // pl = L(x, v) or L(u, v)
       LatticePropagator ps = env.get_point(v, 's'); // ps = H(x, v) or H(u, v)
 
+    // print_grid_field_site(pl, {1,1,1,1});
       // For every t_K, calculate f(x, v) 
       // tmp is every thing in f(x, v) except the prop involving t_K
       LatticePropagator tmp_D1Q1K(env.grid), tmp_D1Q2K(env.grid), tmp_D1Q1Kbar(env.grid), tmp_D1Q2Kbar(env.grid);  
@@ -98,6 +97,9 @@ int main(int argc, char* argv[])
         tmp_D2Q1Kbar += trace(gL[mu] * Lxx) * (gL[mu] * ps); 
         tmp_D2Q2Kbar += gL[mu] * Lxx * gL[mu] * ps; 
       }
+
+      // print_grid_field_site(tmp_D1Q1K, {1,1,1,1});
+
       tmp_sBar_d_D1 = g5 * pl; 
       tmp_sBar_d_D2 = adj(ps) * g5; 
 
@@ -129,10 +131,10 @@ int main(int argc, char* argv[])
       }
 
       // combine f(x,v) with g(u, v)
-      LatticePGG rst_D1Q1K(env.grid), rst_D1Q2K(env.grid), rst_D1Q1Kbar(env.grid), rst_D1Q2Kbar(env.grid); 
-      LatticePGG rst_D2Q1K(env.grid), rst_D2Q2K(env.grid), rst_D2Q1Kbar(env.grid), rst_D2Q2Kbar(env.grid); 
-      LatticePGG rst_sBar_d_D1(env.grid), rst_sBar_d_D2(env.grid); 
-      vector<LatticePGG*> rst_vec = {&rst_D1Q1K, &rst_D1Q2K, &rst_D1Q1Kbar, &rst_D1Q2Kbar, 
+      LatticeKGG rst_D1Q1K(env.grid), rst_D1Q2K(env.grid), rst_D1Q1Kbar(env.grid), rst_D1Q2Kbar(env.grid); 
+      LatticeKGG rst_D2Q1K(env.grid), rst_D2Q2K(env.grid), rst_D2Q1Kbar(env.grid), rst_D2Q2Kbar(env.grid); 
+      LatticeKGG rst_sBar_d_D1(env.grid), rst_sBar_d_D2(env.grid); 
+      vector<LatticeKGG*> rst_vec = {&rst_D1Q1K, &rst_D1Q2K, &rst_D1Q1Kbar, &rst_D1Q2Kbar, 
                                      &rst_D2Q1K, &rst_D2Q2K, &rst_D2Q1Kbar, &rst_D2Q2Kbar, 
                                      &rst_sBar_d_D1, &rst_sBar_d_D2}; // for brevity of code
       for(auto rst: rst_vec) *rst = Zero();
@@ -151,10 +153,10 @@ int main(int argc, char* argv[])
         peekLocalSite(wall_to_u_L, wl[tK], lcoor);    peekLocalSite(wall_to_u_S, ws[tK], lcoor);
         peekLocalSite(v_to_u_L, pl, lcoor);           peekLocalSite(v_to_u_S, ps, lcoor);
 
-        LatticePGGSite rst_D1Q1K_site, rst_D1Q2K_site, rst_D1Q1Kbar_site, rst_D1Q2Kbar_site;
-        LatticePGGSite rst_D2Q1K_site, rst_D2Q2K_site, rst_D2Q1Kbar_site, rst_D2Q2Kbar_site;
-        LatticePGGSite rst_sBar_d_D1_site, rst_sBar_d_D2_site;
-        vector<LatticePGGSite *> rst_site_vec = {&rst_D1Q1K_site, &rst_D1Q2K_site, &rst_D1Q1Kbar_site, &rst_D1Q2Kbar_site,
+        LatticeKGGSite rst_D1Q1K_site, rst_D1Q2K_site, rst_D1Q1Kbar_site, rst_D1Q2Kbar_site;
+        LatticeKGGSite rst_D2Q1K_site, rst_D2Q2K_site, rst_D2Q1Kbar_site, rst_D2Q2Kbar_site;
+        LatticeKGGSite rst_sBar_d_D1_site, rst_sBar_d_D2_site;
+        vector<LatticeKGGSite *> rst_site_vec = {&rst_D1Q1K_site, &rst_D1Q2K_site, &rst_D1Q1Kbar_site, &rst_D1Q2Kbar_site,
                                                  &rst_D2Q1K_site, &rst_D2Q2K_site, &rst_D2Q1Kbar_site, &rst_D2Q2Kbar_site, 
                                                  &rst_sBar_d_D1_site, &rst_sBar_d_D2_site}; // for brevity of code
 
@@ -162,19 +164,19 @@ int main(int argc, char* argv[])
           for(int nu=0; nu<4; ++nu) {
             LatticePropagatorSite gu_D1 = gmu5[nu] * adj(v_to_u_L) * gmu5[mu] * wall_to_u_L; // g(u, v)
 
-            rst_D1Q1K_site()()(mu, nu) = trace(fx_D1Q1K.at(tK) * gu_D1);
-            rst_D1Q2K_site()()(mu, nu) = trace(fx_D1Q2K.at(tK) * gu_D1);
-            rst_D1Q1Kbar_site()()(mu, nu) = trace(fx_D1Q1Kbar.at(tK) * adj(gu_D1));
-            rst_D1Q2Kbar_site()()(mu, nu) = trace(fx_D1Q2Kbar.at(tK) * adj(gu_D1));
-            rst_sBar_d_D1_site()()(mu, nu) = trace(fx_sBar_d_D1.at(tK) * gu_D1);
+            rst_D1Q1K_site(mu, nu)()() = trace(fx_D1Q1K.at(tK) * gu_D1);
+            rst_D1Q2K_site(mu, nu)()() = trace(fx_D1Q2K.at(tK) * gu_D1);
+            rst_D1Q1Kbar_site(mu, nu)()() = trace(fx_D1Q1Kbar.at(tK) * adj(gu_D1));
+            rst_D1Q2Kbar_site(mu, nu)()() = trace(fx_D1Q2Kbar.at(tK) * adj(gu_D1));
+            rst_sBar_d_D1_site(mu, nu)()() = trace(fx_sBar_d_D1.at(tK) * gu_D1);
 
             LatticePropagatorSite gu_D2 = adj(wall_to_u_S) * gmu5[mu] * v_to_u_S * gmu5[nu]; // g(u, v)
 
-            rst_D2Q1K_site()()(mu, nu) = trace(fx_D2Q1K.at(tK) * gu_D2);
-            rst_D2Q2K_site()()(mu, nu) = trace(fx_D2Q2K.at(tK) * gu_D2);
-            rst_D2Q1Kbar_site()()(mu, nu) = trace(fx_D2Q1Kbar.at(tK) * adj(gu_D2));
-            rst_D2Q2Kbar_site()()(mu, nu) = trace(fx_D2Q2Kbar.at(tK) * adj(gu_D2));
-            rst_sBar_d_D2_site()()(mu, nu) = trace(fx_sBar_d_D2.at(tK) * gu_D2);
+            rst_D2Q1K_site(mu, nu)()() = trace(fx_D2Q1K.at(tK) * gu_D2);
+            rst_D2Q2K_site(mu, nu)()() = trace(fx_D2Q2K.at(tK) * gu_D2);
+            rst_D2Q1Kbar_site(mu, nu)()() = trace(fx_D2Q1Kbar.at(tK) * adj(gu_D2));
+            rst_D2Q2Kbar_site(mu, nu)()() = trace(fx_D2Q2Kbar.at(tK) * adj(gu_D2));
+            rst_sBar_d_D2_site(mu, nu)()() = trace(fx_sBar_d_D2.at(tK) * gu_D2);
           }
         }
 

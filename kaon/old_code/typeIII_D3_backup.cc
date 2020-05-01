@@ -88,12 +88,12 @@ int main(int argc, char* argv[])
 
     if(env.N_pt_src != -1) env.xgs_s.erase(env.xgs_s.begin() + env.N_pt_src, env.xgs_s.end());
 
-    std::vector<LatticePropagator> wl = env.get_wall('l');
-    std::vector<LatticePropagator> ws = env.get_wall('s');
+    // std::vector<LatticePropagator> wl = env.get_wall('l');
+    // std::vector<LatticePropagator> ws = env.get_wall('s');
 
-    // //FIXME: For test
-    // std::vector<LatticePropagator> wl(T, env.grid);
-    // std::vector<LatticePropagator> ws(T, env.grid);
+    //FIXME: For test
+    std::vector<LatticePropagator> wl(T, env.grid);
+    std::vector<LatticePropagator> ws(T, env.grid);
 
     LatticeKGG rst_D3Q1_allsrc(env.grid), rst_D3Q2_allsrc(env.grid), rst_sBar_d_D3_allsrc(env.grid); 
     vector<LatticeKGG*> rst_vec_allsrc= {&rst_D3Q1_allsrc, &rst_D3Q2_allsrc, &rst_sBar_d_D3_allsrc}; 
@@ -109,15 +109,19 @@ int main(int argc, char* argv[])
       int tK = x[3] - tsep;
       if(tK < 0) tK += T;
 
-      // //FIXME: For test
-      // wl[tK] = env.get_wall(tK, 'l');
-      // ws[tK] = env.get_wall(tK, 's');
+      //FIXME: For test
+      wl[tK] = env.get_wall(tK, 'l');
+      ws[tK] = env.get_wall(tK, 's');
 
       vector<LatticePropagator> Fux(4, env.grid); // F_mu(u, x)
       for(int mu=0; mu<4; ++mu) Fux[mu] = adj(pl) * gmu5[mu] * wl[tK];
 
       vector<LatticePropagator> Gvx(4, env.grid); // G_nu(v, x)
       for(int nu=0; nu<4; ++nu) Gvx[nu] = adj(ws[tK]) * gmu5[nu] * ps; 
+      
+      print_grid_field_site(Fux[0], {1,1,1,1});
+      print_grid_field_site(Gvx[0], {1,1,1,1});
+
 
       for(int mu=0; mu<4; ++mu) typeIII_set0(Fux[mu], x[3], tsep, tsep2); // set to zero if |t_u - t_x| > tsep - tsep2
       for(int nu=0; nu<4; ++nu) typeIII_set0(Gvx[nu], x[3], tsep, tsep2);
@@ -126,57 +130,66 @@ int main(int argc, char* argv[])
       for(int nu=0; nu<4; ++nu) Gvx[nu] = Gvx[nu] * exp_factor;           // G_nu(v, x) *= exp(M_k * (v_0 - t_K))
 
 
-      LatticeKGG rst_D3Q1(env.grid), rst_D3Q2(env.grid), rst_sBar_d_D3(env.grid); 
-      vector<LatticeKGG*> rst_vec = {&rst_D3Q1, &rst_D3Q2, &rst_sBar_d_D3};
-      for(auto rst: rst_vec) *rst = Zero();
-
+      vector<vector<LatticePropagator>> FuGv(4, vector<LatticePropagator>(4, env.grid)); // \sum_v F(v+r,x) G(v, x) 
       std::cout << GridLogMessage << "before fft" << std::endl;
       FFT theFFT((GridCartesian *)env.grid);
       std::vector<LatticePropagator> Fux_fft(4, env.grid), Gvx_conj_fft(4, env.grid); 
-
       for(int mu=0; mu<4; ++mu) {
         theFFT.FFT_all_dim(Fux_fft[mu], Fux[mu], FFT::forward);
         LatticePropagator Gvx_conj = conjugate(Gvx[mu]);
         theFFT.FFT_all_dim(Gvx_conj_fft[mu], Gvx_conj, FFT::forward); // Fourier transform G(v,x)^*
       }
-
       for(int mu=0; mu<4; ++mu) {
         for(int nu=0; nu<4; ++nu) {
-          LatticePropagator FuGv = Fux_fft[mu] * conjugate(Gvx_conj_fft[nu]);
-
-          // sBar d
-          LatticeComplex rst_sBar_d_mu_nu(env.grid);
-          rst_sBar_d_mu_nu = trace(g5 * FuGv);
-          theFFT.FFT_all_dim(rst_sBar_d_mu_nu, rst_sBar_d_mu_nu, FFT::backward);
-          pokeLorentz(rst_sBar_d_D3, rst_sBar_d_mu_nu, mu, nu);
-
-          // Must not include Kbar in the sBar_d diagram
-          LatticePropagator FuGv_withKbar(env.grid);
-          FuGv_withKbar = FuGv - adj(get_reflection(FuGv));  // !!! add contribution from Kbar and Qbar
-
-          // Q1
-          LatticeComplex rst_Q1_mu_nu(env.grid);
-          rst_Q1_mu_nu = Zero();
-          for(int rho=0; rho<4; ++rho) {
-            rst_Q1_mu_nu += trace(gL[rho] * Lxx) * trace(gL[rho] * FuGv_withKbar);
-          }
-          theFFT.FFT_all_dim(rst_Q1_mu_nu, rst_Q1_mu_nu, FFT::backward);
-          pokeLorentz(rst_D3Q1, rst_Q1_mu_nu, mu, nu);
-
-          // Q2
-          LatticePropagatorSite gL_Lxx_gL; gL_Lxx_gL = Zero();
-          for(int rho=0; rho<4; ++rho) gL_Lxx_gL += gL[rho] * Lxx * gL[rho];
-
-          LatticeComplex rst_Q2_mu_nu(env.grid);
-          rst_Q2_mu_nu = trace(gL_Lxx_gL * FuGv_withKbar);
-          theFFT.FFT_all_dim(rst_Q2_mu_nu, rst_Q2_mu_nu, FFT::backward);
-          pokeLorentz(rst_D3Q2, rst_Q2_mu_nu, mu, nu);
-
+          LatticePropagator tmp_fft = Fux_fft[mu] * conjugate(Gvx_conj_fft[nu]);
+          theFFT.FFT_all_dim(FuGv[mu][nu], tmp_fft, FFT::backward);
         }
       }
       std::cout << GridLogMessage << "after fft" << std::endl;
 
+      for(int mu=0; mu<4; ++mu) 
+        for(int nu=0; nu<4; ++nu) 
+          FuGv[mu][nu] = FuGv[mu][nu] - adj(FuGv[mu][nu]);  // !!! add contribution from Kbar and Qbar
+
+      LatticeKGG rst_D3Q1(env.grid), rst_D3Q2(env.grid), rst_sBar_d_D3(env.grid); 
+      vector<LatticeKGG*> rst_vec = {&rst_D3Q1, &rst_D3Q2, &rst_sBar_d_D3};
+      for(auto rst: rst_vec) *rst = Zero();
+
+      // rst_D3_Q1
+      for(int mu=0; mu<4; ++mu) {
+        for(int nu=0; nu<4; ++nu) {
+          LatticeComplex rst_mu_nu(env.grid);
+          rst_mu_nu = Zero();
+          for(int rho=0; rho<4; ++rho) {
+            rst_mu_nu += trace(gL[rho] * Lxx) * trace(gL[rho] * FuGv[mu][nu]);
+          }
+          pokeLorentz(rst_D3Q1, rst_mu_nu, mu, nu);
+        }
+      }
+
+      // rst_D3_Q2
+      LatticePropagatorSite tmp;
+      tmp = Zero();
+      for(int rho=0; rho<4; ++rho) tmp += gL[rho] * Lxx * gL[rho];
+      for(int mu=0; mu<4; ++mu) {
+        for(int nu=0; nu<4; ++nu) {
+          LatticeComplex rst_mu_nu(env.grid);
+          rst_mu_nu = trace(tmp * FuGv[mu][nu]);
+          pokeLorentz(rst_D3Q2, rst_mu_nu, mu, nu);
+        }
+      }
+
+      // rst_sBar_d_D3
+      for(int mu=0; mu<4; ++mu) {
+        for(int nu=0; nu<4; ++nu) {
+          LatticeComplex rst_mu_nu(env.grid);
+          rst_mu_nu = trace(g5 * FuGv[mu][nu]);
+          pokeLorentz(rst_sBar_d_D3, rst_mu_nu, mu, nu);
+        }
+      }
+
       for(int i=0; i<rst_vec.size(); ++i)  *rst_vec_allsrc[i] += *rst_vec[i];
+
 
     } // end of point source loop
 
