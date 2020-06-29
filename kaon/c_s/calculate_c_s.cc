@@ -61,11 +61,13 @@ int main(int argc, char* argv[])
     // assert(0);
 
     // Read gauge transformation matrices for this trajectory
-    LatticeColourMatrix gt(env.grid);
-    readScidac(gt, env.gauge_transform_path());
+    LatticeColourMatrix gt = env.get_gaugeTransform();
+    // LatticeColourMatrix gt(env.grid);
+    // readScidac(gt, env.gauge_transform_path());
 
-    LatticePropagator Lxx(env.grid);
-    Lxx = 1.0; // FIXME: Should use A2A propagator! I am setting one for test.
+    LatticePropagator Lxx = env.get_Lxx();
+    // LatticePropagator Lxx(env.grid);
+    // Lxx = 1.0; // FIXME: Should use A2A propagator! I am setting one for test;// FIXME: should not set to 1.0. tr(gL * Lxx) would be 0
 
     for(int t_K=0; t_K<T; ++t_K) { // iterate through the position of Kaon wall
       LatticePropagator wl_K = env.get_wall(t_K, 'l'); // L(x, t_K)
@@ -103,6 +105,7 @@ int main(int argc, char* argv[])
         std::vector<LatticeComplexSite> rst_D1_Q1_slice_sum, rst_D1_Q2_slice_sum;
         sliceSum(rst_D1_Q1, rst_D1_Q1_slice_sum, Tdir);
         for(int xt=0; xt<T; ++xt) diagram1_Q1[traj_idx][t_sep - t_sep_min][t_K][xt] = TensorRemove(rst_D1_Q1_slice_sum[(t_K+xt)%T]); 
+
         sliceSum(rst_D1_Q2, rst_D1_Q2_slice_sum, Tdir);
         for(int xt=0; xt<T; ++xt) diagram1_Q2[traj_idx][t_sep - t_sep_min][t_K][xt] = TensorRemove(rst_D1_Q2_slice_sum[(t_K+xt)%T]); 
 
@@ -120,6 +123,7 @@ int main(int argc, char* argv[])
         std::vector<LatticeComplexSite> rst_D2_Q1_slice_sum, rst_D2_Q2_slice_sum;
         sliceSum(rst_D2_Q1, rst_D2_Q1_slice_sum, Tdir);
         for(int xt=0; xt<T; ++xt) diagram2_Q1[traj_idx][t_sep - t_sep_min][t_K][xt] = TensorRemove(rst_D2_Q1_slice_sum[(t_K+xt)%T]); 
+
         sliceSum(rst_D2_Q2, rst_D2_Q2_slice_sum, Tdir);
         for(int xt=0; xt<T; ++xt) diagram2_Q2[traj_idx][t_sep - t_sep_min][t_K][xt] = TensorRemove(rst_D2_Q2_slice_sum[(t_K+xt)%T]); 
       }
@@ -130,17 +134,17 @@ int main(int argc, char* argv[])
 
 // Note: In python code, add coefficents, sqrt(2)/2 or -sqrt(2)/2  !!!!! This code calculates only the trace, without coefficient
 // diagram1_Q1[traj][t_sep][t_K][x_t]; already shifted -> x_t=0 is the position of kaon
-  std::cout << std::string('*', 40) << std::endl;
+  std::cout << std::string(40, '*') << std::endl;
   std::cout << "diagram1 Q1: " << diagram1_Q1 << std::endl;
-  std::cout << std::string('*', 40) << std::endl;
+  std::cout << std::string(40, '*') << std::endl;
   std::cout << "diagram1 Q2: " << diagram1_Q2 << std::endl;
-  std::cout << std::string('*', 40) << std::endl;
-  std::cout << "diagram2 Q1: " << diagram1_Q1 << std::endl;
-  std::cout << std::string('*', 40) << std::endl;
-  std::cout << "diagram2 Q2: " << diagram1_Q2 << std::endl;
-  std::cout << std::string('*', 40) << std::endl;
+  std::cout << std::string(40, '*') << std::endl;
+  std::cout << "diagram2 Q1: " << diagram2_Q1 << std::endl;
+  std::cout << std::string(40, '*') << std::endl;
+  std::cout << "diagram2 Q2: " << diagram2_Q2 << std::endl;
+  std::cout << std::string(40, '*') << std::endl;
   std::cout << "diagram sBar_d: " << diagram_sBar_d << std::endl;
-  std::cout << std::string('*', 40) << std::endl;
+  std::cout << std::string(40, '*') << std::endl;
   std::cout << "Finished!" << std::endl;
 
   Grid_finalize();

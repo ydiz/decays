@@ -30,6 +30,9 @@ public:
   LatticePropagator get_point(const std::vector<int> &src, char quark) const;
   std::vector<LatticePropagator> get_wall(char quark) const;
   LatticePropagator get_wall(int t, char quark) const;
+  LatticePropagator get_Lxx() const;
+  LatticeColourMatrix get_gaugeTransform() const;
+
   LatticePropagator toCoulombSink(const LatticeColourMatrix &gt, const LatticePropagator &in) const;
 
   Env(const std::vector<int> &_lat, const std::string &_ensemble);
@@ -37,6 +40,7 @@ public:
   std::string point_path(const std::vector<int> &src, char quark) const;
   std::string wall_path(int t, char quark) const;
   std::string gauge_transform_path() const;
+  std::string Lxx_path() const;
 
   std::vector<std::vector<int>> get_xgs(char quark);
 
@@ -117,7 +121,18 @@ LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const 
   return point_prop;
 }
 
+LatticePropagator Env::get_Lxx() const {
+  LatticePropagator Lxx(grid);
+  readScidac(Lxx, Lxx_path());
+  return Lxx;
+}
 
+
+LatticeColourMatrix Env::get_gaugeTransform() const {
+  LatticeColourMatrix gt(grid);
+  readScidac(gt, gauge_transform_path());
+  return gt;
+}
 
 ///////////////////////////////
 // paths
@@ -143,7 +158,15 @@ std::string Env::wall_path(int t, char quark) const {
 
 std::string Env::gauge_transform_path() const {
   std::string path;
-  if(ensemble=="24ID") path = "TBD";
+  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/gauge_transform/"  + std::to_string(traj) ;
+  else assert(0);
+  assert(dirExists(path));
+  return path;
+}
+
+std::string Env::Lxx_path() const {
+  std::string path;
+  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/a2a/24ID/Lxx/Lxx." + std::to_string(traj);
   else assert(0);
   assert(dirExists(path));
   return path;

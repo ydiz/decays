@@ -1,3 +1,5 @@
+#pragma once
+
 #include <headers/headers.h>
 #include "util.h"
 
@@ -16,3 +18,5 @@
 #endif
 
 #include "kaon_init.h"
+
+#include "convolution.h"

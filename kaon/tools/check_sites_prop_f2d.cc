@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
   Env env(gcoor, "24ID");
 
   LatticePropagator lat(env.grid);
-  readScidac(lat, argv[1]);
+  readScidac_prop_f2d(lat, argv[1]);
 
 
   if(argc < 2) {

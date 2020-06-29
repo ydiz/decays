@@ -1,59 +1,11 @@
+
+// On 8 nodes, Needs 16h for one trajectory (500 piont sources) // ~110s per point source
+
 #include "kaon.h"
 
 using namespace std;
 using namespace Grid;
 using namespace Grid::QCD;
-
-// |t_u - t_x| and |t_v - t_x| must be <= tsep - tsep2
-void typeIII_set0(LatticePropagator &lat, int t_x, int tsep, int tsep2) {
-  const int T = lat.Grid()->_fdimensions[3];
-  thread_for(ss, lat.Grid()->lSites(), {
-    Coordinate lcoor, gcoor;
-    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
-
-    if(distance(t_x, gcoor[3], T) > tsep - tsep2) { // set to zero if |t_u - t_x| or |t_v - t_x| > tsep - tsep2
-      LatticePropagatorSite tmp; tmp = Zero();
-      pokeLocalSite(tmp, lat, lcoor);
-    }; 
-  });
-}
-
-// return exp(M_K * (v_0 - tK)), for any v_0 that satisfies |v_0 - tx| <= tsep - tsep2
-LatticeComplex typeIII_exp(GridCartesian *grid, int t_x, int tsep, int tsep2, double M_K) {
-/*
-tsep, tsep2: window size. Keep only points between [x - (tsep-tsep2), x + (tsep-tsep2)]
-M_K: kaon mass on the lattice
-*/
-  LatticeComplex lat(grid);
-  int T = lat.Grid()->_fdimensions[3];
-
-  int tK = t_x - tsep;
-  if(tK < 0) tK += T;
-
-  thread_for(ss, lat.Grid()->lSites(), {
-    Coordinate lcoor, gcoor;
-    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
-
-		LatticeComplexSite m;
-
-    int dist = distance(gcoor[3], t_x, T); // |tv - tx|
-    if(dist > tsep - tsep2) m = Zero();
-    else {
-      int left_dist = left_distance(gcoor[3], tK, T); // v_0 - tK // the distance from v0 to tK if you can only move to the left
-      double val = std::exp(M_K * left_dist); 
-      m()()() = Complex(val, 0.);
-    }
-
-		pokeLocalSite(m, lat, lcoor);
-  });
-
-  return lat;
-}
-
-
-
-
-
 
 std::vector<int> gcoor({24, 24, 24, 64});
 
@@ -62,8 +14,8 @@ int main(int argc, char* argv[])
 {
   Grid_init(&argc, &argv);
 
-  // int traj_start = 2300, traj_end = 2400, traj_sep = 100; // for 24ID, kaon wall
-  int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
+  int traj_start = 2300, traj_end = 2400, traj_sep = 100; // for 24ID, kaon wall
+  // int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
   int traj_num = (traj_end - traj_start) / traj_sep + 1;
 
   std::cout << std::string(20, '*') << std::endl;
@@ -79,7 +31,8 @@ int main(int argc, char* argv[])
 
   Env env(gcoor, "24ID");
   // init_para(argc, argv, env);
-  env.N_pt_src = 1;  // FIXME: keep only one point
+  // env.N_pt_src = 1;  // FIXME: keep only one point
+  env.N_pt_src = -1;  // Use all points
 
   const int T = env.grid->_fdimensions[3];
 
@@ -119,10 +72,10 @@ int main(int argc, char* argv[])
       vector<LatticePropagator> Gvx(4, env.grid); // G_nu(v, x)
       for(int nu=0; nu<4; ++nu) Gvx[nu] = adj(ws[tK]) * gmu5[nu] * ps; 
 
-      for(int mu=0; mu<4; ++mu) typeIII_set0(Fux[mu], x[3], tsep, tsep2); // set to zero if |t_u - t_x| > tsep - tsep2
-      for(int nu=0; nu<4; ++nu) typeIII_set0(Gvx[nu], x[3], tsep, tsep2);
+      for(int mu=0; mu<4; ++mu) convolution_set0(Fux[mu], x[3], tsep, tsep2); // set to zero if |t_u - t_x| > tsep - tsep2
+      for(int nu=0; nu<4; ++nu) convolution_set0(Gvx[nu], x[3], tsep, tsep2);
 
-      LatticeComplex exp_factor = typeIII_exp(env.grid, x[3], tsep, tsep2, env.M_K);
+      LatticeComplex exp_factor = convolution_exp(env.grid, x[3], tsep, tsep2, env.M_K);
       for(int nu=0; nu<4; ++nu) Gvx[nu] = Gvx[nu] * exp_factor;           // G_nu(v, x) *= exp(M_k * (v_0 - t_K))
 
 
@@ -147,7 +100,6 @@ int main(int argc, char* argv[])
           // sBar d
           LatticeComplex rst_sBar_d_mu_nu(env.grid);
           rst_sBar_d_mu_nu = trace(g5 * FuGv);
-          theFFT.FFT_all_dim(rst_sBar_d_mu_nu, rst_sBar_d_mu_nu, FFT::backward);
           pokeLorentz(rst_sBar_d_D3, rst_sBar_d_mu_nu, mu, nu);
 
           // Must not include Kbar in the sBar_d diagram
@@ -157,10 +109,7 @@ int main(int argc, char* argv[])
           // Q1
           LatticeComplex rst_Q1_mu_nu(env.grid);
           rst_Q1_mu_nu = Zero();
-          for(int rho=0; rho<4; ++rho) {
-            rst_Q1_mu_nu += trace(gL[rho] * Lxx) * trace(gL[rho] * FuGv_withKbar);
-          }
-          theFFT.FFT_all_dim(rst_Q1_mu_nu, rst_Q1_mu_nu, FFT::backward);
+          for(int rho=0; rho<4; ++rho) rst_Q1_mu_nu += trace(gL[rho] * Lxx) * trace(gL[rho] * FuGv_withKbar);
           pokeLorentz(rst_D3Q1, rst_Q1_mu_nu, mu, nu);
 
           // Q2
@@ -169,11 +118,13 @@ int main(int argc, char* argv[])
 
           LatticeComplex rst_Q2_mu_nu(env.grid);
           rst_Q2_mu_nu = trace(gL_Lxx_gL * FuGv_withKbar);
-          theFFT.FFT_all_dim(rst_Q2_mu_nu, rst_Q2_mu_nu, FFT::backward);
           pokeLorentz(rst_D3Q2, rst_Q2_mu_nu, mu, nu);
 
         }
       }
+      theFFT.FFT_all_dim(rst_sBar_d_D3, rst_sBar_d_D3, FFT::backward);
+      theFFT.FFT_all_dim(rst_D3Q1, rst_D3Q1, FFT::backward);
+      theFFT.FFT_all_dim(rst_D3Q2, rst_D3Q2, FFT::backward);
       std::cout << GridLogMessage << "after fft" << std::endl;
 
       for(int i=0; i<rst_vec.size(); ++i)  *rst_vec_allsrc[i] += *rst_vec[i];
@@ -187,7 +138,6 @@ int main(int argc, char* argv[])
     writeScidac(rst_sBar_d_D3_allsrc, env.out_prefix + "/JJ_sBar_d_K/D3." + to_string(traj));
 
   } // end of traj loop
-
 
   std::cout << "Finished!" << std::endl;
   Grid_finalize();

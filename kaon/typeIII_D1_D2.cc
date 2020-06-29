@@ -1,3 +1,5 @@
+
+
 #include "kaon.h"
 
 using namespace std;
@@ -49,7 +51,8 @@ int main(int argc, char* argv[])
 
   Env env(gcoor, "24ID");
   // init_para(argc, argv, env);
-  env.N_pt_src = 1;  // FIXME: keep only one point
+  // env.N_pt_src = 1;  // FIXME: keep only one point
+  env.N_pt_src = -1;  // use all points
 
   const int T = env.grid->_fdimensions[3];
 
@@ -58,8 +61,9 @@ int main(int argc, char* argv[])
 
     if(env.N_pt_src != -1) env.xgs_s.erase(env.xgs_s.begin() + env.N_pt_src, env.xgs_s.end());
 
-    LatticePropagator Lxx(env.grid);
-    Lxx = 1.0; // FIXME: For Q1 and Q2, if we set Lxx = 1.0, the resulting contraction would be zero (e.g. rmp_D1Q1K).
+    LatticePropagator Lxx = env.get_Lxx();
+    // LatticePropagator Lxx(env.grid);
+    // Lxx = 1.0; // FIXME: For Q1 and Q2, if we set Lxx = 1.0, the resulting contraction would be zero (e.g. rmp_D1Q1K).
 
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');
@@ -77,6 +81,7 @@ int main(int argc, char* argv[])
 
       LatticePropagator pl = env.get_point(v, 'l'); // pl = L(x, v) or L(u, v)
       LatticePropagator ps = env.get_point(v, 's'); // ps = H(x, v) or H(u, v)
+      std::cout << GridLogMessage << "Finished reading points source propagators" << std::endl;
 
     // print_grid_field_site(pl, {1,1,1,1});
       // For every t_K, calculate f(x, v) 
@@ -97,6 +102,7 @@ int main(int argc, char* argv[])
         tmp_D2Q1Kbar += trace(gL[mu] * Lxx) * (gL[mu] * ps); 
         tmp_D2Q2Kbar += gL[mu] * Lxx * gL[mu] * ps; 
       }
+      std::cout << GridLogMessage << "After tmp_D1Q1K" << std::endl;
 
       // print_grid_field_site(tmp_D1Q1K, {1,1,1,1});
 
@@ -129,6 +135,7 @@ int main(int argc, char* argv[])
 
         tK = original_tK;
       }
+      std::cout << GridLogMessage << "After fx_D1Q1K" << std::endl;
 
       // combine f(x,v) with g(u, v)
       LatticeKGG rst_D1Q1K(env.grid), rst_D1Q2K(env.grid), rst_D1Q1Kbar(env.grid), rst_D1Q2Kbar(env.grid); 
@@ -139,6 +146,7 @@ int main(int argc, char* argv[])
                                      &rst_sBar_d_D1, &rst_sBar_d_D2}; // for brevity of code
       for(auto rst: rst_vec) *rst = Zero();
 
+      std::cout << GridLogMessage << "Before thread_for" << std::endl;
       thread_for(ss, env.grid->lSites(), {
         Coordinate lcoor, gcoor;
         localIndexToLocalGlobalCoor(env.grid, ss, lcoor, gcoor);
@@ -183,6 +191,7 @@ int main(int argc, char* argv[])
         for(auto site: rst_site_vec) *site = (*site) * std::exp(env.M_K * dist_v_wall);
         for(int i=0; i<rst_vec.size(); ++i) pokeLocalSite(*rst_site_vec[i], *rst_vec[i], lcoor);
       });
+      std::cout << GridLogMessage << "After thread_for" << std::endl;
 
       for(int i=0; i<rst_vec.size(); ++i) {
         for(int mu=0; mu<4; ++mu) *rst_vec[i] = Cshift(*rst_vec[i], mu, v[mu]); // shift v to origin
@@ -210,6 +219,8 @@ int main(int argc, char* argv[])
   
   } // end of traj loop
 
+  std::cout << "Finished!" << std::endl;
+  Grid_finalize();
   return 0;
 }
 

@@ -101,8 +101,8 @@ int main(int argc, char* argv[])
   // init_para(argc, argv, env);
   const int T = env.grid->_fdimensions[3];
 
-  vector<vector<double>> all_corr;
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
+    vector<vector<double>> all_corr;   // all_corr[t_K][t_sep]
     env.setup_traj(traj);
 
     LatticeColourMatrix gt(env.grid);
@@ -126,13 +126,24 @@ int main(int argc, char* argv[])
       }
       all_corr.push_back(corr);
 
-
     }
+
+    // average over all positions of Kaon
+    vector<double> avg_corr(T, 0.);  // averaged over all positions of t_K
+    for(int t_sep=0; t_sep<T; ++t_sep) {
+      for(int t_K=0; t_K<T; ++t_K) avg_corr[t_sep] += all_corr[t_K][t_sep];
+      avg_corr[t_sep] /= double(T);
+    }
+
+    std::cout << GridLogMessage << "traj [" << traj << "]: " << avg_corr << std::endl;
   }
 
-	cout << string(30, '*') << endl;
-	cout << "wall to wall correlators over "<< traj_num << " trajectoies:" << endl;
-	cout << all_corr << endl;
+	// cout << string(30, '*') << endl;
+	// cout << "wall to wall correlators over "<< traj_num << " trajectoies:" << endl;
+	// cout << all_corr << endl;
 
+
+  std::cout << "Finished!" << std::endl;
+  Grid_finalize();
   return 0;
 }
