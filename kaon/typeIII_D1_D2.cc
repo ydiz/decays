@@ -52,18 +52,15 @@ int main(int argc, char* argv[])
   Env env(gcoor, "24ID");
   // init_para(argc, argv, env);
   // env.N_pt_src = 1;  // FIXME: keep only one point
-  env.N_pt_src = -1;  // use all points
+  env.N_pt_src = -1;  // Use all points
 
   const int T = env.grid->_fdimensions[3];
 
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
     env.setup_traj(traj);
 
-    if(env.N_pt_src != -1) env.xgs_s.erase(env.xgs_s.begin() + env.N_pt_src, env.xgs_s.end());
 
     LatticePropagator Lxx = env.get_Lxx();
-    // LatticePropagator Lxx(env.grid);
-    // Lxx = 1.0; // FIXME: For Q1 and Q2, if we set Lxx = 1.0, the resulting contraction would be zero (e.g. rmp_D1Q1K).
 
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');
@@ -77,13 +74,16 @@ int main(int argc, char* argv[])
                                    &rst_sBar_d_D1_allsrc, &rst_sBar_d_D2_allsrc};
     for(auto rst: rst_vec_allsrc) *rst = Zero();
 
+    int num_pt_src = 0;
+    if(env.N_pt_src != -1) env.xgs_s.resize(env.N_pt_src);
     for(const auto &v: env.xgs_s) {
+      ++num_pt_src;
 
       LatticePropagator pl = env.get_point(v, 'l'); // pl = L(x, v) or L(u, v)
       LatticePropagator ps = env.get_point(v, 's'); // ps = H(x, v) or H(u, v)
       std::cout << GridLogMessage << "Finished reading points source propagators" << std::endl;
 
-    // print_grid_field_site(pl, {1,1,1,1});
+      // print_grid_field_site(pl, {1,1,1,1});
       // For every t_K, calculate f(x, v) 
       // tmp is every thing in f(x, v) except the prop involving t_K
       LatticePropagator tmp_D1Q1K(env.grid), tmp_D1Q2K(env.grid), tmp_D1Q1Kbar(env.grid), tmp_D1Q2Kbar(env.grid);  
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
 
     } // end of point source loop
     
-    for(auto rst: rst_vec_allsrc) *rst = *rst * (1. / double(env.N_pt_src));
+    for(auto rst: rst_vec_allsrc) *rst = *rst * (1. / double(num_pt_src));
 
     writeScidac(rst_D1Q1K_allsrc, env.out_prefix + "/typeIII/D1Q1K." + to_string(traj));
     writeScidac(rst_D1Q2K_allsrc, env.out_prefix + "/typeIII/D1Q2K." + to_string(traj));

@@ -54,20 +54,12 @@ int main(int argc, char* argv[])
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
     env.setup_traj(traj);
 
-    // std::vector<LatticePropagator> wl = env.get_wall('l');
-    // std::cout << "xxxx" << std::endl;
-    // std::vector<LatticePropagator> ws = env.get_wall('s'); // will have error when creating the second vector<LatticePropagator>; Do not know why.
-    // std::cout << "xxxx" << std::endl;
-    // assert(0);
-
     // Read gauge transformation matrices for this trajectory
     LatticeColourMatrix gt = env.get_gaugeTransform();
     // LatticeColourMatrix gt(env.grid);
     // readScidac(gt, env.gauge_transform_path());
 
     LatticePropagator Lxx = env.get_Lxx();
-    // LatticePropagator Lxx(env.grid);
-    // Lxx = 1.0; // FIXME: Should use A2A propagator! I am setting one for test;// FIXME: should not set to 1.0. tr(gL * Lxx) would be 0
 
     for(int t_K=0; t_K<T; ++t_K) { // iterate through the position of Kaon wall
       LatticePropagator wl_K = env.get_wall(t_K, 'l'); // L(x, t_K)

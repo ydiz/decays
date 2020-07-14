@@ -14,8 +14,8 @@ int main(int argc, char* argv[])
 {
   Grid_init(&argc, &argv);
 
-  int traj_start = 2300, traj_end = 2400, traj_sep = 100; // for 24ID, kaon wall
-  // int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
+  // int traj_start = 2300, traj_end = 2400, traj_sep = 100; // for 24ID, kaon wall
+  int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
   int traj_num = (traj_end - traj_start) / traj_sep + 1;
 
   std::cout << std::string(20, '*') << std::endl;
@@ -39,30 +39,24 @@ int main(int argc, char* argv[])
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
     env.setup_traj(traj);
 
-    if(env.N_pt_src != -1) env.xgs_s.erase(env.xgs_s.begin() + env.N_pt_src, env.xgs_s.end());
 
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');
-
-    // //FIXME: For quick test
-    // std::vector<LatticePropagator> wl(T, env.grid);
-    // std::vector<LatticePropagator> ws(T, env.grid);
 
     LatticeKGG rst_D1Q1_allsrc(env.grid), rst_D1Q2_allsrc(env.grid), rst_D2Q1_allsrc(env.grid), rst_D2Q2_allsrc(env.grid); 
     vector<LatticeKGG*> rst_vec_allsrc= {&rst_D1Q1_allsrc, &rst_D1Q2_allsrc, &rst_D2Q1_allsrc, &rst_D2Q2_allsrc}; 
     for(auto rst: rst_vec_allsrc) *rst = Zero();
 
+    int num_pt_src = 0;
+    if(env.N_pt_src != -1) env.xgs_s.resize(env.N_pt_src);
     for(const auto &x: env.xgs_s) {
+      ++num_pt_src;
 
       LatticePropagator pl = env.get_point(x, 'l'); // pl = L(x, v) or L(u, v)
       LatticePropagator ps = env.get_point(x, 's'); // ps = H(x, v) or H(u, v)
 
       int tK = x[3] - tsep;
       if(tK < 0) tK += T;
-
-      // //FIXME: For quick test
-      // wl[tK] = env.get_wall(tK, 'l');
-      // ws[tK] = env.get_wall(tK, 's');
 
       LatticePropagatorSite wl_x, ws_x; // L(x, tK), H(x, tK)
       peekSite(wl_x, wl[tK], x);
@@ -159,7 +153,7 @@ int main(int argc, char* argv[])
 
     } // end of point source loop
 
-    for(auto rst: rst_vec_allsrc) *rst = *rst * (1. / double(env.N_pt_src));
+    for(auto rst: rst_vec_allsrc) *rst = *rst * (1. / double(num_pt_src));  
 
     writeScidac(rst_D1Q1_allsrc, env.out_prefix + "/typeI/D1Q1." + to_string(traj));
     writeScidac(rst_D1Q2_allsrc, env.out_prefix + "/typeI/D1Q2." + to_string(traj));

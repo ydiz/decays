@@ -1,5 +1,8 @@
 #pragma once
 
+
+// #include "/sdcc/u/ydzhao/A2AGrid/io.h"
+
 namespace Grid {
 namespace QCD {
 
@@ -32,7 +35,9 @@ public:
   LatticePropagator get_wall(int t, char quark) const;
   LatticePropagator get_Lxx() const;
   LatticeColourMatrix get_gaugeTransform() const;
+  std::vector<LatticeFermionD> get_a2a(char vw) const;
 
+  void toCoulombVW(const LatticeColourMatrix &gt, std::vector<LatticeFermionD> &in) const;
   LatticePropagator toCoulombSink(const LatticeColourMatrix &gt, const LatticePropagator &in) const;
 
   Env(const std::vector<int> &_lat, const std::string &_ensemble);
@@ -108,6 +113,11 @@ LatticePropagator Env::get_wall(int t, char quark) const {
   return wall_prop;
 }
 
+
+void Env::toCoulombVW(const LatticeColourMatrix &gt, std::vector<LatticeFermionD> &in) const {
+  for(LatticeFermionD &x: in) x = gt * x;
+}
+
 LatticePropagator Env::toCoulombSink(const LatticeColourMatrix &gt, const LatticePropagator &in) const {
   LatticePropagator out(in.Grid());
   out = gt * in;
@@ -132,6 +142,31 @@ LatticeColourMatrix Env::get_gaugeTransform() const {
   LatticeColourMatrix gt(grid);
   readScidac(gt, gauge_transform_path());
   return gt;
+}
+
+
+
+std::vector<LatticeFermionD> Env::get_a2a(char vw) const {
+  int nl = 2000, nh = 768;
+  // int nl = 1, nh = 1;
+  std::string prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/a2a/24ID";
+
+  std::vector<LatticeFermionD> low(nl, grid), high(nh, grid);
+  print_memory();
+
+  if(vw == 'v') {
+    A2AVectorsIo::read(low, prefix + "/MADWF_A2AVector_vl", false, traj);
+    A2AVectorsIo::read(high, prefix + "/MADWF_A2AVector_vh", false, traj);
+  }
+  else if(vw == 'w') {
+    A2AVectorsIo::read(low, prefix + "/MADWF_A2AVector_wl", false, traj);
+    A2AVectorsIo::read(high, prefix + "/MADWF_A2AVector_wh", false, traj);
+  }
+  else assert(0);
+
+  low.insert(low.end(), high.begin(), high.end());          high.clear();
+  print_memory();
+  return low;
 }
 
 ///////////////////////////////
@@ -166,7 +201,7 @@ std::string Env::gauge_transform_path() const {
 
 std::string Env::Lxx_path() const {
   std::string path;
-  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/a2a/24ID/Lxx/Lxx." + std::to_string(traj);
+  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/a2a/24ID/Lxx/Lxx." + std::to_string(traj); // calculated with A2A propagator without time dilution
   else assert(0);
   assert(dirExists(path));
   return path;

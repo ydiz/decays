@@ -7,6 +7,38 @@ using namespace std;
 using namespace Grid;
 using namespace Grid::QCD;
 
+accelerator_inline LatticePropagatorSite outerProduct(const LatticeFermionSite &f1, const LatticeFermionSite &f2) {
+  LatticePropagatorSite rst;
+  for(int s1=0; s1<4; s1++)
+    for(int s2=0; s2<4; s2++)
+      for(int c1=0; c1<3; c1++)
+        for(int c2=0; c2<3; c2++)
+            rst()(s1, s2)(c1, c2) = f1()(s1)(c1) * conjugate(f2()(s2)(c2));
+            // rst()(s1, s2)(c1, c2) = f1()(s1)(c1) * std::conj(f2()(s2)(c2));
+  return rst;
+}
+
+LatticePropagator outerProduct(const LatticeFermionSite &site, const LatticeFermion &lat) {
+
+  LatticePropagator rst(lat.Grid());
+
+  thread_for(ss, lat.Grid()->lSites(), {
+    Coordinate lcoor, gcoor;
+    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
+
+    LatticeFermionSite lat_s;
+    peekLocalSite(lat_s, lat, lcoor);
+
+    LatticePropagatorSite m = outerProduct(site, lat_s);
+
+    pokeLocalSite(m, rst, lcoor);
+  });
+
+  return rst;
+}
+
+
+
 std::vector<int> gcoor({24, 24, 24, 64});
 
 
@@ -14,7 +46,7 @@ int main(int argc, char* argv[])
 {
   Grid_init(&argc, &argv);
 
-  int traj_start = 2300, traj_end = 2400, traj_sep = 100; // for 24ID, kaon wall
+  int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
   // int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
   int traj_num = (traj_end - traj_start) / traj_sep + 1;
 
@@ -27,7 +59,6 @@ int main(int argc, char* argv[])
 
   // FIXME: change those parameters
   int tsep = 16;
-  int tsep2 = 6;
 
   Env env(gcoor, "24ID");
   // init_para(argc, argv, env);
@@ -39,103 +70,83 @@ int main(int argc, char* argv[])
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
     env.setup_traj(traj);
 
-    if(env.N_pt_src != -1) env.xgs_s.erase(env.xgs_s.begin() + env.N_pt_src, env.xgs_s.end());
-
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');
 
-    // //FIXME: For test
-    // std::vector<LatticePropagator> wl(T, env.grid);
-    // std::vector<LatticePropagator> ws(T, env.grid);
-
-    LatticeKGG rst_D3Q1_allsrc(env.grid), rst_D3Q2_allsrc(env.grid), rst_sBar_d_D3_allsrc(env.grid); 
-    vector<LatticeKGG*> rst_vec_allsrc= {&rst_D3Q1_allsrc, &rst_D3Q2_allsrc, &rst_sBar_d_D3_allsrc}; 
+    LatticeKGG rst_Q1_allsrc(env.grid), rst_Q2_allsrc(env.grid); 
+    vector<LatticeKGG*> rst_vec_allsrc= {&rst_Q1_allsrc, &rst_Q2_allsrc}; 
     for(auto rst: rst_vec_allsrc) *rst = Zero();
 
-    for(const auto &x: env.xgs_s) {
+    std::vector<LatticeFermionD> a2a_v = env.get_a2a('v');
+    std::vector<LatticeFermionD> a2a_w = env.get_a2a('w');
 
-      LatticePropagator pl = env.get_point(x, 'l'); // pl = L(x, v) or L(u, v)
-      LatticePropagator ps = env.get_point(x, 's'); // ps = H(x, v) or H(u, v)
-      LatticePropagatorSite Lxx; // L(x, x)
-      peekSite(Lxx, pl, x);
+    int num_pt_src = 0;
+    if(env.N_pt_src != -1) env.xgs_s.resize(env.N_pt_src);
+    for(const auto &v: env.xgs_s) {
+      ++num_pt_src;
 
-      int tK = x[3] - tsep;
+      LatticePropagator pl = env.get_point(v, 'l'); // pl = L(x, v) 
+
+      int tK = v[3] - tsep;
       if(tK < 0) tK += T;
 
-      // //FIXME: For test
-      // wl[tK] = env.get_wall(tK, 'l');
-      // ws[tK] = env.get_wall(tK, 's');
+      vector<LatticePropagator> fx(4, env.grid);   // f(x) = gL * (L(x, tK) * H(x, tK)^dagger - H(x, tK) * L(x, tK)^dagger )
+      LatticePropagator tmp = wl[tK] * adj(ws[tK]);
+      tmp = tmp - adj(tmp);
+      for(int rho=0; rho<4; ++rho) fx[rho] = gL[rho] * tmp;
 
-      vector<LatticePropagator> Fux(4, env.grid); // F_mu(u, x)
-      for(int mu=0; mu<4; ++mu) Fux[mu] = adj(pl) * gmu5[mu] * wl[tK];
-
-      vector<LatticePropagator> Gvx(4, env.grid); // G_nu(v, x)
-      for(int nu=0; nu<4; ++nu) Gvx[nu] = adj(ws[tK]) * gmu5[nu] * ps; 
-
-      for(int mu=0; mu<4; ++mu) convolution_set0(Fux[mu], x[3], tsep, tsep2); // set to zero if |t_u - t_x| > tsep - tsep2
-      for(int nu=0; nu<4; ++nu) convolution_set0(Gvx[nu], x[3], tsep, tsep2);
-
-      LatticeComplex exp_factor = convolution_exp(env.grid, x[3], tsep, tsep2, env.M_K);
-      for(int nu=0; nu<4; ++nu) Gvx[nu] = Gvx[nu] * exp_factor;           // G_nu(v, x) *= exp(M_k * (v_0 - t_K))
-
-
-      LatticeKGG rst_D3Q1(env.grid), rst_D3Q2(env.grid), rst_sBar_d_D3(env.grid); 
-      vector<LatticeKGG*> rst_vec = {&rst_D3Q1, &rst_D3Q2, &rst_sBar_d_D3};
-      for(auto rst: rst_vec) *rst = Zero();
-
-      std::cout << GridLogMessage << "before fft" << std::endl;
-      FFT theFFT((GridCartesian *)env.grid);
-      std::vector<LatticePropagator> Fux_fft(4, env.grid), Gvx_conj_fft(4, env.grid); 
-
-      for(int mu=0; mu<4; ++mu) {
-        theFFT.FFT_all_dim(Fux_fft[mu], Fux[mu], FFT::forward);
-        LatticePropagator Gvx_conj = conjugate(Gvx[mu]);
-        theFFT.FFT_all_dim(Gvx_conj_fft[mu], Gvx_conj, FFT::forward); // Fourier transform G(v,x)^*
+      LatticePropagator tmp_Q1(env.grid), tmp_Q2(env.grid);
+      tmp_Q1 = Zero(); tmp_Q2 = Zero();
+      for(int rho=0; rho<4; ++rho) {
+        tmp_Q1 += trace(fx[rho]) * adj(pl) * gL[rho];
+        tmp_Q2 += adj(pl) * fx[rho] * gL[rho];
       }
+
+      LatticePropagator huv_Q1(env.grid), huv_Q2(env.grid);
+      huv_Q1 = Zero(); huv_Q2 = Zero();
+      for(int i=0; i<a2a_v.size(); ++i) {
+
+        if(i % 200 == 0) std::cout << GridLogMessage <<"Summing A2A modes " << i << std::endl;
+
+        LatticeFermionSite gv_i_Q1, gv_i_Q2;
+        gv_i_Q1 = sum(LatticeFermion(tmp_Q1 * a2a_v[i]));
+        gv_i_Q2 = sum(LatticeFermion(tmp_Q2 * a2a_v[i]));
+
+        huv_Q1 += outerProduct(gv_i_Q1, adj(a2a_w[i]));
+        huv_Q2 += outerProduct(gv_i_Q2, adj(a2a_w[i]));
+
+      }
+
+      LatticeKGG rst_Q1(env.grid), rst_Q2(env.grid); 
+      vector<LatticeKGG*> rst_vec = {&rst_Q1, &rst_Q2};
+      for(auto rst: rst_vec) *rst = Zero();
 
       for(int mu=0; mu<4; ++mu) {
         for(int nu=0; nu<4; ++nu) {
-          LatticePropagator FuGv = Fux_fft[mu] * conjugate(Gvx_conj_fft[nu]);
+          LatticeComplex tmp = trace(huv_Q1 * gmu[mu] * pl * gmu5[nu]);
+          PokeIndex<LorentzIndex>(rst_Q1, tmp, mu, nu);
 
-          // sBar d
-          LatticeComplex rst_sBar_d_mu_nu(env.grid);
-          rst_sBar_d_mu_nu = trace(g5 * FuGv);
-          pokeLorentz(rst_sBar_d_D3, rst_sBar_d_mu_nu, mu, nu);
-
-          // Must not include Kbar in the sBar_d diagram
-          LatticePropagator FuGv_withKbar(env.grid);
-          FuGv_withKbar = FuGv - adj(get_reflection(FuGv));  // !!! add contribution from Kbar and Qbar
-
-          // Q1
-          LatticeComplex rst_Q1_mu_nu(env.grid);
-          rst_Q1_mu_nu = Zero();
-          for(int rho=0; rho<4; ++rho) rst_Q1_mu_nu += trace(gL[rho] * Lxx) * trace(gL[rho] * FuGv_withKbar);
-          pokeLorentz(rst_D3Q1, rst_Q1_mu_nu, mu, nu);
-
-          // Q2
-          LatticePropagatorSite gL_Lxx_gL; gL_Lxx_gL = Zero();
-          for(int rho=0; rho<4; ++rho) gL_Lxx_gL += gL[rho] * Lxx * gL[rho];
-
-          LatticeComplex rst_Q2_mu_nu(env.grid);
-          rst_Q2_mu_nu = trace(gL_Lxx_gL * FuGv_withKbar);
-          pokeLorentz(rst_D3Q2, rst_Q2_mu_nu, mu, nu);
-
+          tmp = trace(huv_Q2 * gmu[mu] * pl * gmu5[nu]);
+          PokeIndex<LorentzIndex>(rst_Q2, tmp, mu, nu);
         }
       }
-      theFFT.FFT_all_dim(rst_sBar_d_D3, rst_sBar_d_D3, FFT::backward);
-      theFFT.FFT_all_dim(rst_D3Q1, rst_D3Q1, FFT::backward);
-      theFFT.FFT_all_dim(rst_D3Q2, rst_D3Q2, FFT::backward);
-      std::cout << GridLogMessage << "after fft" << std::endl;
+      // std::cout << "rst: " << std::endl;
+      // print_grid_field_site(rst_Q1, {0,0,0,0});
+      // print_grid_field_site(rst_Q2, {0,0,0,0});
 
-      for(int i=0; i<rst_vec.size(); ++i)  *rst_vec_allsrc[i] += *rst_vec[i];
+      for(int i=0; i<rst_vec.size(); ++i) {
+        *rst_vec[i] *= std::exp(env.M_K * tsep);   // add exp factor
+        for(int mu=0; mu<4; ++mu) *rst_vec[i] = Cshift(*rst_vec[i], mu, v[mu]); // shift v to origin 
+        *rst_vec_allsrc[i] += *rst_vec[i];
+      }
+
 
     } // end of point source loop
 
-    for(auto rst: rst_vec_allsrc) *rst = *rst * (1. / double(env.N_pt_src));
+    for(auto rst: rst_vec_allsrc) *rst = *rst * (1. / double(num_pt_src));
 
-    writeScidac(rst_D3Q1_allsrc, env.out_prefix + "/typeIII/D3Q1." + to_string(traj));
-    writeScidac(rst_D3Q2_allsrc, env.out_prefix + "/typeIII/D3Q2." + to_string(traj));
-    writeScidac(rst_sBar_d_D3_allsrc, env.out_prefix + "/JJ_sBar_d_K/D3." + to_string(traj));
+    writeScidac(rst_Q1_allsrc, env.out_prefix + "/typeII/Q1." + to_string(traj));
+    writeScidac(rst_Q2_allsrc, env.out_prefix + "/typeII/Q2." + to_string(traj));
 
   } // end of traj loop
 
