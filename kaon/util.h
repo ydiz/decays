@@ -23,6 +23,39 @@ std::array<const Gamma, 4> gmu5 = { // gamma_mu * gamma5
 std::array<const GammaL, 4> gL {GammaL(gmu[0]), GammaL(gmu[1]), GammaL(gmu[2]), GammaL(gmu[3])};
 
 
+struct Sum_Interval {
+  int lower_bound, upper_bound, T;
+
+  Sum_Interval(int _lower_bound, int _upper_bound, int _T) : lower_bound(_lower_bound), upper_bound(_upper_bound), T(_T) {
+    assert(lower_bound >=0 && upper_bound>=0 && upper_bound >= lower_bound); // both lower_bound and upper_bound can be greater than T
+  };
+
+  template <class LatticeType>
+  typename LatticeType::vector_object::scalar_object operator()(const LatticeType &lat) const { 
+    using Site = typename LatticeType::vector_object::scalar_object;
+    std::vector<Site> lat_sliceSum;
+    sliceSum(lat, lat_sliceSum, Tdir);
+
+    Site rst = Zero();
+    for(int t=lower_bound; t<=upper_bound; ++t) {
+      // rst += (t>=T ? lat_sliceSum[t % T] : lat_sliceSum[t]);
+      rst += lat_sliceSum[t % T];
+    }
+    return rst;
+  }
+  // LatticePropagatorSite operator()(const LatticePropagator &lat) const { 
+  //   std::vector<LatticePropagatorSite> lat_sliceSum;
+  //   sliceSum(lat, lat_sliceSum, Tdir);
+  //
+  //   LatticePropagatorSite rst = Zero();
+  //   for(int t=lower_bound; t<=upper_bound; ++t) {
+  //     // rst += (t>=T ? lat_sliceSum[t % T] : lat_sliceSum[t]);
+  //     rst += lat_sliceSum[t % T];
+  //   }
+  //   return rst;
+  // }
+};
+
 
 template<typename vtype>
 inline iColourMatrix<vtype> traceS(const iSpinColourMatrix<vtype> &p) {

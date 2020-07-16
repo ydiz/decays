@@ -128,6 +128,7 @@ int main(int argc, char* argv[])
 
     } // end of point source loop
 
+    std::cout << GridLogMessage << "Number of point sources: " << num_pt_src << std::endl;
     for(auto rst: rst_vec_allsrc) *rst = *rst * (1. / double(num_pt_src));
 
     writeScidac(rst_D3Q1_allsrc, env.out_prefix + "/typeIII/D3Q1." + to_string(traj));

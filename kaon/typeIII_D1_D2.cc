@@ -7,24 +7,6 @@ using namespace Grid;
 using namespace Grid::QCD;
 
 
-struct Sum_Interval {
-  int lower_bound, upper_bound, T;
-
-  Sum_Interval(int _lower_bound, int _upper_bound, int _T) : lower_bound(_lower_bound), upper_bound(_upper_bound), T(_T) {
-    assert(lower_bound >=0 && upper_bound>=0 && upper_bound >= lower_bound); // upper_bound can be greater than T
-  };
-
-  LatticePropagatorSite operator()(const LatticePropagator &lat) const { 
-    std::vector<LatticePropagatorSite> lat_sliceSum;
-    sliceSum(lat, lat_sliceSum, Tdir);
-
-    LatticePropagatorSite rst = Zero();
-    for(int t=lower_bound; t<=upper_bound; ++t) {
-      rst += (t>=T ? lat_sliceSum[t % T] : lat_sliceSum[t]);
-    }
-    return rst;
-  }
-};
 
 
 
@@ -117,8 +99,8 @@ int main(int argc, char* argv[])
         int original_tK = tK;
         if(tK<0) tK += T; // tK in [0, T]
 
-        int lower_bound = tK + tsep3, upper_bound = tK + T/2 - 2; // upper_bound can be >= T
-        Sum_Interval sum_interval(lower_bound, upper_bound, T);
+        int lower_bound = tK + tsep3, upper_bound = tK + T/2 - 2; // both lower_bound and upper_bound can be greater than T
+        Sum_Interval sum_interval(lower_bound, upper_bound, T);   
 
         fx_D1Q1K[tK] = sum_interval(LatticePropagator( adj(ws[tK]) * tmp_D1Q1K )); // sum_x H(x, t_K)^\dagger sum_mu tr(gL L(x,x)) gL L(x, v)
         fx_D1Q2K[tK] = sum_interval(LatticePropagator( adj(ws[tK]) * tmp_D1Q2K )); 
@@ -200,6 +182,7 @@ int main(int argc, char* argv[])
 
     } // end of point source loop
     
+    std::cout << GridLogMessage << "Number of point sources: " << num_pt_src << std::endl;
     for(auto rst: rst_vec_allsrc) *rst = *rst * (1. / double(num_pt_src));
 
     writeScidac(rst_D1Q1K_allsrc, env.out_prefix + "/typeIII/D1Q1K." + to_string(traj));

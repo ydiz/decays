@@ -14,7 +14,6 @@ accelerator_inline LatticePropagatorSite outerProduct(const LatticeFermionSite &
       for(int c1=0; c1<3; c1++)
         for(int c2=0; c2<3; c2++)
             rst()(s1, s2)(c1, c2) = f1()(s1)(c1) * conjugate(f2()(s2)(c2));
-            // rst()(s1, s2)(c1, c2) = f1()(s1)(c1) * std::conj(f2()(s2)(c2));
   return rst;
 }
 
@@ -59,6 +58,7 @@ int main(int argc, char* argv[])
 
   // FIXME: change those parameters
   int tsep = 16;
+  int tsep2 = 6;  // |tx - tv| <= tsep - tsep2
 
   Env env(gcoor, "24ID");
   // init_para(argc, argv, env);
@@ -108,9 +108,12 @@ int main(int argc, char* argv[])
 
         if(i % 200 == 0) std::cout << GridLogMessage <<"Summing A2A modes " << i << std::endl;
 
+        int lower_bound = tK + tsep2, upper_bound = tK + T/2 - tsep2; // both lower_bound and upper_bound can be greater than T
+        Sum_Interval sum_interval(lower_bound, upper_bound, T);   
+
         LatticeFermionSite gv_i_Q1, gv_i_Q2;
-        gv_i_Q1 = sum(LatticeFermion(tmp_Q1 * a2a_v[i]));
-        gv_i_Q2 = sum(LatticeFermion(tmp_Q2 * a2a_v[i]));
+        gv_i_Q1 = sum_interval(LatticeFermion(tmp_Q1 * a2a_v[i]));
+        gv_i_Q2 = sum_interval(LatticeFermion(tmp_Q2 * a2a_v[i]));
 
         huv_Q1 += outerProduct(gv_i_Q1, adj(a2a_w[i]));
         huv_Q2 += outerProduct(gv_i_Q2, adj(a2a_w[i]));
@@ -140,9 +143,9 @@ int main(int argc, char* argv[])
         *rst_vec_allsrc[i] += *rst_vec[i];
       }
 
-
     } // end of point source loop
 
+    std::cout << GridLogMessage << "Number of point sources: " << num_pt_src << std::endl;
     for(auto rst: rst_vec_allsrc) *rst = *rst * (1. / double(num_pt_src));
 
     writeScidac(rst_Q1_allsrc, env.out_prefix + "/typeII/Q1." + to_string(traj));
