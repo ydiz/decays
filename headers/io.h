@@ -20,6 +20,31 @@ bool dirExists(const std::string &path){
 	else return false;
 }
 
+std::vector<std::vector<int>> coor_from_file(const std::string &fname) {
+
+  using namespace std;
+  ifstream f(fname);
+
+  vector<vector<int>> rst;
+
+  std::string tmp;
+  while(getline(f, tmp)) {
+    vector<int> coor;
+    stringstream ss(tmp);
+    int i;
+    while(ss >> i) coor.push_back(i);
+    rst.push_back(coor);
+  }
+
+  f.close();
+  cout << "There are " << rst.size() << " point sources" << endl;
+  return rst;
+}
+
+
+
+
+
 
 int get_t(const std::string &path) {
 	return std::stoi(path.substr(path.find("=") + 1));
@@ -96,15 +121,14 @@ void get_xgs(const std::string &path, std::vector<std::vector<int>> &xgs, std::m
 
 
 namespace Grid {
-namespace QCD {
 
 template<class T>
 void writeScidac(T& field, const std::string &filename){ // because of writeScidacFieldRecord, field cannot be const
   if(field.Grid()->IsBoss()) {
     std::string base_dir = filename.substr(0, filename.rfind('/'));
     std::cout << "base_dir: " << base_dir << std::endl;
-    system(("mkdir -p " + base_dir).c_str());
-    // mkdir(base_dir.c_str(), 0777);
+    assert(dirExists(base_dir));
+    system(("mkdir -p " + base_dir).c_str());      //  sometimes has error
   }
   MPI_Barrier(MPI_COMM_WORLD);
 
@@ -165,4 +189,4 @@ void readScidac_prop_f2d(LatticePropagatorD& prop, const std::string &filename){
 
 
 
-}}
+}

@@ -94,7 +94,7 @@ LatticePGG three_point_contraction(const std::vector<LatticePropagator> &wall_pr
     ret_site = 0.;
     for(int mu=0; mu<4; ++mu)
       for(int nu=0; nu<4; ++nu) {
-        ret_site()()(mu, nu) = trace(Gamma::gmu[mu] * xp_to_x * Gamma::gmu[nu] * wall_to_xp * gamma5 * x_to_wall);
+        ret_site()()(mu, nu) = trace(Gamma::gmu[mu] * xp_to_x * Gamma::gmu[nu] * wall_to_xp * gamma5 * x_to_wall);  //FIXME: take real part and multiply by 2
     }
 
     ret_site = ret_site * (1 /  std::exp(- M_PION * t_sep));

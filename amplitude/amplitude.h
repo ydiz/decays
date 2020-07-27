@@ -28,9 +28,9 @@ std::vector<double> mult_HL_cutoff(const LatticePGG &hadronic, const LatticePGG 
   auto h_v = hadronic.View();
   auto l_v = leptonic.View();
   parallel_for(int ss=0; ss<tmp.Grid()->oSites(); ++ss){
-    tmp_v[ss]()()() = h_v[ss]()()(0, 1) * l_v[ss]()()(0, 1) + h_v[ss]()()(1, 0) * l_v[ss]()()(1, 0); 
-    tmp_v[ss]()()() += h_v[ss]()()(0, 2) * l_v[ss]()()(0, 2) + h_v[ss]()()(2, 0) * l_v[ss]()()(2, 0); 
-    tmp_v[ss]()()() += h_v[ss]()()(2, 1) * l_v[ss]()()(2, 1) + h_v[ss]()()(1, 2) * l_v[ss]()()(1, 2); 
+    tmp_v[ss]()()() = h_v[ss](0, 1)()() * l_v[ss](0, 1)()() + h_v[ss](1, 0)()() * l_v[ss](1, 0)()(); 
+    tmp_v[ss]()()() += h_v[ss](0, 2)()() * l_v[ss](0, 2)()() + h_v[ss](2, 0)()() * l_v[ss](2, 0)()(); 
+    tmp_v[ss]()()() += h_v[ss](2, 1)()() * l_v[ss](2, 1)()() + h_v[ss](1, 2)()() * l_v[ss](1, 2)()(); 
   }
 
 

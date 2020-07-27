@@ -121,6 +121,7 @@ double Jack_para::get_lep_coef(const std::string &target) {
   }
   else assert(0);
 
+  std::cout << "Leptonic Coeff: " << lep_coef << std::endl;
   return lep_coef;
 }
 
@@ -202,12 +203,12 @@ void Jack_para::get_three_point(LatticePGG &three_point, int traj) {
     readScidac(three_point, file);
     three_point = real(three_point) * pp;
   }  
-  ////////////////// Kaon //////////////////
-  else if(ensemble == "Kaon_24ID") { // kaon four point function should be (1) a real function, (2) H(0, x); not shift to H(-w/2, w/2)
-    std::string file = Kaon_four_point_24ID(traj);
-    readScidac(three_point, file);
-    three_point = real(three_point) * pp;
-  }
+  // ////////////////// Kaon //////////////////
+  // else if(ensemble == "Kaon_24ID") { // kaon four point function should be (1) a real function, (2) H(0, x); not shift to H(-w/2, w/2)
+  //   std::string file = Kaon_four_point_24ID(traj);
+  //   readScidac(three_point, file);
+  //   three_point = real(three_point) * pp;
+  // }
   else assert(0);
 }
 

@@ -26,15 +26,6 @@ void print_memory() {
   std::cout << "Buffers/Cached: " << memInfo["Buffers"] + memInfo["Cached"] << " GB " << std::endl;
   std::cout << "MemAvailable: " << memInfo["MemAvailable"] << " GB " << std::endl; // Memavailable is roughly memfree + buffers + cached,
 
-  // // sysinfo does not contain information about Cached
-  // struct sysinfo memInfo; 
-  // sysinfo(&memInfo);
-  //
-  // double totalMem = double(memInfo.totalram) * memInfo.mem_unit / 1024 / 1024 / 1024; // in GB
-  // double freeMem = double(memInfo.freeram) * memInfo.mem_unit / 1024 / 1024 / 1024; // in GB
-  // std::cout << "total memory: " << totalMem << " GB" << std::endl;
-  // std::cout << "Used memory: " << totalMem - freeMem << " GB" << std::endl;
-  // std::cout << "Free memory: " << freeMem << " GB" << std::endl;
 }
 
 
@@ -85,24 +76,59 @@ void localIndexToLocalGlobalCoor(GridBase *grid, int ss, Coordinate &lcoor, Coor
 }
 
 
+// int distance(int t1, int t2, int T) {
+//   int tmp = std::abs(t1 - t2);
+//   if(tmp <= T/2) return tmp;
+//   else return T-tmp;
+// }
+
 // distance between two points with periodic boundary condition // always positive
-int distance(int t1, int t2, int T) {
-  int tmp = std::abs(t1 - t2);
-  if(tmp <= T/2) return tmp;
-  else return T-tmp;
+int distance(int t1, int t2, int T) { // |t1 - t2|, result is betwen [0, T/2]
+  int rst = std::abs(t1 - t2);
+  if(rst>T/2) rst = T - rst;
+  return rst;
 }
 
-int rightPoint(int t_base, int t, int T) { // after shift t_base to 0, determine wheter t is on the right or t_base is on the right
-  int tmp = t - t_base; // shift t_base to 0
-  if(tmp > 0 && tmp <=T/2) return t;
-  else return t_base; // tmp < 0 || tmp > T/2
+int left_distance(int t1, int t2, int T) { // the distance from t1 to t2 if you can only move to the left 
+  int tmp = t1 - t2;
+  if(tmp >= 0) return tmp;
+  else return T+tmp;
 }
 
-int leftPoint(int t_base, int t, int T) { // after shift t_base to 0, determine wheter t is on the left or t_base is on the left
-  int tmp = t - t_base; // shift t_base to 0
-  if(tmp > 0 && tmp <=T/2) return t_base;
-  else return t; // tmp < 0 || tmp > T/2
+int right_distance(int t1, int t2, int T) { // the distance from t1 to t2 if you can only move to the right
+  int rst = T - left_distance(t1, t2, T);
+  if(rst==T) return 0;
+  else return rst;
 }
+
+int left_time(int t1, int t2, int T) {
+  int dist = left_distance(t1, t2, T);
+  if(dist<T/2) return t2;
+  else return t1;
+}
+
+// int rightPoint(int t_base, int t, int T) { // after shift t_base to 0, determine wheter t is on the right or t_base is on the right
+//   int tmp = t - t_base; // shift t_base to 0
+//   if(tmp > 0 && tmp <=T/2) return t;
+//   else return t_base; // tmp < 0 || tmp > T/2
+// }
+
+// int leftPoint(int t_base, int t, int T) { // after shift t_base to 0, determine wheter t is on the left or t_base is on the left
+//   int tmp = t - t_base; // shift t_base to 0
+//   if(tmp > 0 && tmp <=T/2) return t_base;
+//   else return t; // tmp < 0 || tmp > T/2
+// }
+
+
+
+int leftPoint(int t_base, int t, int T) { 
+  int left_dist = left_distance(t_base, t, T);
+  if(left_dist <=T/2) return t;
+  else return t_base; 
+}
+
+
+
 
 inline Coordinate operator-(const Coordinate &v1, const Coordinate &v2)
 {
@@ -114,15 +140,17 @@ inline Coordinate operator-(const Coordinate &v1, const Coordinate &v2)
 
 template<class T>
 Lattice<T> get_reflection(const Lattice<T> &lat) {
+  // std::cout << "Running get_reflection; Must use 1 process per node; do not know why" << std::endl;
   Lattice<T> new_lat(lat.Grid());
 
   // pull corresponding piece from another node.
-  // std::vector<int> pcoor;
   Coordinate pcoor;
   lat.Grid()->ProcessorCoorFromRank(lat.Grid()->ThisRank(), pcoor);
-  // std::vector<int> new_pcoor = lat.Grid()->_processors - std::vector<int>{1,1,1,1} - pcoor;
+
   Coordinate new_pcoor = lat.Grid()->_processors - Coordinate(std::vector<int>{1,1,1,1}) - pcoor;
   int partner = lat.Grid()->RankFromProcessorCoor(new_pcoor);
+
+  // std::cout << "rank: " << lat.Grid()->ThisRank()  << "  pcoor: " << pcoor << " partner rank: " << partner << " partner pcoor: " << new_pcoor << std::endl;
 
   // int bytes = sizeof(T) * lat._odata.size();
   long int bytes = sizeof(T) * lat.View().size(); // if use int, there will be integer overflow for 48I ensemble
@@ -131,7 +159,7 @@ Lattice<T> get_reflection(const Lattice<T> &lat) {
   long int cur_idx = 0;
   while(bytes>0) {            // the "count" parameter in MPI_Irecv and MPI_Isend are "int", so cannot be larger than INT_MAX
     int batch_size = std::min(bytes, (long int)INT_MAX);
-    std::cout << "batch_size: " << batch_size << std::endl;
+    // std::cout << "batch_size: " << batch_size << std::endl;
     assert(batch_size <= INT_MAX);
     MPI_Irecv((char *)&new_lat.View()[0] + cur_idx, batch_size, MPI_BYTE, partner, 0, MPI_COMM_WORLD, &recv_request); // non-bloking communication
     MPI_Isend((char *)&lat.View()[0] + cur_idx, batch_size, MPI_BYTE, partner, 0, MPI_COMM_WORLD, &send_request);
@@ -139,7 +167,9 @@ Lattice<T> get_reflection(const Lattice<T> &lat) {
     bytes -= batch_size;
     cur_idx += batch_size;
     requests_array[0] = recv_request;  requests_array[1] = send_request;
+    // std::cout << "Before waitall" << std::endl;
     MPI_Waitall(2, requests_array, MPI_STATUSES_IGNORE);
+    // std::cout << "After waitall; rank " <<lat.Grid()->ThisRank()   << std::endl;
     MPI_Barrier(MPI_COMM_WORLD);
   }
 
@@ -147,11 +177,9 @@ Lattice<T> get_reflection(const Lattice<T> &lat) {
   Lattice<T> ret(lat.Grid());
   parallel_for(int ss=0; ss<lat.Grid()->lSites(); ss++) {
     typename T::scalar_object m;
-    // std::vector<int> lcoor(4);
     Coordinate lcoor(4);
     lat.Grid()->LocalIndexToLocalCoor(ss, lcoor);
 
-    // std::vector<int> new_lcoor(4);
     Coordinate new_lcoor(4);
     new_lcoor = lat.Grid()->_ldimensions - Coordinate(std::vector<int>{1,1,1,1}) - lcoor;
     peekLocalSite(m, new_lat, new_lcoor);

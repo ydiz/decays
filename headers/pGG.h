@@ -11,13 +11,22 @@ namespace QCD {
 
 
 // to use Scidac, we cannot make PGGElem have only one level (like iMatrix<Complex, 4>)
-using PGGElem = iScalar<iScalar<iMatrix<Complex, 4>>>;
-using vPGGElem = iScalar<iScalar<iMatrix<vComplex, 4>>>;
+// using PGGElem = iScalar<iScalar<iMatrix<Complex, 4>>>;
+// using vPGGElem = iScalar<iScalar<iMatrix<vComplex, 4>>>;
+// using LatticePGG = Lattice<vPGGElem>;
+
+using PGGElem = iMatrix<iScalar<iScalar<Complex>>, 4>; // FIXME: I changed LatticePGG to be the same as LatticeKGG. Can I still use the program for pion????
+using vPGGElem = iMatrix<iScalar<iScalar<vComplex>>, 4>;
 using LatticePGG = Lattice<vPGGElem>;
 
+using LatticeKGG = Lattice<iMatrix<iScalar<iScalar<vComplex> >, 4>>;
+using LatticeLorentzColour = Lattice<iMatrix<iScalar<iMatrix<vComplex, 3> >, 4>>;
+
+using LatticeFermionSite = typename LatticeFermion::vector_object::scalar_object;
 using LatticePropagatorSite = typename LatticePropagator::vector_object::scalar_object;
 using LatticeComplexSite = typename LatticeComplex::vector_object::scalar_object;
 using LatticePGGSite = typename LatticePGG::vector_object::scalar_object;
+using LatticeKGGSite = typename LatticeKGG::vector_object::scalar_object;
 
 
 

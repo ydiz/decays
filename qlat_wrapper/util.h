@@ -1,17 +1,63 @@
 #pragma once
 
-#include <complex>
-#include <iostream>
-#include <vector>
-#include <fstream>
-#include <assert.h>
+#include <Grid/Grid.h>
 
-// #include <qlat/grid.h>
+// #include <qlat/grid.h> // only work for old version Grid
 #include <headers/pGG.h>
+
+namespace qlat {
+
+inline Coordinate grid_convert(const Grid::Coordinate& x)
+{
+  if (x.size() == 4) {
+    return Coordinate(x[0], x[1], x[2], x[3]);
+  } else if (x.size() == 5) {
+    return Coordinate(x[1], x[2], x[3], x[4]);
+  } else {
+    qassert(false);
+  }
+}
+
+inline int id_node_from_grid(const Grid::GridCartesian* UGrid)
+{
+  using namespace Grid;
+  using namespace Grid::QCD;
+  Grid::Coordinate mpi_layout = UGrid->_processors;
+  Grid::Coordinate mpi_corr = UGrid->_processor_coor;
+  const Coordinate size_node = grid_convert(mpi_layout);
+  const Coordinate coor_node = grid_convert(mpi_corr);
+  return index_from_coordinate(coor_node, size_node);
+}
+
+}
+
+
+namespace Grid {
+ 
+// Qlattice need to have the same rank/node layout as Grid
+void zyd_init_Grid_Qlattice(int argc, char* argv[]) {
+  Grid_init(&argc, &argv);
+
+  // initialize Qlattice
+  GridCartesian* grid = SpaceTimeGrid::makeFourDimGrid(Coordinate({128,128,128,128}), GridDefaultSimd(Nd, vComplex::Nsimd()), GridDefaultMpi());
+  const int id_node = qlat::id_node_from_grid(grid);
+  Coordinate mpi = GridDefaultMpi();
+  qlat::Coordinate size_node =  qlat::grid_convert(mpi);
+  delete grid;
+  qlat::begin(id_node, size_node);  // Qlattice need to have the same rank/node layout as Grid
+
+}
+
+}
+
+
+
+
 
 namespace qlat{
 
 // this function is deleted in new version of QLattice
+// For SU(3) matrix, inverse is hermitian conjugate
 inline void gt_inverse(GaugeTransform& gt, const GaugeTransform& gt0)
 {
   TIMER("gt_inverse");
@@ -275,6 +321,17 @@ void print_qlat_field_site(const T &field, const std::vector<int> coor) {
 		std::cout << "mu = " << mu << std::endl;
 		std::cout << x[mu].em() << std::endl;
 	}
+}
+
+
+template<class T>
+void print_qlat_field(const T &field) {
+
+  for(int t=0; t<64; ++t)
+    for(int z=0; z<24; ++z)
+      for(int y=0; y<24; ++y)
+        for(int x=0; x<24; ++x)
+          print_qlat_field_site(field, {x,y,z,t});
 }
 
 }

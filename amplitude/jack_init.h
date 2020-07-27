@@ -163,8 +163,8 @@ void init_para(int argc, char **argv, Jack_para &para)
   ///////////////////////////// Kaon /////////////////////
   else if(para.ensemble == "Kaon_24ID") {
     para.M_h = 0.504154;
-    para.N_h = 53.3291; // FIXME: update this
-    std::cout << "Using the N_h from 32ID ensemble; Update this when 24ID has more s quark wall propagators" << std::endl;
+    para.N_h = 53.3291; // FIXME: update this  // Using 1 traj, tsep=6, I got 53.531806
+    std::cout << "FIXME: Using the N_h calculated from only one trajtory " << std::endl;
     para.Z_V = 0.72672;
 
     para.lat_size = {24, 24, 24, 64};
@@ -181,12 +181,16 @@ void init_para(int argc, char **argv, Jack_para &para)
   if(para.ensemble.substr(0,4)=="Pion") {
     para.hadron_coeff = 1./ (3 * std::sqrt(2)) * para.Z_V * para.Z_V * 2. * para.M_h / para.N_h;
   }
+  // Note, for sBar_d diagram, G_F is also already multiplied
   else if(para.ensemble.substr(0,4)=="Kaon") {
-    double Vud = 0.97446, Vus = 0.22452;
-    double G_F = 1.1663787e-5 * std::pow(para.M_h / 0.497611, -2); // G_F in lattice unit // unit of G_F is GeV^-2. Thus,  G_{F, lat} / G_F = (M_{K,lat} / M_K)^-2
-    para.hadron_coeff = (G_F * Vud * Vus/ std::sqrt(2)) * para.Z_V * para.Z_V * 2. * para.M_h / para.N_h;
+    // double Vud = 0.97446, Vus = 0.22452;
+    // double G_F = 1.1663787e-5 * std::pow(para.M_h / 0.497611, -2); // G_F in lattice unit // unit of G_F is GeV^-2. Thus,  G_{F, lat} / G_F = (M_{K,lat} / M_K)^-2
+    // para.hadron_coeff = (G_F * Vud * Vus/ std::sqrt(2)) * para.Z_V * para.Z_V * 2. * para.M_h / para.N_h;
+    para.hadron_coeff = para.Z_V * para.Z_V * 2. * para.M_h / para.N_h;
   }
   else assert(0);
+
+  std::cout << "Hadronic Coeff: " << para.hadron_coeff << std::endl;
 
 
   if(vm["QuickTest"].as<bool>()) {
