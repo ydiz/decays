@@ -4,6 +4,7 @@
 #include "util.h"
 #include "/sdcc/u/ydzhao/A2AGrid/io.h"
 
+#include <qlat/qlat.h>
 
 #ifdef CUTH
 #include "env_cuth.h"
@@ -21,3 +22,4 @@
 #include "kaon_init.h"
 
 #include "convolution.h"
+

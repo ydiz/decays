@@ -7,7 +7,7 @@ using namespace std;
 using namespace Grid;
 using namespace Grid::QCD;
 
-std::vector<int> gcoor({24, 24, 24, 64});
+// std::vector<int> gcoor({24, 24, 24, 64});
 
 
 int main(int argc, char* argv[])
@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
   int tsep = 16;
   int tsep2 = 6;
 
-  Env env(gcoor, "24ID");
+  Env env("24ID");
   // init_para(argc, argv, env);
   // env.N_pt_src = 1;  // FIXME: keep only one point
   env.N_pt_src = -1;  // Use all points
