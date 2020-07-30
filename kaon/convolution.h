@@ -19,15 +19,15 @@ namespace QCD {
 
 
 // |t_u - t_x| and |t_v - t_x| must be <= tsep - tsep2
-template <typename T>
-void convolution_set0(Lattice<T> &lat, int t_x, int tsep, int tsep2) {
+template <typename U>
+void convolution_set0(Lattice<U> &lat, int t_x, int tsep, int tsep2) {
   const int T = lat.Grid()->_fdimensions[3];
   thread_for(ss, lat.Grid()->lSites(), {
     Coordinate lcoor, gcoor;
     localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
 
     if(distance(t_x, gcoor[3], T) > tsep - tsep2) { // set to zero if |t_u - t_x| or |t_v - t_x| > tsep - tsep2
-      typename T::scalar_object tmp; tmp = Zero();
+      typename U::scalar_object tmp; tmp = Zero();
       pokeLocalSite(tmp, lat, lcoor);
     }; 
   });

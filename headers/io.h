@@ -122,15 +122,103 @@ void get_xgs(const std::string &path, std::vector<std::vector<int>> &xgs, std::m
 
 namespace Grid {
 
+
+
+
+
+/////////////////////////////////////
+// Taken from  Hadrons/Hadrons/A2AVectors.hpp, Hadrons/Hadrons/Global.cpp 
+// usage: A2AVectorsIo::write(par().output + "_v", v, par().multiFile, vm().getTrajectory());
+/////////////////////////////////////
+
+#define MAX_PATH_LENGTH 512u
+
+// recursive mkdir /////////////////////////////////////////////////////////////
+int mkdir(const std::string dirName)
+{
+  if (!dirName.empty() and access(dirName.c_str(), R_OK|W_OK|X_OK))
+  {
+    mode_t mode755;
+    char   tmp[MAX_PATH_LENGTH];
+    char   *p = NULL;
+    size_t len;
+
+    mode755 = S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
+
+    snprintf(tmp, sizeof(tmp), "%s", dirName.c_str());
+    len = strlen(tmp);
+    if(tmp[len - 1] == '/')
+    {
+      tmp[len - 1] = 0;
+    }
+    for(p = tmp + 1; *p; p++)
+    {
+      if(*p == '/')
+      {
+        *p = 0;
+        ::mkdir(tmp, mode755);
+        *p = '/';
+      }
+    }
+
+    return ::mkdir(tmp, mode755);
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+std::string dirname(const std::string &s)
+{
+  constexpr char sep = '/';
+  size_t         i   = s.rfind(sep, s.length());
+
+  if (i != std::string::npos)
+  {
+    return s.substr(0, i);
+  }
+  else
+  {
+    return "";
+  }
+}
+
+void makeFileDir(const std::string filename, GridBase *g)
+{
+  bool doIt = true;
+
+  if (g)
+  {
+    doIt = g->IsBoss();
+  }
+  if (doIt)
+  {
+    std::string dir    = dirname(filename);
+    int         status = mkdir(dir);
+
+    if (status)
+    {
+      std::cout <<  "cannot create directory '" + dir << std::endl;
+    }
+  }
+}
+
+
+
+
+
 template<class T>
 void writeScidac(T& field, const std::string &filename){ // because of writeScidacFieldRecord, field cannot be const
-  if(field.Grid()->IsBoss()) {
-    std::string base_dir = filename.substr(0, filename.rfind('/'));
-    std::cout << "base_dir: " << base_dir << std::endl;
-    assert(dirExists(base_dir));
-    system(("mkdir -p " + base_dir).c_str());      //  sometimes has error
-  }
-  MPI_Barrier(MPI_COMM_WORLD);
+  std::cout << "writing to" << filename << std::endl;
+  makeFileDir(filename, field.Grid());
+  // if(field.Grid()->IsBoss()) {
+  //   std::string base_dir = filename.substr(0, filename.rfind('/'));
+  //   std::cout << "base_dir: " << base_dir << std::endl;
+  //   assert(dirExists(base_dir));
+  //   // system(("mkdir -p " + base_dir).c_str());      //  sometimes has error
+  // }
+  // MPI_Barrier(MPI_COMM_WORLD);
 
   emptyUserRecord record;
   ScidacWriter WR(field.Grid()->IsBoss()); // the parameter is necessary for writer(but not for reader) when using multiple nodes
@@ -141,6 +229,8 @@ void writeScidac(T& field, const std::string &filename){ // because of writeScid
 
 template<class T>
 void readScidac(T& field, const std::string &filename){
+  std::cout << "reading from" << filename << std::endl;
+  assert(dirExists(filename));
   emptyUserRecord record;
   ScidacReader RD;
   RD.open(filename);
@@ -154,12 +244,13 @@ void writeScidac_prop_d2f(LatticePropagatorD& prop, const std::string &filename)
   LatticePropagatorF prop_f(grid_f);
   precisionChange(prop_f, prop);
 
-  if(prop_f.Grid()->IsBoss()) {
-    std::string base_dir = filename.substr(0, filename.rfind('/'));
-    std::cout << "base_dir: " << base_dir << std::endl;
-    system(("mkdir -p " + base_dir).c_str());
-    // mkdir(base_dir.c_str(), 0777);
-  }
+  makeFileDir(filename, prop.Grid());
+  // if(prop_f.Grid()->IsBoss()) {
+  //   std::string base_dir = filename.substr(0, filename.rfind('/'));
+  //   std::cout << "base_dir: " << base_dir << std::endl;
+  //   system(("mkdir -p " + base_dir).c_str());
+  //   // mkdir(base_dir.c_str(), 0777);
+  // }
   MPI_Barrier(MPI_COMM_WORLD);
 
   emptyUserRecord record;
@@ -183,6 +274,16 @@ void readScidac_prop_f2d(LatticePropagatorD& prop, const std::string &filename){
 
   precisionChange(prop, prop_f);
 };
+
+
+
+
+
+
+
+
+
+
 
 
 
