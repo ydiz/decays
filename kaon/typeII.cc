@@ -8,9 +8,13 @@ using namespace Grid;
 using namespace Grid::QCD;
 
 
-////  Remove points where u is on the right of v
-////  Multiply by 2 for points where u is on the left of v
-void restrictToLeftSide(LatticeKGG &lat, int tsep, int tsep2, int T)  {
+// Point v must be at origin
+////  Remove points where u is on the left of v
+////  Multiply by 2 for points where u is on the right of v
+// void restrictToRightSide(LatticeKGG &lat, int tsep, int tsep2, int T)  {
+void restrictToRightSide(LatticeKGG &lat)  {
+  const int T = lat.Grid()->_fdimensions[3];
+
   thread_for(ss, lat.Grid()->lSites(), {
     Coordinate lcoor, gcoor;
     localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
@@ -32,6 +36,7 @@ void restrictToLeftSide(LatticeKGG &lat, int tsep, int tsep2, int T)  {
 
   });
 }
+
 
 accelerator_inline LatticePropagatorSite outerProduct(const LatticeFermionSite &f1, const LatticeFermionSite &f2) {
   LatticePropagatorSite rst;
@@ -177,9 +182,10 @@ int main(int argc, char* argv[])
     } // end of point source loop
 
 
-    ////  Remove points where u is on the right of v
-    ////  Multiply by 2 for points where u is on the left of v
-    for(auto rst: rst_vec_allsrc) restrictToLeftSide(*rst, tsep, tsep2, T);
+    ////  Remove points where u is on the left of v
+    ////  Multiply by 2 for points where u is on the right of v
+    // for(auto rst: rst_vec_allsrc) restrictToRightSide(*rst, tsep, tsep2, T);
+    for(auto rst: rst_vec_allsrc) restrictToRightSide(*rst);   // point v must be at origin before calling this function
 
     print_grid_field_site(rst_Q1_allsrc, {0,0,0,0});
     print_grid_field_site(rst_Q1_allsrc, {0,0,0,62});

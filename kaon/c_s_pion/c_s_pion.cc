@@ -5,8 +5,6 @@ using namespace std;
 using namespace Grid;
 using namespace Grid::QCD;
 
-std::vector<int> gcoor({24, 24, 24, 64});
-
 void resize_vec(std::vector<std::vector<std::vector<std::vector<Grid::Complex>>>> &diagram, int traj_num, int T, int t_sep_min, int t_sep_max) {
   diagram.resize(traj_num);
   for(auto &x: diagram) {
@@ -21,7 +19,8 @@ void resize_vec(std::vector<std::vector<std::vector<std::vector<Grid::Complex>>>
 
 int main(int argc, char* argv[])
 {
-  Grid_init(&argc, &argv);
+  // Grid_init(&argc, &argv);
+  zyd_init_Grid_Qlattice(argc, argv);
 
   // int traj_start = 2300, traj_end = 2400, traj_sep = 100; // for 24ID, kaon wall
   int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
@@ -39,7 +38,7 @@ int main(int argc, char* argv[])
   std::cout << "t_sep_max: " << t_sep_max << std::endl;
   std::cout << "t_sep_num: " << t_sep_max - t_sep_min + 1 << std::endl;
 
-  Env env(gcoor, "24ID");
+  Env env("24ID");
   // init_para(argc, argv, env);
   const int T = env.grid->_fdimensions[3];
 
@@ -56,24 +55,29 @@ int main(int argc, char* argv[])
 
     // Read gauge transformation matrices for this trajectory
     LatticeColourMatrix gt = env.get_gaugeTransform();
-    // LatticeColourMatrix gt(env.grid);
-    // readScidac(gt, env.gauge_transform_path());
-
     LatticePropagator Lxx = env.get_Lxx();
 
+    vector<LatticePropagator> wl = env.get_wall('l');
+    vector<LatticePropagator> ws = env.get_wall('s');
+
     for(int t_K=0; t_K<T; ++t_K) { // iterate through the position of Kaon wall
-      LatticePropagator wl_K = env.get_wall(t_K, 'l'); // L(x, t_K)
-      LatticePropagator ws_K = env.get_wall(t_K, 's'); // H(x, t_K)
+      // LatticePropagator wl_K = env.get_wall(t_K, 'l'); // L(x, t_K)
+      // LatticePropagator ws_K = env.get_wall(t_K, 's'); // H(x, t_K)
+      const LatticePropagator &wl_K = wl[t_K]; // L(x, t_K)
+      const LatticePropagator &ws_K = ws[t_K]; // H(x, t_K)
 
       // Calculate L(t_pi, t_K); the sink must be in Coulomb gauge
-      LatticePropagator wl_K_Coulomb = env.toCoulombSink(gt, wl_K);
       std::vector<LatticePropagatorSite> wl_K_sliceSum;
-      sliceSum(wl_K_Coulomb, wl_K_sliceSum, Tdir);
+      {
+        LatticePropagator wl_K_Coulomb = env.toCoulombSink(gt, wl_K);
+        sliceSum(wl_K_Coulomb, wl_K_sliceSum, Tdir);
+      }
 
       for(int t_sep = t_sep_min; t_sep<=t_sep_max; ++t_sep) { // iterate through all possible separation between pion and kaon
         int t_pi = (t_K + t_sep) % T;
 
-        LatticePropagator wl_pi = env.get_wall(t_pi, 'l'); // L(x, t_pi)
+        // LatticePropagator wl_pi = env.get_wall(t_pi, 'l'); // L(x, t_pi)
+        const LatticePropagator &wl_pi = wl[t_pi]; // L(x, t_eta)
         LatticePropagatorSite wl_tpi_tK = wl_K_sliceSum[t_pi];  // L(t_pi, t_K)
 
         // diagram_sBar_d 

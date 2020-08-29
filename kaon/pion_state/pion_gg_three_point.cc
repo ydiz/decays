@@ -27,6 +27,38 @@ void measure_pion_form_factor(const LatticeKGG &hadronic, const Env &env) {
       std::cout << "ABJ prediction is 0.2724 GeV^-1" << std::endl;
 }
 
+
+// the leptonic part must be M_K
+// the lep_coef must be M_K
+// However, the hadron_coef must be M_pi and N_pi
+double combine_kaon_form_factor(const LatticeKGG &hadronic, const Env &env) {
+      static LatticeKGG lep(env.grid);
+      static bool initialized = false;
+      if(!initialized) {
+        form_factor_integrand(lep, env.M_K);
+        initialized = true;
+      }
+
+      double hadron_coef, lep_coef;
+      lep_coef = 2. / std::pow(env.M_K, 4);
+      hadron_coef = env.Z_V * env.Z_V * 2. * env.M_pi / env.N_pi;
+      std::string cutoff_type = "time";
+
+      std::vector<double> amplitude = form_factor(hadronic, lep, hadron_coef, lep_coef, cutoff_type);
+
+      const int T = env.grid->_fdimensions[3];
+      amplitude.resize(T/4 + 1);   // keep [0, T/4]
+      std::cout << "Luv(u, v=0, M_K) * <J(u)J(0)|pi> vs cutoff: " << amplitude << std::endl;
+      return amplitude.back();
+}
+
+
+
+
+
+
+
+
 int main(int argc, char* argv[])
 {
   // Grid_init(&argc, &argv);
@@ -67,17 +99,16 @@ int main(int argc, char* argv[])
     if(env.N_pt_src != -1) env.xgs_l.resize(env.N_pt_src);
     for(const auto &v: env.xgs_l) {
       ++num_pt_src;
+      std::cout << "num_pt_src: " << num_pt_src << std::endl;
 
       std::vector<LatticePropagatorSite> wall_to_v(T);
       for(int i=0; i<T; ++i)	peekSite(wall_to_v[i], wl[i], v); 
 
       LatticePropagator pl = env.get_point(v, 'l'); // pl = L(u, v)
-      std::cout << "pl" << std::endl;
-      print_grid_field_site(pl, {10,0,0,0});
 
       LatticeKGG rst(env.grid); 
 
-      std::cout << GridLogMessage << "Before thread_for" << std::endl;
+      // std::cout << GridLogMessage << "Before thread_for" << std::endl;
       thread_for(ss, env.grid->lSites(), {    // iterate over point u
         Coordinate lcoor, gcoor;
         localIndexToLocalGlobalCoor(env.grid, ss, lcoor, gcoor);
@@ -101,16 +132,12 @@ int main(int argc, char* argv[])
         pokeLocalSite(rst_site, rst, lcoor);
 
       });
-      std::cout << GridLogMessage << "After thread_for" << std::endl;
-
-      std::cout << "rst" << std::endl;
-      print_grid_field_site(rst, {10,0,0,0});
 
       for(int mu=0; mu<4; ++mu) rst = Cshift(rst, mu, v[mu]); // shift v to origin
       rst_allsrc += rst;
 
-
-      measure_pion_form_factor(rst, env);
+      // measure_pion_form_factor(rst, env);
+      combine_kaon_form_factor(rst, env);
 
     } // end of point source loop
     
@@ -119,7 +146,8 @@ int main(int argc, char* argv[])
 
     writeScidac(rst_allsrc, env.out_prefix + "/pion_gg/" + to_string(traj));
 
-    measure_pion_form_factor(rst_allsrc, env);
+    // measure_pion_form_factor(rst_allsrc, env);
+    combine_kaon_form_factor(rst_allsrc, env);
   } // end of traj loop
 
   std::cout << "Finished!" << std::endl;

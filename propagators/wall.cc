@@ -1,12 +1,10 @@
 #include "../kaon/kaon.h"
 
+// For 24ID, on 16 nodes, without using eigenvectors, need ~8h for 1 trajectory
 
 using namespace std;
 using namespace Grid;
 using namespace Grid::QCD;
-
-// readGaugeField(Umu, a2a_arg.config)
-
 
 #ifndef USE_CPS 
 template<class FieldD,class FieldF, typename std::enable_if< getPrecision<FieldD>::value == 2, int>::type = 0,typename std::enable_if< getPrecision    <FieldF>::value == 1, int>::type = 0 > 
@@ -27,17 +25,30 @@ public:
 
 int main(int argc, char **argv)
 {
-  Grid_init(&argc,&argv);
+  // Grid_init(&argc,&argv);
+  zyd_init_Grid_Qlattice(argc, argv);
 
   int Ls = 24;
   double mass = 0.085, b = 2.5, M5 = 1.8;  // !! mass must be the mass of strange quark
   vector<int> fdims = {24, 24, 24, 64};
-  string output_prefix = ".";
-  string Umu_dir = ".";
+  // string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/propagators/24ID";
+  string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props";
+  string Umu_dir = "/hpcgpfs01/work/lqcd/etap/chulwoo/evec/24ID1Gev/configurations";
+  string gt_dir = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/gauge_transform";  // gauge transformations
 
 
-  int traj_start = 2300;
-  int traj_end = 2300;
+  int target_traj;
+  if( GridCmdOptionExists(argv, argv+argc, "--traj") ) {
+    string arg = GridCmdOptionPayload(argv, argv+argc, "--traj");
+    GridCmdOptionInt(arg, target_traj);
+  }
+  else {
+    std::cout << "traj not specified; exiting" << std::endl;
+    assert(0);
+  }
+
+  int traj_start = target_traj;
+  int traj_end = target_traj;
   int traj_sep = 10;
 
   ////////////////////////////////////////////////////////////
@@ -62,20 +73,38 @@ int main(int argc, char **argv)
     FieldMetaData header;
     NerscIO::readConfiguration(Umu, header, Umu_dir + "/ckpoint_lat." + to_string(traj));
 
-    double alpha = 0.1;
-    int coulomb_dir = Nd - 1;
+    ////////////////////////////////////////
+    // Option 1. Read Luchang's gauge transformation
+    ////////////////////////////////////////
+    // string gt_path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/gauge-transform.field";
+    string gt_path = gt_dir + "/gauge-transform.field." + to_string(traj);
     LatticeColourMatrix gt(UGrid);
-    FourierAcceleratedGaugeFixer<PeriodicGimplR>::SteepestDescentGaugeFix(Umu, gt, alpha, 10000, 1.0e-12, 1.0e-12, true, coulomb_dir);
+    read_luchang_gt(gt, gt_path);
+    SU<3>::GaugeTransform(Umu, gt);  // I checked, gt(x) U gt(x+mu)^dagger  is in Coulomb gauge; (By running GaugeFixer, the Phi an Omega are small)
+    
+    ////////////////////////////////////////
+    // Option 2. Calculate gauge transformation
+    // Do not converge!!!! No matter whether I turn off Fourier or not.  
+    // Even if I start with the configuration that has already been gauge fixed, it will stray away.
+    // Maybe I need to use smaller alpha (alpha is step size)
+    ////////////////////////////////////////
+    // double alpha = 0.1;
+    // int coulomb_dir = Nd - 1;
+    // LatticeColourMatrix tmp_gt(UGrid);
+    // FourierAcceleratedGaugeFixer<PeriodicGimplR>::SteepestDescentGaugeFix(Umu, tmp_gt, alpha, 10000, 1.0e-12, 1.0e-12, false, coulomb_dir); // Note: it is very possible that gauge fixing does not converge; to converge, Phi and Omega must be smaller than their tolerance.
+    //
+    // string gt_fname = output_prefix + "/gt/" + to_string(traj);
+    // writeScidac(gt, gt_fname);
 
-    string gt_fname = output_prefix + "/gt/" + to_string(traj);
-    writeScidac(gt, gt_fname);
+    ///////////////////////////////////////////////
 
-    LatticeGaugeFieldF Umu_f(UGrid_f);
-    precisionChange(Umu_f, Umu);
 
     /////////////////////////////////////////
     // Set Operators
     /////////////////////////////////////////
+
+    LatticeGaugeFieldF Umu_f(UGrid_f);
+    precisionChange(Umu_f, Umu);
 
     // Must set boundary phase in time direction to -1
     typename MobiusFermionD::ImplParams params;
@@ -124,8 +153,8 @@ int main(int argc, char **argv)
         }
       }
 
-      string prop_fname = output_prefix + "./wall/" + to_string(traj)  + "/" + std::to_string(tW);
-      writeScidac(prop, prop_fname);
+      string prop_fname = output_prefix + "/wall_s/" + to_string(traj)  + "/" + std::to_string(tW);
+      writeScidac_prop_d2f(prop, prop_fname);
     }  // end of loop of tW
 
   }  // end of loop of traj

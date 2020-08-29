@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 
       read_qlat_propagator(prop, path);
 
-      prop = gt * prop;
+      prop = gt * prop;  // gt is the inverse of saved gauge transformation
       writeScidac_prop_d2f(prop, out_path);
     }
   }

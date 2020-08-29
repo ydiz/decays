@@ -46,6 +46,7 @@ void zyd_init_Grid_Qlattice(int argc, char* argv[]) {
   delete grid;
   qlat::begin(id_node, size_node);  // Qlattice need to have the same rank/node layout as Grid
 
+  MPI_Barrier(MPI_COMM_WORLD);      // avoid Qlattice making every node print out things that mess up the output file
 }
 
 }
@@ -406,6 +407,37 @@ void read_luchang_PGG(LatticePGG &lat, const std::string &path) { // read file x
   qlat::to_from_big_endian_64(qlat::get_data(qlat_pgg));
   grid_convert(lat, qlat_pgg);
 }
+
+void read_luchang_gt(LatticeColourMatrix &gt, const std::string &path) { // 
+  assert(dirExists(path));
+  qlat::GaugeTransform qlat_gt;
+  std::cout << GridLogMessage << "before reading" << std::endl;
+  read_field_double(qlat_gt, path);
+  std::cout << GridLogMessage << "after reading" << std::endl;
+  grid_convert(gt, qlat_gt);
+}
+
+
+void read_luchang_dist_gt(LatticeColourMatrix &gt, const std::string &path) { // 
+  assert(dirExists(path));
+
+  qlat::GaugeTransform qlat_gt;
+  qlat::dist_read_field(qlat_gt, path);
+  std::cout << GridLogMessage << "before reading" << std::endl;
+  qlat::to_from_big_endian_64(qlat::get_data(qlat_gt));
+  std::cout << GridLogMessage << "after reading" << std::endl;
+  grid_convert(gt, qlat_gt);
+
+  //
+  //
+  // qlat::GaugeTransform qlat_gt;
+  // std::cout << GridLogMessage << "before reading" << std::endl;
+  // read_field_double(qlat_gt, path);
+  // std::cout << GridLogMessage << "after reading" << std::endl;
+  // grid_convert(gt, qlat_gt);
+}
+
+
 
 
 // void read_cheng_PGG(LatticePGG &lat, const std::string &path) {

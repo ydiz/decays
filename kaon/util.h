@@ -38,23 +38,37 @@ struct Sum_Interval {
 
     Site rst = Zero();
     for(int t=lower_bound; t<=upper_bound; ++t) {
-      // rst += (t>=T ? lat_sliceSum[t % T] : lat_sliceSum[t]);
       rst += lat_sliceSum[t % T];
     }
     return rst;
   }
-  // LatticePropagatorSite operator()(const LatticePropagator &lat) const { 
-  //   std::vector<LatticePropagatorSite> lat_sliceSum;
-  //   sliceSum(lat, lat_sliceSum, Tdir);
-  //
-  //   LatticePropagatorSite rst = Zero();
-  //   for(int t=lower_bound; t<=upper_bound; ++t) {
-  //     // rst += (t>=T ? lat_sliceSum[t % T] : lat_sliceSum[t]);
-  //     rst += lat_sliceSum[t % T];
-  //   }
-  //   return rst;
-  // }
 };
+
+
+struct Sum_Interval_TimeSlice {
+  int lower_bound, upper_bound, T;
+
+  Sum_Interval_TimeSlice(int _lower_bound, int _upper_bound, int _T) : lower_bound(_lower_bound), upper_bound(_upper_bound), T(_T) {
+    assert(lower_bound >=0 && upper_bound>=0 && upper_bound >= lower_bound); // both lower_bound and upper_bound can be greater than T
+  };
+
+  template <class LatticeType>
+  std::vector<typename LatticeType::vector_object::scalar_object> operator()(const LatticeType &lat) const { 
+    using Site = typename LatticeType::vector_object::scalar_object;
+    std::vector<Site> lat_sliceSum;
+    sliceSum(lat, lat_sliceSum, Tdir);
+
+    std::vector<Site> rst(upper_bound - lower_bound + 1);
+    for(int t=lower_bound; t<=upper_bound; ++t) {
+      // rst += lat_sliceSum[t % T];
+      rst[t - lower_bound] = lat_sliceSum[t % T];   // rst[0] is the time slice sum at lower found; rst.back() is at upper bound
+    }
+    return rst;
+  }
+};
+
+
+
 
 
 template<typename vtype>

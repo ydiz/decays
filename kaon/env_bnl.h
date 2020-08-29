@@ -34,14 +34,14 @@ public:
   std::vector<std::vector<int>> xgs_l;
   std::vector<std::vector<int>> xgs_s;
 
-#ifdef USE_SPARSE
-  qlat::FieldSelection fsel;
-#endif
+// #ifdef USE_SPARSE
+//   qlat::FieldSelection fsel;
+// #endif
 
   void setup_traj(int _traj);
   LatticePropagator get_point(const std::vector<int> &src, char quark) const;
   std::vector<LatticePropagator> get_wall(char quark, bool useCoulombSink = false) const;
-  LatticePropagator get_wall(int t, char quark) const;
+  // LatticePropagator get_wall(int t, char quark) const;
   LatticePropagator get_Lxx() const;
   LatticeColourMatrix get_gaugeTransform() const;
   std::vector<LatticeFermionD> get_a2a(char vw) const;
@@ -67,6 +67,13 @@ std::vector<std::vector<int>> Env::get_xgs(char quark) {
 
   DIR *dir;
   dir = opendir(path.c_str());
+
+
+  if(dir == NULL) {
+    std::cout << "!!!!!!!!!!!! point src directory does not exist: " << path << std::endl;
+    return {};
+  }
+
   assert(dir!=NULL); // make sure directory exists
   struct dirent *entry;
   while ((entry = readdir(dir)) != NULL) {
@@ -109,94 +116,25 @@ void Env::setup_traj(int _traj) {
   cout << "[traj: " << to_string(traj) << "]" << endl;
   // get point source locations
 
-#ifdef USE_MY_PROPAGATOR
+// #ifdef USE_MY_PROPAGATOR
   xgs_l = get_xgs('l');
   xgs_s = get_xgs('s');
-#endif
+// #endif
 
-
-#ifdef USE_SPARSE
-  string fname_l = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/zyd_point_sources_l.txt";
-  string fname_s = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/zyd_point_sources_s.txt";
-  xgs_l = coor_from_file(fname_l);   
-  xgs_s = coor_from_file(fname_s);
-
-  const long spatial_vol = lat_size[0] * lat_size[1] * lat_size[2];
-  const long n_per_tslice = spatial_vol / 16;
-  string f1 = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/f-rank.field";
-
-  fsel.init();
-  qlat::read_field_selection(fsel, f1, n_per_tslice);
-#endif
+// #ifdef USE_SPARSE
+//   string fname_l = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/zyd_point_sources_l.txt";
+//   string fname_s = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/zyd_point_sources_s.txt";
+//   xgs_l = coor_from_file(fname_l);   
+//   xgs_s = coor_from_file(fname_s);
+//
+//   const long spatial_vol = lat_size[0] * lat_size[1] * lat_size[2];
+//   const long n_per_tslice = spatial_vol / 16;
+//   string f1 = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/f-rank.field";
+//
+//   fsel.init();
+//   qlat::read_field_selection(fsel, f1, n_per_tslice);
+// #endif
 }
-
-
-#ifdef USE_SPARSE
-std::vector<LatticePropagator> Env::get_wall(char quark, bool useCoulombSink/* = false */) const {
-  using namespace qlat;
-  using namespace std;
-
-  int T = grid->_fdimensions[Tdir];
-  vector<LatticePropagator> wall_props(T, grid);  // sometimes this fails, do not know why.
-
-  string type;
-  if(quark == 'l') type = "0";
-  else if (quark == 's') type = "1";
-
-  for(int t=0; t<T; ++t) {
-    // readScidac_prop_f2d(wall_props[t], wall_path(t, quark));
-    string fname = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/prop-wall-src/tslice=" + to_string(t) + " ; type=" + type + " ; accuracy=1.sfield";
-    std::cout << GridLogMessage << fname << std::endl;
-    assert(dirExists(fname));
-
-    Propagator4d qlat_prop;
-    read_selected_field_double_from_float(qlat_prop, fname, fsel);
-
-    grid_convert(wall_props[t], qlat_prop);
-  }
-
-  if(useCoulombSink) {}   // For the stored Coulomb propagators, sink is in Coulomb gauge
-  else {
-    qlat::GaugeTransform qlat_gt;
-    string gt_path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/gauge-transform.field";
-    std::cout << GridLogMessage << gt_path << std::endl;
-    assert(dirExists(gt_path));
-    read_field_double(qlat_gt, gt_path);
-
-    qlat::GaugeTransform qlat_gtinv;
-    qlat::gt_inverse(qlat_gtinv, qlat_gt); // FIXME: make sure that I should use qlat_gtinv instead of qlat_gt
-
-    LatticeColourMatrix gt(grid);
-    grid_convert(gt, qlat_gtinv);
-
-    for(int t=0; t<T; ++t) wall_props[t] = gt * wall_props[t];
-  }
-  return wall_props;
-}
-
-LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const {
-  using namespace qlat;
-  using namespace std;
-
-  LatticePropagator point_prop(grid);
-
-  string fname = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/prop-point-src/xg=(" + coor2CSL(src)  +") ; type=0 ; accuracy=0.sfield";
-  std::cout << GridLogMessage << fname << std::endl;
-  assert(dirExists(fname));
-  Propagator4d qlat_prop;
-  read_selected_field_double_from_float(qlat_prop, fname, fsel);
-
-  qlat::print_qlat_field(qlat_prop);
-  assert(0);
-  grid_convert(point_prop, qlat_prop);
-
-  print_grid_field_site(point_prop, {10,0,0,0});
-  return point_prop;
-}
-#endif
-
-
-
 
 
 LatticePropagator Env::get_Lxx() const {
@@ -208,7 +146,8 @@ LatticePropagator Env::get_Lxx() const {
 
 LatticeColourMatrix Env::get_gaugeTransform() const {
   LatticeColourMatrix gt(grid);
-  readScidac(gt, gauge_transform_path());
+  // readScidac(gt, gauge_transform_path());
+  read_luchang_dist_gt(gt, gauge_transform_path());
   return gt;
 }
 
@@ -242,7 +181,7 @@ std::vector<LatticeFermionD> Env::get_a2a(char vw) const {
 //////////////////////////////
 
 
-#ifdef USE_MY_PROPAGATOR
+// #ifdef USE_MY_PROPAGATOR
 std::vector<LatticePropagator> Env::get_wall(char quark, bool useCoulombSink/* = false */) const {
   int T = grid->_fdimensions[Tdir];
   std::cout << "before allocating vector of wall source propagators" << std::endl;
@@ -250,15 +189,20 @@ std::vector<LatticePropagator> Env::get_wall(char quark, bool useCoulombSink/* =
   std::vector<LatticePropagator> wall_props(T, grid);  // sometimes this fails, do not know why.
   std::cout << "after allocating vector of wall source propagators" << std::endl;
   print_memory();
-  for(int t=0; t<T; ++t) {
-    readScidac_prop_f2d(wall_props[t], wall_path(t, quark));
+
+  for(int t=0; t<T; ++t) {                  // The wall propagator's sink should be in Coulomb gauge
+    if(quark == 'l')  read_qlat_propagator(wall_props[t], wall_path(t, quark));   
+    else if(quark == 's') readScidac_prop_f2d(wall_props[t], wall_path(t, quark));
   }
 
-
-  if(useCoulombSink) {
+  if(!useCoulombSink) {
     LatticeColourMatrix gt(grid);
-    readScidac(gt, gauge_transform_path());
-    for(int t=0; t<T; ++t) wall_props[t] = gt * wall_props[t];
+
+    // readScidac(gt, gauge_transform_path());
+    read_luchang_dist_gt(gt, gauge_transform_path());
+
+    // for(int t=0; t<T; ++t) wall_props[t] = gt * wall_props[t];
+    for(int t=0; t<T; ++t) wall_props[t] = adj(gt) * wall_props[t];
   }
 
   return wall_props;
@@ -269,13 +213,13 @@ LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const 
   readScidac_prop_f2d(point_prop, point_path(src, quark));
   return point_prop;
 }
-#endif   // end of #ifdef USE_MY_PROPAGATOR
+// #endif   // end of #ifdef USE_MY_PROPAGATOR
 
-LatticePropagator Env::get_wall(int t, char quark) const {
-  LatticePropagator wall_prop(grid);
-  readScidac_prop_f2d(wall_prop, wall_path(t, quark));
-  return wall_prop;
-}
+// LatticePropagator Env::get_wall(int t, char quark) const {
+//   LatticePropagator wall_prop(grid);
+//   readScidac_prop_f2d(wall_prop, wall_path(t, quark));
+//   return wall_prop;
+// }
 
 
 void Env::toCoulombVW(const LatticeColourMatrix &gt, std::vector<LatticeFermionD> &in) const {
@@ -296,13 +240,24 @@ std::string Env::point_path(const std::vector<int> &src, char quark) const {
   if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2CSL(src);
   else assert(0);
   std::cout << "reading from " << path << std::endl;
-  assert(dirExists(path));
+
+
+  if(!dirExists(path)) {
+    std::cout << "!!!!!!!!!!!! point src directory does not exist: " << path << std::endl;
+    return "";
+  }
+
+  // assert(dirExists(path));
   return path;
 }
 
 std::string Env::wall_path(int t, char quark) const {
   std::string path;
-  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/wall_" + std::string(1, quark) + "/"  + std::to_string(traj) + "/" + std::to_string(t);
+  if(ensemble=="24ID") {
+    // path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/wall_" + std::string(1, quark) + "/"  + std::to_string(traj) + "/" + std::to_string(t);
+    if(quark == 'l') path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_luchang_props/wall_l/results/results="  + std::to_string(traj) + "/huge-data/wall_src_propagator/t=" + std::to_string(t);
+    else if(quark == 's') path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/wall_s/"  + std::to_string(traj) + "/" + std::to_string(t);
+  }
   else assert(0);
   std::cout << "reading from " << path << std::endl;
   assert(dirExists(path));
@@ -311,7 +266,8 @@ std::string Env::wall_path(int t, char quark) const {
 
 std::string Env::gauge_transform_path() const {
   std::string path;
-  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/gauge_transform/"  + std::to_string(traj) ;
+  // if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/gauge_transform/"  + std::to_string(traj) ;
+  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_luchang_props/wall_l/results/results=" + std::to_string(traj) + "/huge-data/gauge-transform";
   else assert(0);
   assert(dirExists(path));
   return path;
@@ -327,3 +283,75 @@ std::string Env::Lxx_path() const {
 
 
 }}
+
+
+
+
+
+
+
+// #ifdef USE_SPARSE
+// std::vector<LatticePropagator> Env::get_wall(char quark, bool useCoulombSink/* = false */) const {
+//   using namespace qlat;
+//   using namespace std;
+//
+//   int T = grid->_fdimensions[Tdir];
+//   vector<LatticePropagator> wall_props(T, grid);  // sometimes this fails, do not know why.
+//
+//   string type;
+//   if(quark == 'l') type = "0";
+//   else if (quark == 's') type = "1";
+//
+//   for(int t=0; t<T; ++t) {
+//     // readScidac_prop_f2d(wall_props[t], wall_path(t, quark));
+//     string fname = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/prop-wall-src/tslice=" + to_string(t) + " ; type=" + type + " ; accuracy=1.sfield";
+//     std::cout << GridLogMessage << fname << std::endl;
+//     assert(dirExists(fname));
+//
+//     Propagator4d qlat_prop;
+//     read_selected_field_double_from_float(qlat_prop, fname, fsel);
+//
+//     grid_convert(wall_props[t], qlat_prop);
+//   }
+//
+//   if(useCoulombSink) {}   // For the stored Coulomb propagators, sink is in Coulomb gauge
+//   else {
+//     qlat::GaugeTransform qlat_gt;
+//     string gt_path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/gauge-transform.field";
+//     std::cout << GridLogMessage << gt_path << std::endl;
+//     assert(dirExists(gt_path));
+//     read_field_double(qlat_gt, gt_path);
+//
+//     qlat::GaugeTransform qlat_gtinv;
+//     qlat::gt_inverse(qlat_gtinv, qlat_gt); // FIXME: make sure that I should use qlat_gtinv instead of qlat_gt
+//
+//     LatticeColourMatrix gt(grid);
+//     grid_convert(gt, qlat_gtinv);
+//
+//     for(int t=0; t<T; ++t) wall_props[t] = gt * wall_props[t];
+//   }
+//   return wall_props;
+// }
+//
+// LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const {
+//   using namespace qlat;
+//   using namespace std;
+//
+//   LatticePropagator point_prop(grid);
+//
+//   string fname = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/prop-point-src/xg=(" + coor2CSL(src)  +") ; type=0 ; accuracy=0.sfield";
+//   std::cout << GridLogMessage << fname << std::endl;
+//   assert(dirExists(fname));
+//   Propagator4d qlat_prop;
+//   read_selected_field_double_from_float(qlat_prop, fname, fsel);
+//
+//   qlat::print_qlat_field(qlat_prop);
+//   assert(0);
+//   grid_convert(point_prop, qlat_prop);
+//
+//   print_grid_field_site(point_prop, {10,0,0,0});
+//   return point_prop;
+// }
+// #endif
+//
+//

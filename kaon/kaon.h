@@ -3,9 +3,9 @@
 #include <headers/headers.h>
 #include "util.h"
 
-#ifdef BNL
-#include "/sdcc/u/ydzhao/A2AGrid/io.h"
-#endif
+// #ifdef BNL
+// #include "/sdcc/u/ydzhao/A2AGrid/io.h"
+// #endif
 
 #include <qlat/qlat.h>
 

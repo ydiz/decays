@@ -12,7 +12,8 @@ using namespace Grid::QCD;
 
 int main(int argc, char* argv[])
 {
-  Grid_init(&argc, &argv);
+  // Grid_init(&argc, &argv);
+  zyd_init_Grid_Qlattice(argc, argv);
 
   // int traj_start = 2300, traj_end = 2400, traj_sep = 100; // for 24ID, kaon wall
   int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
