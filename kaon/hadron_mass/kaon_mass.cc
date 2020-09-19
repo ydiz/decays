@@ -1,3 +1,6 @@
+// On 16 nodes, needs ~8 hours to run
+
+
 #include "../kaon.h"
 
 using namespace std;
@@ -14,18 +17,6 @@ int main(int argc, char* argv[])
 
   std::cout << "trajs: " << trajs << std::endl;
 	cout << "traj_num: " << trajs.size() << endl;
-
-	// int traj_start = 2260, traj_end = 2640, traj_sep = 10; 
-  // std::vector<int> traj_skips = {2360, 2420, 2520, 2540, 2580};  // 2420 has no strange wall source
-  // int traj_num = (traj_end - traj_start) / traj_sep + 1 - traj_skips.size();
-  //
-	// cout << string(20, '*') << endl;
-	// cout << "traj_start: " << traj_start << endl;
-	// cout << "traj_end: " << traj_end << endl;
-	// cout << "traj_sep: " << traj_sep << endl;
-	// cout << "traj_skip: " << traj_skips << endl;
-	// cout << "traj_num: " << traj_num << endl;
-	// cout << string(20, '*') << endl;
 
   Env env("24ID");
   const int T = env.lat_size[3];

@@ -41,7 +41,7 @@ double combine_kaon_form_factor(const LatticeKGG &hadronic, const Env &env) {
 
       double hadron_coef, lep_coef;
       lep_coef = 2. / std::pow(env.M_K, 4);
-      hadron_coef = env.Z_V * env.Z_V * 2. * env.M_pi / env.N_pi;
+      hadron_coef = env.Z_V * env.Z_V * 2. * env.M_pi / env.N_pi; // Here must be Pion mass and N_Pi, unlike the typeII_timeSlice program
       std::string cutoff_type = "time";
 
       std::vector<double> amplitude = form_factor(hadronic, lep, hadron_coef, lep_coef, cutoff_type);
@@ -88,8 +88,6 @@ int main(int argc, char* argv[])
     env.setup_traj(traj);
 
     std::vector<LatticePropagator> wl = env.get_wall('l');
-    // std::cout << "wl" << std::endl;
-    // print_grid_field_site(wl[0], {1,2,3,4});
 
     // save average of all point sources
     LatticeKGG rst_allsrc(env.grid); 

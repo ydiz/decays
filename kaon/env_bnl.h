@@ -94,9 +94,8 @@ Env::Env(const std::string &_ensemble) {
     M_pi = 0.13975;
     N_pi = 51.561594;
 
-    M_K = 0.504154;
-    N_K = 53.3291; // FIXME: update this  // Using 1 traj, tsep=6, I got 53.531806
-    std::cout << "FIXME: Using the N_h calculated from only one trajtory " << std::endl;
+    M_K = 0.50365;     // \pm 0.0008
+    N_K = 55.42;        // \pm 0.21
 
     Z_V = 0.72672;
 
@@ -156,18 +155,18 @@ LatticeColourMatrix Env::get_gaugeTransform() const {
 std::vector<LatticeFermionD> Env::get_a2a(char vw) const {
   int nl = 2000, nh = 768;
   // int nl = 1, nh = 1;
-  std::string prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/a2a/24ID";
+  std::string prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/a2a/24ID/timeDilutedA2AVectors";
 
   std::vector<LatticeFermionD> low(nl, grid), high(nh, grid);
   print_memory();
 
   if(vw == 'v') {
-    A2AVectorsIo::read(low, prefix + "/MADWF_A2AVector_vl", false, traj);
-    A2AVectorsIo::read(high, prefix + "/MADWF_A2AVector_vh", false, traj);
+    A2AVectorsIo::read(low, prefix + "/vl", false, traj);
+    A2AVectorsIo::read(high, prefix + "/vh", false, traj);
   }
   else if(vw == 'w') {
-    A2AVectorsIo::read(low, prefix + "/MADWF_A2AVector_wl", false, traj);
-    A2AVectorsIo::read(high, prefix + "/MADWF_A2AVector_wh", false, traj);
+    A2AVectorsIo::read(low, prefix + "/wl", false, traj);
+    A2AVectorsIo::read(high, prefix + "/wh", false, traj);
   }
   else assert(0);
 

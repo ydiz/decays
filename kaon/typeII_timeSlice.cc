@@ -12,25 +12,25 @@ using namespace Grid::QCD;
 // the leptonic part must be M_K
 // the lep_coef must be M_K
 // However, the hadron_coef must be M_pi and N_pi
-double combine_kaon_form_factor(const LatticeKGG &hadronic, const Env &env) {
-      static LatticeKGG lep(env.grid);
-      static bool initialized = false;
-      if(!initialized) {
-        form_factor_integrand(lep, env.M_K);
-        initialized = true;
-      }
+double combine_kaon_form_factor(const LatticeKGG &hadronic, const Env &env, bool verbose = true) {
+  static LatticeKGG lep(env.grid);
+  static bool initialized = false;
+  if(!initialized) {
+    form_factor_integrand(lep, env.M_K);
+    initialized = true;
+  }
 
-      double hadron_coef, lep_coef;
-      lep_coef = 2. / std::pow(env.M_K, 4);
-      hadron_coef = env.Z_V * env.Z_V * 2. * env.M_pi / env.N_pi;
-      std::string cutoff_type = "time";
+  double hadron_coef, lep_coef;
+  lep_coef = 2. / std::pow(env.M_K, 4);
+  hadron_coef = env.Z_V * env.Z_V * 2. * env.M_K / env.N_K;  // Note, M_K, not M_pi
+  std::string cutoff_type = "time";
 
-      std::vector<double> amplitude = form_factor(hadronic, lep, hadron_coef, lep_coef, cutoff_type);
+  std::vector<double> amplitude = form_factor(hadronic, lep, hadron_coef, lep_coef, cutoff_type);
 
-      const int T = env.grid->_fdimensions[3];
-      amplitude.resize(T/4 + 1);   // keep [0, T/4]
-      std::cout << "Luv(u, v=0, M_K) * <J(u)J(0)|pi> vs cutoff: " << amplitude << std::endl;
-      return amplitude.back();
+  const int T = env.grid->_fdimensions[3];
+  amplitude.resize(T/4 + 1);   // keep [0, T/4]
+  if(verbose) std::cout << "Luv(u, v=0, M_K) * <J(u)J(0) H(t_x) |K> vs cutoff: " << amplitude << std::endl;
+  return amplitude.back();
 }
 
 
@@ -110,11 +110,7 @@ int main(int argc, char* argv[])
   std::cout << "traj_num: " << traj_num << std::endl;
   std::cout << std::string(20, '*') << std::endl;
 
-  // FIXME: change those parameters
-  // int tsep = 16;
-  // int tsep = 22;  // tv = tK + tsep
-  // int tsep2 = 6;  // tx >= tK + tsep2
-  // int tsep3 = 4;  // tx <= tK + T/2 - tsep3
+  // change those parameters
   int tsep = 12;  // tv = tK + tsep
   int tsep2 = 6;  // tx >= tK + tsep2
   // int tsep2 = 12;  // tx >= tK + tsep2   // FIXME: change this  to 6
@@ -125,8 +121,8 @@ int main(int argc, char* argv[])
 
   Env env("24ID");
   // init_para(argc, argv, env);
-  // env.N_pt_src = 1;  // FIXME: keep only one point
-  env.N_pt_src = -1;  // Use all points
+  env.N_pt_src = 100;  
+  // env.N_pt_src = -1;  // Use all points
 
   const int T = env.grid->_fdimensions[3];
 
@@ -148,6 +144,7 @@ int main(int argc, char* argv[])
     int num_pt_src = 0;
     if(env.N_pt_src != -1) env.xgs_s.resize(env.N_pt_src);
     for(const auto &v: env.xgs_s) {
+      std::cout << "# Point source: " << num_pt_src << std::endl;
       ++num_pt_src;
 
       LatticePropagator pl = env.get_point(v, 'l'); // pl = L(x, v) 
@@ -179,20 +176,17 @@ int main(int argc, char* argv[])
 
         // int lower_bound = tK + tsep2, upper_bound = tK + T/2 - tsep3; // both lower_bound and upper_bound can be greater than T
         int lower_bound = tK + tsep2, upper_bound = tK + tsep2 + N_timeSlices - 1; // both lower_bound and upper_bound can be greater than T
-        std::cout << "before sum_interval_timeslice" << std::endl;
         Sum_Interval_TimeSlice sum_interval_timeslice(lower_bound, upper_bound, T);   
 
         // LatticeFermionSite gv_i_Q1, gv_i_Q2;
         vector<LatticeFermionSite> gv_i_Q1(N_timeSlices), gv_i_Q2(N_timeSlices);
         gv_i_Q1 = sum_interval_timeslice(LatticeFermion(tmp_Q1 * a2a_v[i]));
         gv_i_Q2 = sum_interval_timeslice(LatticeFermion(tmp_Q2 * a2a_v[i]));
-        std::cout << "after sum_interval_timeslice" << std::endl;
 
         for(int tx=0; tx<N_timeSlices; ++tx) {
           huv_Q1[tx] += outerProduct(gv_i_Q1[tx], adj(a2a_w[i]));
           huv_Q2[tx] += outerProduct(gv_i_Q2[tx], adj(a2a_w[i]));
         }
-        std::cout << "after huv_Q1" << std::endl;
 
       }
 
@@ -219,12 +213,12 @@ int main(int argc, char* argv[])
         rst_Q1 *= std::exp(env.M_K * tsep);
         for(int mu=0; mu<4; ++mu) rst_Q1 = Cshift(rst_Q1, mu, v[mu]);
         restrictToRightSide(rst_Q1);  // point v must be at origin before calling this function
-        amplitude_Q1_allsrc[tx] += combine_kaon_form_factor(rst_Q1, env);
+        amplitude_Q1_allsrc[tx] += combine_kaon_form_factor(rst_Q1, env, false);
 
         rst_Q2 *= std::exp(env.M_K * tsep);
         for(int mu=0; mu<4; ++mu) rst_Q2 = Cshift(rst_Q2, mu, v[mu]);
         restrictToRightSide(rst_Q2); // point v must be at origin before calling this function
-        amplitude_Q2_allsrc[tx] += combine_kaon_form_factor(rst_Q2, env);
+        amplitude_Q2_allsrc[tx] += combine_kaon_form_factor(rst_Q2, env, false);
 
         // for(int i=0; i<rst_vec.size(); ++i) {
         //   *rst_vec[i] *= std::exp(env.M_K * tsep);   // add exp factor
