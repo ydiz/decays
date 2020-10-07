@@ -64,7 +64,8 @@ int main(int argc, char* argv[])
   // Grid_init(&argc, &argv);
   zyd_init_Grid_Qlattice(argc, argv);
 
-  int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
+  // int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
+  int traj_start = 2160, traj_end = 2250, traj_sep = 10; // for 24ID, kaon wall
   int traj_num = (traj_end - traj_start) / traj_sep + 1;
 
   std::cout << std::string(20, '*') << std::endl;
@@ -134,8 +135,7 @@ int main(int argc, char* argv[])
       for(int mu=0; mu<4; ++mu) rst = Cshift(rst, mu, v[mu]); // shift v to origin
       rst_allsrc += rst;
 
-      // measure_pion_form_factor(rst, env);
-      combine_kaon_form_factor(rst, env);
+      // combine_kaon_form_factor(rst, env);
 
     } // end of point source loop
     

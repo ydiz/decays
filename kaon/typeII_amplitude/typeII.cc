@@ -1,7 +1,7 @@
 
 // On 8 nodes, Needs 16h for one trajectory (500 piont sources) // ~110s per point source
 
-#include "kaon.h"
+#include "../kaon.h"
 
 using namespace std;
 using namespace Grid;
@@ -74,7 +74,19 @@ int main(int argc, char* argv[])
   // Grid_init(&argc, &argv);
   zyd_init_Grid_Qlattice(argc, argv);
 
-  int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
+  int target_traj;
+  if( GridCmdOptionExists(argv, argv+argc, "--traj") ) {
+    string arg = GridCmdOptionPayload(argv, argv+argc, "--traj");
+    GridCmdOptionInt(arg, target_traj);
+  }
+  else {
+    std::cout << "traj not specified; exiting" << std::endl;
+    assert(0);
+  }
+  int traj_start = target_traj;
+  int traj_end = target_traj;
+  int traj_sep = 10;
+
   // int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
   int traj_num = (traj_end - traj_start) / traj_sep + 1;
 
@@ -91,8 +103,8 @@ int main(int argc, char* argv[])
   // int tsep2 = 6;  // tx >= tK + tsep2
   // int tsep3 = 4;  // tx <= tK + T/2 - tsep3
   int tsep = 12;  // tv = tK + tsep
-  // int tsep2 = 6;  // tx >= tK + tsep2
-  int tsep2 = 12;  // tx >= tK + tsep2   // FIXME: change this  to 6
+  int tsep2 = 6;  // tx >= tK + tsep2
+  // int tsep2 = 12;  // tx >= tK + tsep2   // FIXME: change this to 6
   int tsep3 = 2;  // tx <= tK + T/2 - tsep3
 
 

@@ -1,8 +1,8 @@
 
 // On 8 nodes, Needs 16h for one trajectory (500 piont sources) // ~110s per point source
 
-#include "kaon.h"
-#include "../amplitude/form_factor.h"
+#include "../kaon.h"
+#include "../../amplitude/form_factor.h"
 
 using namespace std;
 using namespace Grid;
@@ -99,7 +99,22 @@ int main(int argc, char* argv[])
   // Grid_init(&argc, &argv);
   zyd_init_Grid_Qlattice(argc, argv);
 
-  int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
+
+  int target_traj;
+  if( GridCmdOptionExists(argv, argv+argc, "--traj") ) {
+    string arg = GridCmdOptionPayload(argv, argv+argc, "--traj");
+    GridCmdOptionInt(arg, target_traj);
+  }
+  else {
+    std::cout << "traj not specified; exiting" << std::endl;
+    assert(0);
+  }
+  int traj_start = target_traj;
+  int traj_end = target_traj;
+  int traj_sep = 10;
+
+
+
   // int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
   int traj_num = (traj_end - traj_start) / traj_sep + 1;
 
@@ -121,8 +136,8 @@ int main(int argc, char* argv[])
 
   Env env("24ID");
   // init_para(argc, argv, env);
-  env.N_pt_src = 100;  
-  // env.N_pt_src = -1;  // Use all points
+  // env.N_pt_src = 100;  
+  env.N_pt_src = -1;  // Use all points
 
   const int T = env.grid->_fdimensions[3];
 

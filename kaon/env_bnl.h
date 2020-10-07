@@ -51,6 +51,7 @@ public:
 
   Env(const std::string &_ensemble);
 
+  std::string point_path() const;
   std::string point_path(const std::vector<int> &src, char quark) const;
   std::string wall_path(int t, char quark) const;
   std::string gauge_transform_path() const;
@@ -62,28 +63,41 @@ public:
 
 std::vector<std::vector<int>> Env::get_xgs(char quark) {
   std::vector<std::vector<int>> xgs;
-  std::string path = point_path({}, quark);
+  std::string path = point_path();  
   // std::cout << path << std::endl;
+
+
+
+  // if(dir == NULL) {
+  //   std::cout << "!!!!!!!!!!!! point src directory does not exist: " << path << std::endl;
+  //   return {};
+  // }
+
+  std::string type = (quark=='l') ? "0" : "1";
 
   DIR *dir;
   dir = opendir(path.c_str());
-
-
-  if(dir == NULL) {
-    std::cout << "!!!!!!!!!!!! point src directory does not exist: " << path << std::endl;
-    return {};
-  }
-
   assert(dir!=NULL); // make sure directory exists
   struct dirent *entry;
   while ((entry = readdir(dir)) != NULL) {
+    std::string subdir_name = std::string(entry->d_name);
+		// if(subdir_name.substr(0, 3) == "xg=" && subdir_name.substr(subdir_name.find("type"), 6) == ("type="+type) && subdir_name.substr(subdir_name.find("accuracy"), 10) == "accuracy=0") {
+		if(subdir_name.substr(0, 3) == "xg=" && subdir_name.substr(subdir_name.find("type"), 6) == ("type="+type) && subdir_name.substr(subdir_name.find("accuracy")) == "accuracy=0") {
+			std::vector<int> xg = get_xg(subdir_name); 
+			xgs.push_back(xg);
+    }
+
     // printf ("%s\n", entry->d_name);
-    std::string fname = entry->d_name;
-    if(isdigit(fname[0])) xgs.push_back(CSL2coor(fname)); // This is also dir "." and ".."
+    // std::string fname = entry->d_name;
+    // if(isdigit(fname[0])) xgs.push_back(CSL2coor(fname)); // This is also dir "." and ".."
   }
   closedir(dir);
   return xgs;
 }
+
+
+
+
 
 Env::Env(const std::string &_ensemble) {
 
@@ -209,7 +223,8 @@ std::vector<LatticePropagator> Env::get_wall(char quark, bool useCoulombSink/* =
 
 LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const {
   LatticePropagator point_prop(grid);
-  readScidac_prop_f2d(point_prop, point_path(src, quark));
+  read_qlat_propagator(point_prop, point_path(src, quark));   
+  // readScidac_prop_f2d(point_prop, point_path(src, quark));
   return point_prop;
 }
 // #endif   // end of #ifdef USE_MY_PROPAGATOR
@@ -233,18 +248,40 @@ LatticePropagator Env::toCoulombSink(const LatticeColourMatrix &gt, const Lattic
 }
 
 
-
-std::string Env::point_path(const std::vector<int> &src, char quark) const {
+std::string Env::point_path() const {
   std::string path;
-  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2CSL(src);
+  // if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2CSL(src);
+  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_luchang_props/point/prop-hvp ; results=" + std::to_string(traj) +  "/huge-data/prop-point-src";
+    // "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2CSL(src);
   else assert(0);
   std::cout << "reading from " << path << std::endl;
 
 
-  if(!dirExists(path)) {
-    std::cout << "!!!!!!!!!!!! point src directory does not exist: " << path << std::endl;
-    return "";
-  }
+  // if(!dirExists(path)) {
+  //   std::cout << "!!!!!!!!!!!! point src directory does not exist: " << path << std::endl;
+  //   return "";
+  // }
+
+  // assert(dirExists(path));
+  return path;
+}
+
+
+
+std::string Env::point_path(const std::vector<int> &src, char quark) const {
+  std::string path;
+  // if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2CSL(src);
+  std::string type = (quark=='l') ? "0" : "1";
+  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_luchang_props/point/prop-hvp ; results=" + std::to_string(traj) +  "/huge-data/prop-point-src/xg=(" + coor2CSL(src)  + ") ; type=" + type + " ; accuracy=0";
+    // "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2CSL(src);
+  else assert(0);
+  std::cout << "reading from " << path << std::endl;
+
+
+  // if(!dirExists(path)) {
+  //   std::cout << "!!!!!!!!!!!! point src directory does not exist: " << path << std::endl;
+  //   return "";
+  // }
 
   // assert(dirExists(path));
   return path;

@@ -1,12 +1,10 @@
 
 
-#include "kaon.h"
+#include "../kaon.h"
 
 using namespace std;
 using namespace Grid;
 using namespace Grid::QCD;
-
-
 
 
 
@@ -17,7 +15,22 @@ int main(int argc, char* argv[])
   // Grid_init(&argc, &argv);
   zyd_init_Grid_Qlattice(argc, argv);
 
-  int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
+  int target_traj;
+  if( GridCmdOptionExists(argv, argv+argc, "--traj") ) {
+    string arg = GridCmdOptionPayload(argv, argv+argc, "--traj");
+    GridCmdOptionInt(arg, target_traj);
+  }
+  else {
+    std::cout << "traj not specified; exiting" << std::endl;
+    assert(0);
+  }
+  int traj_start = target_traj;
+  int traj_end = target_traj;
+  int traj_sep = 10;
+
+
+
+  // int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
   int traj_num = (traj_end - traj_start) / traj_sep + 1;
 
   std::cout << std::string(20, '*') << std::endl;
@@ -32,7 +45,7 @@ int main(int argc, char* argv[])
   int tsep2 = 6;
   int tsep3 = 6;
 
-  Env env(gcoor, "24ID");
+  Env env("24ID");
   // init_para(argc, argv, env);
   // env.N_pt_src = 1;  // FIXME: keep only one point
   env.N_pt_src = -1;  // Use all points

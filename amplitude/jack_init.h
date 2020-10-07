@@ -162,17 +162,16 @@ void init_para(int argc, char **argv, Jack_para &para)
   }
   ///////////////////////////// Kaon /////////////////////
   else if(para.ensemble == "Kaon_24ID") {
-    para.M_h = 0.504154;
-    para.N_h = 53.3291; // FIXME: update this  // Using 1 traj, tsep=6, I got 53.531806
-    std::cout << "FIXME: Using the N_h calculated from only one trajtory " << std::endl;
+    para.M_h = 0.50365;
+    para.N_h = 51.561594;
     para.Z_V = 0.72672;
 
     para.lat_size = {24, 24, 24, 64};
     // para.traj_start = 2300;
     // para.traj_end = 2300;
-    para.traj_start = 2300;
-    para.traj_end = 2300;
-    para.traj_sep = 100;
+    para.traj_start = 2160;
+    para.traj_end = 2250;
+    para.traj_sep = 10;
     para.traj_skip = {};
   }
   else assert(0);

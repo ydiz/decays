@@ -1,5 +1,5 @@
 
-// On 8 nodes, need ~9h for one trajectory (500 point sources)
+// On 16 nodes, need ~2h for one trajectory (512 point sources)
 
 #include "../kaon.h"
 
@@ -28,8 +28,6 @@ int main(int argc, char* argv[])
   int traj_sep = 10;
 
 
-
-
   // int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
   int traj_num = (traj_end - traj_start) / traj_sep + 1;
 
@@ -52,7 +50,6 @@ int main(int argc, char* argv[])
 
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
     env.setup_traj(traj);
-
 
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');

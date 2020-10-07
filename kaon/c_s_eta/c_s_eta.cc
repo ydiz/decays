@@ -18,14 +18,35 @@ void resize_vec(std::vector<std::vector<std::vector<std::vector<Grid::Complex>>>
   }
 }
 
+std::vector<std::vector<std::vector<Grid::Complex>>> average_tK(const std::vector<std::vector<std::vector<std::vector<Grid::Complex>>>> &diagram) {
+  int traj_num = diagram.size();
+  int sep_num = diagram[0].size();
+  int tK_num = diagram[0][0].size();
+  int xt_num = diagram[0][0][0].size();
+  std::vector<std::vector<std::vector<Grid::Complex>>> rst(traj_num);
+  for(int traj=0; traj<traj_num; ++traj) {
+    rst[traj].resize(sep_num);
+    for(int sep=0; sep<sep_num; ++sep) {
+      rst[traj][sep].resize(xt_num);
+      for(int xt=0; xt<xt_num; ++xt) {
+        for(int tK=0; tK<tK_num; ++tK) {
+          rst[traj][sep][xt] += diagram[traj][sep][tK][xt];
+        }
+        rst[traj][sep][xt] /= double(tK_num);
+      }
+    }
+  }
+
+  return rst;
+}
 
 int main(int argc, char* argv[])
 {
   // Grid_init(&argc, &argv);
   zyd_init_Grid_Qlattice(argc, argv);
 
-  // int traj_start = 2300, traj_end = 2400, traj_sep = 100; // for 24ID, kaon wall
-  int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
+  // int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
+  int traj_start = 2160, traj_end = 2250, traj_sep = 10; // for 24ID, kaon wall
   int traj_num = (traj_end - traj_start) / traj_sep + 1;
 
   std::cout << std::string(20, '*') << std::endl;
@@ -41,7 +62,6 @@ int main(int argc, char* argv[])
   std::cout << "t_sep_num: " << t_sep_max - t_sep_min + 1 << std::endl;
 
   Env env("24ID");
-  // init_para(argc, argv, env);
   const int T = env.grid->_fdimensions[3];
 
   vector<vector<vector<vector<Complex>>>> diagram1_Q1, diagram1_Q2, diagram2_Q1, diagram2_Q2, diagram3_Q1, diagram3_Q2, diagram4_Q1, diagram4_Q2, diagram_sBar_d_D1, diagram_sBar_d_D2, diagram_sBar_d_D3D4; // diagram1_Q1[traj][t_sep][t_K][x_t]; already shifted -> x_t=0 is the position of kaon
@@ -198,34 +218,37 @@ int main(int argc, char* argv[])
     ++traj_idx;
   }
 
-// Note: In python code, add coefficents, sqrt(2)/2 or -sqrt(2)/2  !!!!! This code calculates only the trace, without coefficient
-// diagram1_Q1[traj][t_sep][t_K][x_t]; already shifted -> x_t=0 is the position of kaon
+  // Note: In python code, add coefficents, sqrt(2)/2 or -sqrt(2)/2  !!!!! This code calculates only the trace, without coefficient
+  // Note: iagram1_Q1[traj][t_sep][t_K][x_t]; already shifted -> x_t=0 is the position of kaon
   std::cout << std::string(40, '*') << std::endl;
-  std::cout << "diagram1 Q1: " << diagram1_Q1 << std::endl;
+  std::cout << "diagram1 Q1: " << average_tK(diagram1_Q1) << std::endl;
+  // std::cout << "diagram1 Q1: " << diagram1_Q1 << std::endl;
   std::cout << std::string(40, '*') << std::endl;
-  std::cout << "diagram1 Q2: " << diagram1_Q2 << std::endl;
+  std::cout << "diagram1 Q2: " << average_tK(diagram1_Q2) << std::endl;
   std::cout << std::string(40, '*') << std::endl;
-  std::cout << "diagram2 Q1: " << diagram2_Q1 << std::endl;
+  std::cout << "diagram2 Q1: " << average_tK(diagram2_Q1) << std::endl;
   std::cout << std::string(40, '*') << std::endl;
-  std::cout << "diagram2 Q2: " << diagram2_Q2 << std::endl;
+  std::cout << "diagram2 Q2: " << average_tK(diagram2_Q2) << std::endl;
   std::cout << std::string(40, '*') << std::endl;
-  std::cout << "diagram3 Q1: " << diagram3_Q1 << std::endl;
+  std::cout << "diagram3 Q1: " << average_tK(diagram3_Q1) << std::endl;
   std::cout << std::string(40, '*') << std::endl;
-  std::cout << "diagram3 Q2: " << diagram3_Q2 << std::endl;
+  std::cout << "diagram3 Q2: " << average_tK(diagram3_Q2) << std::endl;
   std::cout << std::string(40, '*') << std::endl;
-  std::cout << "diagram4 Q1: " << diagram4_Q1 << std::endl;
+  std::cout << "diagram4 Q1: " << average_tK(diagram4_Q1) << std::endl;
   std::cout << std::string(40, '*') << std::endl;
-  std::cout << "diagram4 Q2: " << diagram4_Q2 << std::endl;
+  std::cout << "diagram4 Q2: " << average_tK(diagram4_Q2) << std::endl;
   std::cout << std::string(40, '*') << std::endl;
-  std::cout << "diagram sBar_d_D1: " << diagram_sBar_d_D1 << std::endl;
+  std::cout << "diagram sBar_d_D1: " << average_tK(diagram_sBar_d_D1) << std::endl;
   std::cout << std::string(40, '*') << std::endl;
-  std::cout << "diagram sBar_d_D2: " << diagram_sBar_d_D2 << std::endl;
+  std::cout << "diagram sBar_d_D2: " << average_tK(diagram_sBar_d_D2) << std::endl;
   std::cout << std::string(40, '*') << std::endl;
-  std::cout << "diagram sBar_d_D3D4: " << diagram_sBar_d_D3D4 << std::endl;
+  std::cout << "diagram sBar_d_D3D4: " << average_tK(diagram_sBar_d_D3D4)<< std::endl;
   std::cout << std::string(40, '*') << std::endl;
-  std::cout << "Finished!" << std::endl;
+
+  std::cout << GridLogMessage << "Finished!" << std::endl;
 
   Grid_finalize();
+
 
   return 0;
 }
