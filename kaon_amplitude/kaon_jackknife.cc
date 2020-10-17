@@ -16,10 +16,10 @@ int main(int argc, char* argv[])
   std::vector<std::string> diagrams = {
                                        "JJ_sBar_d_K/D1", "JJ_sBar_d_K/D2", "JJ_sBar_d_K/D3", 
                                        "typeI/D1Q1", "typeI/D1Q2", "typeI/D2Q1", "typeI/D2Q2",
-                                       // "typeII/Q1", "typeII/Q2",
+                                       "typeII/Q1", "typeII/Q2",
                                        "typeIII/D1Q1K", "typeIII/D1Q1Kbar", "typeIII/D1Q2K", "typeIII/D1Q2Kbar", 
-                                       "typeIII/D2Q1K", "typeIII/D2Q1Kbar", "typeIII/D2Q2K", "typeIII/D2Q2Kbar" 
-                                       // "typeIII/D3Q1", "typeIII/D3Q2"
+                                       "typeIII/D2Q1K", "typeIII/D2Q1Kbar", "typeIII/D2Q2K", "typeIII/D2Q2Kbar", 
+                                       "typeIII/D3Q1", "typeIII/D3Q2"
                                       };
 
   Jack_para para;

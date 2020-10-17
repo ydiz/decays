@@ -333,32 +333,19 @@ void A2AVectorsIo::read(std::vector<Field> &vec, const std::string fileStem,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 template<class T>
-void writeScidac(T& field, const std::string &filename){ // because of writeScidacFieldRecord, field cannot be const
-  std::cout << "writing to" << filename << std::endl;
+void writeScidac(T& field, const std::string &filename) { // because of writeScidacFieldRecord, field cannot be const
+  std::cout << "writing to " << filename << std::endl;
+  std::cout << "before makeFileDir" << std::endl;
   makeFileDir(filename, field.Grid());
-  // if(field.Grid()->IsBoss()) {
-  //   std::string base_dir = filename.substr(0, filename.rfind('/'));
-  //   std::cout << "base_dir: " << base_dir << std::endl;
-  //   assert(dirExists(base_dir));
-  //   // system(("mkdir -p " + base_dir).c_str());      //  sometimes has error
-  // }
-  // MPI_Barrier(MPI_COMM_WORLD);
+  std::cout << "After makeFileDir" << std::endl;
+  if(field.Grid()->IsBoss()) {         // make sure basedir exists
+    std::string base_dir = filename.substr(0, filename.rfind('/'));
+    std::cout << "base_dir: " << base_dir << std::endl;
+    assert(dirExists(base_dir));
+    // system(("mkdir -p " + base_dir).c_str());      //  sometimes has error
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
 
   emptyUserRecord record;
   ScidacWriter WR(field.Grid()->IsBoss()); // the parameter is necessary for writer(but not for reader) when using multiple nodes
@@ -384,7 +371,9 @@ void writeScidac_prop_d2f(LatticePropagatorD& prop, const std::string &filename)
   LatticePropagatorF prop_f(grid_f);
   precisionChange(prop_f, prop);
 
+  std::cout << "before makeFileDir" << std::endl;
   makeFileDir(filename, prop.Grid());
+  std::cout << "after makeFileDir" << std::endl;
   // if(prop_f.Grid()->IsBoss()) {
   //   std::string base_dir = filename.substr(0, filename.rfind('/'));
   //   std::cout << "base_dir: " << base_dir << std::endl;

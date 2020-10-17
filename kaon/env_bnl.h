@@ -23,20 +23,10 @@ public:
   double N_pi;
   double Z_V;
 
-  // int T_wall;
-  // int T_u;
   int N_pt_src; // number of point sources to average over; -1 means use all 
-
-  // // type II
-  // int T_wall_typeII;
-  // int num_pairs;
 
   std::vector<std::vector<int>> xgs_l;
   std::vector<std::vector<int>> xgs_s;
-
-// #ifdef USE_SPARSE
-//   qlat::FieldSelection fsel;
-// #endif
 
   void setup_traj(int _traj);
   LatticePropagator get_point(const std::vector<int> &src, char quark) const;
@@ -63,17 +53,9 @@ public:
 
 std::vector<std::vector<int>> Env::get_xgs(char quark) {
   std::vector<std::vector<int>> xgs;
-  std::string path = point_path();  
-  // std::cout << path << std::endl;
+  std::string path = point_path(quark);  
 
-
-
-  // if(dir == NULL) {
-  //   std::cout << "!!!!!!!!!!!! point src directory does not exist: " << path << std::endl;
-  //   return {};
-  // }
-
-  std::string type = (quark=='l') ? "0" : "1";
+  // std::string type = (quark=='l') ? "0" : "1";
 
   DIR *dir;
   dir = opendir(path.c_str());
@@ -81,15 +63,10 @@ std::vector<std::vector<int>> Env::get_xgs(char quark) {
   struct dirent *entry;
   while ((entry = readdir(dir)) != NULL) {
     std::string subdir_name = std::string(entry->d_name);
-		// if(subdir_name.substr(0, 3) == "xg=" && subdir_name.substr(subdir_name.find("type"), 6) == ("type="+type) && subdir_name.substr(subdir_name.find("accuracy"), 10) == "accuracy=0") {
-		if(subdir_name.substr(0, 3) == "xg=" && subdir_name.substr(subdir_name.find("type"), 6) == ("type="+type) && subdir_name.substr(subdir_name.find("accuracy")) == "accuracy=0") {
-			std::vector<int> xg = get_xg(subdir_name); 
-			xgs.push_back(xg);
-    }
-
-    // printf ("%s\n", entry->d_name);
-    // std::string fname = entry->d_name;
-    // if(isdigit(fname[0])) xgs.push_back(CSL2coor(fname)); // This is also dir "." and ".."
+		// if(subdir_name.substr(0, 3) == "xg=" && subdir_name.substr(subdir_name.find("type"), 6) == ("type="+type) && subdir_name.substr(subdir_name.find("accuracy")) == "accuracy=0") {
+    std::vector<int> xg = get_xg(subdir_name); 
+    xgs.push_back(xg);
+    // }
   }
   closedir(dir);
   return xgs;
@@ -129,24 +106,8 @@ void Env::setup_traj(int _traj) {
   cout << "[traj: " << to_string(traj) << "]" << endl;
   // get point source locations
 
-// #ifdef USE_MY_PROPAGATOR
   xgs_l = get_xgs('l');
   xgs_s = get_xgs('s');
-// #endif
-
-// #ifdef USE_SPARSE
-//   string fname_l = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/zyd_point_sources_l.txt";
-//   string fname_s = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/zyd_point_sources_s.txt";
-//   xgs_l = coor_from_file(fname_l);   
-//   xgs_s = coor_from_file(fname_s);
-//
-//   const long spatial_vol = lat_size[0] * lat_size[1] * lat_size[2];
-//   const long n_per_tslice = spatial_vol / 16;
-//   string f1 = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/f-rank.field";
-//
-//   fsel.init();
-//   qlat::read_field_selection(fsel, f1, n_per_tslice);
-// #endif
 }
 
 
@@ -256,13 +217,6 @@ std::string Env::point_path() const {
   else assert(0);
   std::cout << "reading from " << path << std::endl;
 
-
-  // if(!dirExists(path)) {
-  //   std::cout << "!!!!!!!!!!!! point src directory does not exist: " << path << std::endl;
-  //   return "";
-  // }
-
-  // assert(dirExists(path));
   return path;
 }
 

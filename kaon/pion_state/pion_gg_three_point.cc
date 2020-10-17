@@ -5,27 +5,28 @@ using namespace std;
 using namespace Grid;
 using namespace Grid::QCD;
 
-// "hadronic" should be e^{M_pi |t_pi|} <J(u) J(0) pi(t_pi) >, rather than <J(-w/2) J(w/2) |pi>
-void measure_pion_form_factor(const LatticeKGG &hadronic, const Env &env) {
-      static LatticeKGG lep(env.grid);
-      static bool initialized = false;
-      if(!initialized) {
-        form_factor_integrand(lep, env.M_pi);
-        initialized = true;
-      }
-
-      double hadron_coef, lep_coef;
-      lep_coef = 2. / std::pow(env.M_pi, 4);
-      hadron_coef = 1./ (3 * std::sqrt(2)) * env.Z_V * env.Z_V * 2. * env.M_pi / env.N_pi;
-      std::string cutoff_type = "time";
-
-      std::vector<double> amplitude = form_factor(hadronic, lep, hadron_coef, lep_coef, cutoff_type);
-
-      const int T = env.grid->_fdimensions[3];
-      amplitude.resize(T/4 + 1);   // keep [0, T/4]
-      std::cout << "Form Factor vs cutoff: " << amplitude << std::endl;
-      std::cout << "ABJ prediction is 0.2724 GeV^-1" << std::endl;
-}
+// Used to test if we can get the correct pion form factor
+// // "hadronic" should be e^{M_pi |t_pi|} <J(u) J(0) pi(t_pi) >, rather than <J(-w/2) J(w/2) |pi>
+// void measure_pion_form_factor(const LatticeKGG &hadronic, const Env &env) {
+//       static LatticeKGG lep(env.grid);
+//       static bool initialized = false;
+//       if(!initialized) {
+//         form_factor_integrand(lep, env.M_pi);
+//         initialized = true;
+//       }
+//
+//       double hadron_coef, lep_coef;
+//       lep_coef = 2. / std::pow(env.M_pi, 4);
+//       hadron_coef = 1./ (3 * std::sqrt(2)) * env.Z_V * env.Z_V * 2. * env.M_pi / env.N_pi;
+//       std::string cutoff_type = "time";
+//
+//       std::vector<double> amplitude = form_factor(hadronic, lep, hadron_coef, lep_coef, cutoff_type);
+//
+//       const int T = env.grid->_fdimensions[3];
+//       amplitude.resize(T/4 + 1);   // keep [0, T/4]
+//       std::cout << "Form Factor vs cutoff: " << amplitude << std::endl;
+//       std::cout << "ABJ prediction is 0.2724 GeV^-1" << std::endl;
+// }
 
 
 // the leptonic part must be M_K

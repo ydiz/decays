@@ -131,6 +131,7 @@ int main(int argc, char* argv[])
     int num_pt_src = 0;
     if(env.N_pt_src != -1) env.xgs_s.resize(env.N_pt_src);
     for(const auto &v: env.xgs_s) {
+      std::cout << "# Point source: " << num_pt_src << std::endl;
       ++num_pt_src;
 
       LatticePropagator pl = env.get_point(v, 'l'); // pl = L(x, v) 

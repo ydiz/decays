@@ -1,5 +1,4 @@
-
-// On 8 nodes, Needs 16h for one trajectory (500 piont sources) // ~110s per point source
+//  Can only run ~200 point sources in 24h; So I am using 200 point sources
 
 #include "../kaon.h"
 #include "../../amplitude/form_factor.h"
@@ -39,6 +38,7 @@ double combine_kaon_form_factor(const LatticeKGG &hadronic, const Env &env, bool
 ////  Multiply by 2 for points where u is on the right of v
 // void restrictToRightSide(LatticeKGG &lat, int tsep, int tsep2, int T)  {
 void restrictToRightSide(LatticeKGG &lat)  {
+
   const int T = lat.Grid()->_fdimensions[3];
 
   thread_for(ss, lat.Grid()->lSites(), {
@@ -47,6 +47,7 @@ void restrictToRightSide(LatticeKGG &lat)  {
 
     int t = gcoor[3];
     LatticeKGGSite m;
+
 
     if(t==0) {}                      // if t == 0 , do nothing
     // else if(t >= T - tsep + tsep2) {  // if u is on the left of v and is not too close to kaon wall, multiple it by 2
@@ -136,8 +137,8 @@ int main(int argc, char* argv[])
 
   Env env("24ID");
   // init_para(argc, argv, env);
-  // env.N_pt_src = 100;  
-  env.N_pt_src = -1;  // Use all points
+  env.N_pt_src = 200;  
+  // env.N_pt_src = -1;  // Use all points
 
   const int T = env.grid->_fdimensions[3];
 
