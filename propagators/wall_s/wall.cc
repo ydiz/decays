@@ -1,4 +1,4 @@
-#include "../kaon/kaon.h"
+#include "../../kaon/kaon.h"
 
 // For 24ID, on 16 nodes, without using eigenvectors, need ~8h for 1 trajectory
 

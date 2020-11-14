@@ -6,17 +6,6 @@ using namespace Grid;
 using namespace Grid::QCD;
 
 
-
-std::string coor2str(const std::vector<int> &x) {
-  using namespace std;
-  stringstream ss;
-  copy(x.begin(), x.end()-1, ostream_iterator<int>(ss, "_"));
-  if(!x.empty()) ss << x.back();
-  return ss.str();
-}
-
-
-
 Coordinate gcoor({24, 24, 24, 64});
 
 

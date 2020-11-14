@@ -134,6 +134,29 @@ std::vector<int> CSL2coor(const std::string& s) {
 }
 
 
+std::string coor2str(const std::vector<int> &x) {
+  using namespace std;
+  stringstream ss;
+  copy(x.begin(), x.end()-1, ostream_iterator<int>(ss, "_"));
+  if(!x.empty()) ss << x.back();
+  return ss.str();
+}
+
+
+std::vector<int> str2coor(const std::string& s) {
+  using namespace std;
+  stringstream ss(s);
+  vector<int> rst;
+  int i;
+  while(ss>>i) {
+    rst.push_back(i);
+    ss.ignore();
+  }
+  return rst;
+}
+
+
+
 
 void zero_mask(LatticeComplex &lat, int t_wall, int right_min = 5) {
   int T = lat.Grid()->_fdimensions[3];
