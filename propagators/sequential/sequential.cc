@@ -129,7 +129,7 @@ int main(int argc, char **argv)
   omega[10] = std::complex<double>(0.0365221637144842, -0.03343945161367745);
   omega[11] = std::complex<double>(0.0365221637144842, 0.03343945161367745);
 
-  string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/sequential_typeII";
+  string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/sequential";
   string Umu_dir = "/hpcgpfs01/work/lqcd/etap/chulwoo/evec/24ID1Gev/configurations";
   string evec_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/evecs";
   string point_l_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/point_l";

@@ -33,7 +33,7 @@ public:
   std::vector<LatticePropagator> get_wall(char quark, bool useCoulombSink = false) const;
   // LatticePropagator get_wall(int t, char quark) const;
   LatticePropagator get_Lxx() const;
-  LatticePropagator get_sequential(const std::vector<int> &src, const std::string &diagram) const;
+  LatticePropagator get_sequential(const std::vector<int> &src) const;
   LatticeColourMatrix get_gaugeTransform() const;
   std::vector<LatticeFermionD> get_a2a(char vw) const;
 
@@ -44,7 +44,7 @@ public:
 
   std::string point_path(char quark) const;
   std::string point_path(const std::vector<int> &src, char quark) const;
-  std::string sequential_path(const std::vector<int> &src, const std::string &diagram) const;
+  std::string sequential_path(const std::vector<int> &src) const;
   std::string wall_path(int t, char quark) const;
   std::string gauge_transform_path() const;
   std::string Lxx_path() const;
@@ -193,9 +193,9 @@ LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const 
   return point_prop;
 }
 
-LatticePropagator Env::get_sequential(const std::vector<int> &src, const std::string &diagram) const {
+LatticePropagator Env::get_sequential(const std::vector<int> &src) const {
   LatticePropagator seq_prop(grid);
-  readScidac_prop_f2d(seq_prop, sequential_path(src, diagram));
+  readScidac_prop_f2d(seq_prop, sequential_path(src));
   return seq_prop;
 }
 
@@ -251,13 +251,12 @@ std::string Env::point_path(const std::vector<int> &src, char quark) const {
   return path;
 }
 
-std::string Env::sequential_path(const std::vector<int> &src, const std::string &diagram) const {
+std::string Env::sequential_path(const std::vector<int> &src) const {
   std::string path;
-  if(ensemble=="24ID") {
-    if(diagram=="typeII") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/sequential_typeII/" + std::to_string(traj) + "/" + coor2str(src); 
-    else assert(0);
-  }
+
+  if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/sequential/" + std::to_string(traj) + "/" + coor2str(src); 
   else assert(0);
+
   assert(dirExists(path));
   return path;
 }

@@ -1,4 +1,6 @@
 
+// the result is the form factor except for the coefficient C1, C2 and the coefficient of each individual diagram
+
 #include "../kaon.h"
 
 using namespace std;
@@ -40,6 +42,8 @@ int main(int argc, char* argv[])
   Env env("24ID");
   env.N_pt_src = -1;  
 
+  double hadron_coef = env.Z_V * env.Z_V * 2. * env.M_K / env.N_K;  // coefficient of hadronic part
+
   const int T = env.grid->_fdimensions[3];
 
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
@@ -58,14 +62,17 @@ int main(int argc, char* argv[])
 
       LatticePropagator pl = env.get_point(v, 'l'); // pl = L(x, v) 
 
-      LatticePropagator sequential = env.get_sequential(v, "typeII");
+      LatticePropagator sequential = env.get_sequential(v);
 
       int tK = v[3] - tsep;
       if(tK < 0) tK += T;
 
-      LatticePropagator f1(env.grid), f2(env.grid);
+      LatticePropagator f1(env.grid);
       f1 = sequential * g5 * adj(pl);
+
+      LatticePropagator f2(env.grid);
       f2 = wl[tK] * adj(ws[tK]);
+      f2 = f2 - adj(f2);             // to incorporate the contribution of K0 bar  f2 = wl[tK] * adj(ws[tK]) - ws[tK] * adj(wl[tK])
 
       LatticeComplex tmp_Q1(env.grid), tmp_Q2(env.grid);
       tmp_Q1 = Zero(); tmp_Q2 = Zero();
@@ -76,6 +83,7 @@ int main(int argc, char* argv[])
 
       int lower_bound = tK + tsep2, upper_bound = tK + T/2 - tsep3; // both lower_bound and upper_bound can be greater than T
       Sum_Interval sum_interval(lower_bound, upper_bound, T);   
+      // Sum_Interval sum_interval(lower_bound, upper_bound, T);   
 
       Complex rst_Q1 = sum_interval(tmp_Q1)()()();
       Complex rst_Q2 = sum_interval(tmp_Q2)()()();
@@ -92,6 +100,9 @@ int main(int argc, char* argv[])
 
     amplitude_Q1_allsrc /= double(num_pt_src);
     amplitude_Q2_allsrc /= double(num_pt_src);
+
+    amplitude_Q1_allsrc *= hadron_coef;
+    amplitude_Q2_allsrc *= hadron_coef;
     std::cout << "amplitude Q1: " << amplitude_Q1_allsrc << std::endl;
     std::cout << "amplitude Q2: " << amplitude_Q2_allsrc << std::endl;
 
