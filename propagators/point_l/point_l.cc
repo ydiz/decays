@@ -164,7 +164,7 @@ int main(int argc, char **argv)
     MADWF<MobiusFermionD, ZMobiusFermionF, PVtype, SchurSolverF, GuessF> madwf(Dmob, Dzmob_f, PV_outer, SchurSolver_inner, guesser_inner, resid, 100);
 
     /////////////////////////////////////////
-    // Calculate Wall Source Propagators
+    // Calculate Point Source Propagators
     /////////////////////////////////////////
 
     vector<Coordinate> point_srcs(1);  // FIXME: should iterate over many point sources 

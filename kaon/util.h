@@ -134,13 +134,6 @@ std::vector<int> CSL2coor(const std::string& s) {
 }
 
 
-std::string coor2str(const std::vector<int> &x) {
-  using namespace std;
-  stringstream ss;
-  copy(x.begin(), x.end()-1, ostream_iterator<int>(ss, "_"));
-  if(!x.empty()) ss << x.back();
-  return ss.str();
-}
 
 
 std::vector<int> str2coor(const std::string& s) {
@@ -155,7 +148,13 @@ std::vector<int> str2coor(const std::string& s) {
   return rst;
 }
 
-
+std::string coor2str(const std::vector<int> &x) { // [1,2,3,4] -> 1_2_3_4
+  using namespace std;
+  stringstream ss;
+  copy(x.begin(), x.end()-1, ostream_iterator<int>(ss, "_"));
+  if(!x.empty()) ss << x.back();
+  return ss.str();
+}
 
 
 void zero_mask(LatticeComplex &lat, int t_wall, int right_min = 5) {
@@ -211,6 +210,51 @@ void conjugateU(LatticePropagator &prop) {
   // To change the P[U] to P[U^*], we use P[U^*] = (C * gamma_5) P[U]^* (C * gamma_5)^{-1} = (C * gamma_5) P[U]^* gamma_5 C^{-1}
   prop = - ((gmu[2] * gmu[4] * g5) * conjugate(prop) * (g5 * gmu[2] * gmu[4]));
 }
+
+
+
+
+
+std::vector<std::vector<int>> my_get_xgs(const std::string &path, bool allowPathNotExists=false) {  // point source prop file name has the format 1_2_3_4
+  std::vector<std::vector<int>> xgs;
+
+  DIR *dir;
+  dir = opendir(path.c_str());
+  std::cout << "path: " << path << std::endl;
+
+  if(!allowPathNotExists) assert(dir!=NULL); // make sure directory exists
+
+  if(dir != NULL) {
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {     
+      std::string subdir_name = std::string(entry->d_name);
+      if(!(subdir_name[0] >= '0' && subdir_name[0] <= '9')) continue;  // there can be "." and ".."
+      std::vector<int> xg = str2coor(subdir_name); 
+      xgs.push_back(xg);
+    }
+    closedir(dir);
+  }
+
+  std::cout << "Number of point sources: " << xgs.size() << std::endl;
+
+
+  // readdir does not gaurantee the order of files
+  // make sure the order of points are the same on all nodes
+  std::sort(xgs.begin(), xgs.end(), [](const std::vector<int>& a, const std::vector<int>& b) {
+    return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
+  });
+
+  return xgs;
+}
+
+
+
+
+
+
+
+
+
 
 
 
