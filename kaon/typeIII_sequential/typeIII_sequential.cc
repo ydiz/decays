@@ -61,25 +61,27 @@ int main(int argc, char* argv[])
       std::cout << "# Point source: " << num_pt_src << std::endl;
       ++num_pt_src;
 
-      LatticePropagator pl = env.get_point(v, 'l'); // pl = L(x, v) 
-
-      LatticePropagator sequential = env.get_sequential(v);
-
       int tK = v[3] - tsep;
       if(tK < 0) tK += T;
 
-      LatticePropagator f1(env.grid);
-      f1 = sequential * g5 * adj(pl);
+      LatticePropagator sequential = env.get_sequential(v);
 
-      LatticePropagator f2(env.grid);
-      f2 = wl[tK] * adj(ws[tK]);
-      f2 = f2 - adj(f2);             // to incorporate the contribution of K0 bar  f2 = wl[tK] * adj(ws[tK]) - ws[tK] * adj(wl[tK]) 
+      LatticePropagator Lxx = env.get_Lxx();
+
+      LatticePropagatorSite wl_v_tK;
+      peekSite(wl_v_tK, wl[tK], Coordinate(v));
+
+
+
+      LatticePropagator f1(env.grid);
+      f1 = sequential * wl_v_tK * adj(ws[tK]);  // S(x, v) L(v, tK) H(x, tK)^dagger
+      f1 = f1 - adj(f1);             // to incorporate the contribution of K0 bar 
 
       LatticeComplex tmp_Q1(env.grid), tmp_Q2(env.grid);
       tmp_Q1 = Zero(); tmp_Q2 = Zero();
       for(int rho=0; rho<4; ++rho) {
-        tmp_Q1 += trace(gL[rho] * f1) *  trace(gL[rho] * f2);
-        tmp_Q2 += trace(gL[rho] * f1 * gL[rho] * f2);
+        tmp_Q1 += trace(gL[rho] * Lxx) *  trace(gL[rho] * f1);
+        tmp_Q2 += trace(gL[rho] * Lxx * gL[rho] * f1);
       }
 
       int lower_bound = tK + tsep2, upper_bound = tK + T/2 - tsep3; // both lower_bound and upper_bound can be greater than T
