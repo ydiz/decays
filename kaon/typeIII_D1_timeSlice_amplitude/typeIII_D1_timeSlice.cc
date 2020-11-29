@@ -87,10 +87,7 @@ int main(int argc, char* argv[])
         tmp_D1Q2Kbar += adj(pl) * gL[mu] * Lxx * gL[mu]; 
       }
       std::cout << GridLogMessage << "After tmp_D1Q1K" << std::endl;
-
       // print_grid_field_site(tmp_D1Q1K, {1,1,1,1});
-
-      tmp_sBar_d_D1 = g5 * pl; 
 
       // map: t_K -> f(x, v) // For given v, the possible interval of tK is [tv - T/2 + tsep2 + 1, tv - tsep]
       map<int, LatticePropagatorSite> fx_D1Q1K, fx_D1Q2K, fx_D1Q1Kbar, fx_D1Q2Kbar; 
@@ -164,16 +161,6 @@ int main(int argc, char* argv[])
     // writeScidac(rst_D1Q1Kbar_allsrc, env.out_prefix + "/typeIII/D1Q1Kbar." + to_string(traj));
     // writeScidac(rst_D1Q2Kbar_allsrc, env.out_prefix + "/typeIII/D1Q2Kbar." + to_string(traj));
     //
-    // writeScidac(rst_D2Q1K_allsrc, env.out_prefix + "/typeIII/D2Q1K." + to_string(traj));
-    // writeScidac(rst_D2Q2K_allsrc, env.out_prefix + "/typeIII/D2Q2K." + to_string(traj));
-    // writeScidac(rst_D2Q1Kbar_allsrc, env.out_prefix + "/typeIII/D2Q1Kbar." + to_string(traj));
-    // writeScidac(rst_D2Q2Kbar_allsrc, env.out_prefix + "/typeIII/D2Q2Kbar." + to_string(traj));
-    //
-    // writeScidac(rst_sBar_d_D1_allsrc, env.out_prefix + "/JJ_sBar_d_K/D1." + to_string(traj));
-    // writeScidac(rst_sBar_d_D2_allsrc, env.out_prefix + "/JJ_sBar_d_K/D2." + to_string(traj));
-
-    // writeScidac(t1, "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/KGG/KGG_typeIII." + to_string(traj));
-  
   } // end of traj loop
 
   std::cout << "Finished!" << std::endl;

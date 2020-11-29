@@ -300,6 +300,7 @@ int main(int argc, char **argv)
   }  // end of loop of traj
 
 
+  std::cout << "Finished!" << std::endl;
   Grid_finalize();
 }
 

@@ -2,10 +2,65 @@
 // the result is the form factor except for the coefficient C1, C2 and the coefficient of each individual diagram
 
 #include "../kaon.h"
+#include "amplitude/form_factor.h"
 
 using namespace std;
 using namespace Grid;
 using namespace Grid::QCD;
+
+
+
+
+
+LatticeKGG calc_leptonic_with_coef(double M_K, const std::vector<int> &v, GridCartesian *grid) {  // return L_munu(u, v), where v is a fixed point.
+
+  LatticeKGG lep(grid);
+
+  form_factor_integrand(lep, M_K);
+
+  double lep_coef = 2. / std::pow(M_K, 4);
+  // double hadron_coef = env.Z_V * env.Z_V * 2. * env.M_K / env.N_K;  // Note: I did not multiply hadronic coefficient
+  
+  lep = lep * lep_coef;
+
+  for(int mu=0; mu<4; ++mu) lep = Cshift(lep, mu, -v[mu]); // shift v to origin // FIXME: check it is right to shift -v[mu]
+
+  return lep;
+}
+
+
+void restrictTimeRange(LatticePropagator &lat, int vt)  { // The allowed interval of u is: vt <= ut <= vt+16
+
+  const int T = lat.Grid()->_fdimensions[3];
+
+  thread_for(ss, lat.Grid()->lSites(), {
+    Coordinate lcoor, gcoor;
+    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
+
+    int ut = gcoor[3];
+
+    int dist;   // dist = u_t - v_t, taking periodic bundary condition into account
+    if(abs(ut - vt)<=T/2) dist = ut - vt;
+    else if(abs(ut + T - vt) <= T/2) dist = ut + T - vt;
+    else dist = ut - T - vt;
+
+    LatticePropagatorSite m;
+    if(dist==0) {}                      // if u_t == v_t , do nothing
+    else if(dist > 0 && dist <= T/4) {  // u_t>v_t && u_t - v_t <= T/4  // if u is on the right of v, multiple it by 2
+      peekLocalSite(m, lat, lcoor);
+      m = 2. * m;
+      pokeLocalSite(m, lat, lcoor);
+    }   
+    else {                           // else, set to 0
+      m = Zero(); 
+      pokeLocalSite(m, lat, lcoor);
+    }   
+
+  }); 
+}
+
+
+
 
 int main(int argc, char* argv[])
 {
@@ -65,24 +120,36 @@ int main(int argc, char* argv[])
       int tK = v[3] - tsep;
       if(tK < 0) tK += T;
 
-      LatticePropagator sequential = env.get_sequential(v);
-
-      LatticePropagatorSite wl_v_tK;
-      peekSite(wl_v_tK, wl[tK], Coordinate(v));
+      LatticePropagator pl = env.get_point(v, 'l'); // pl = L(x, v)
 
 
 
-      LatticePropagator f1(env.grid);
-      f1 = sequential * wl_v_tK * adj(ws[tK]);  // S(x, v) L(v, tK) H(x, tK)^dagger
-      f1 = f1 - adj(f1);             // to incorporate the contribution of K0 bar 
+      // f1 = \sum_u gnu g5 L(u, v)^dagger gmu g5 L(u, tK)
+      LatticePropagator f1_tmp(env.grid);  f1_tmp = Zero();
+      LatticeKGG lep = calc_leptonic_with_coef(env.M_K, v, env.grid);
+      for(int mu=0; mu<4; ++mu) {
+        for(int nu=0; nu<4; ++nu) {
+          if( mu==3 || nu==3 || mu==nu) continue;  // For these directions, lep_munu = 0
+          LatticeComplex lep_munu = PeekIndex<LorentzIndex>(lep, mu, nu);
+          f1_tmp += gmu5[nu] * adj(pl) * gmu5[mu] * wl[tK] * lep_munu;
+        }
+      }
+      // // the summand is non-zero only for the region where vt <= ut <= vt+T/4; When ut>vt, multiply by 2
+      restrictTimeRange(f1_tmp, v[3]); 
+      LatticePropagatorSite f1 = sum(f1_tmp);
 
+
+      // calculate contraction
       LatticeComplex tmp_Q1(env.grid), tmp_Q2(env.grid);
       tmp_Q1 = Zero(); tmp_Q2 = Zero();
       for(int rho=0; rho<4; ++rho) {
-        tmp_Q1 += trace(gL[rho] * Lxx) *  trace(gL[rho] * f1);
-        tmp_Q2 += trace(gL[rho] * Lxx * gL[rho] * f1);
+        tmp_Q1 += trace(gL[rho] * Lxx) * ( trace( adj(ws[tK]) * gL[rho] * pl * f1 ) 
+                                           - trace( adj(pl) * gL[rho] * ws[tK]  * adj(f1) ) );   // K bar
+        tmp_Q2 += trace( adj(ws[tK]) * gL[rho] * Lxx *  gL[rho] * pl * f1 ) 
+                  - trace( adj(pl) * gL[rho] * Lxx * gL[rho] * ws[tK] * adj(f1) );
       }
 
+      // sum over each time slice 
       int lower_bound = tK + tsep2, upper_bound = tK + T/2 - tsep3; // both lower_bound and upper_bound can be greater than T
       Sum_Interval_TimeSlice sum_interval(lower_bound, upper_bound, T); 
       vector<LatticeComplexSite> rst_Q1_tmp = sum_interval(tmp_Q1);
@@ -99,7 +166,6 @@ int main(int argc, char* argv[])
     } // end of point source loop
 
     std::cout << GridLogMessage << "Number of point sources: " << num_pt_src << std::endl;
-
 
     for(int i=0; i<rst_Q1_avgSrc.size(); ++i) {
       rst_Q1_avgSrc[i] *= std::exp(env.M_K * tsep);
