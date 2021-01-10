@@ -54,6 +54,8 @@ int main(int argc, char **argv)
 
 
     SU<3>::GaugeTransform(Umu, g); // g(x) * U(x) * adj(g(x+mu))
+    print_grid_field_site(Umu, {0,1,2,3});
+
     Real plaq = WilsonLoops<PeriodicGimplR>::avgPlaquette(Umu);
     std::cout << " Initial plaquette "<< plaq << std::endl;
 
@@ -66,11 +68,24 @@ int main(int argc, char **argv)
     double alpha = 0.01;  // zyd: set this to a small value
     int coulomb_dir = Nd - 1;
     LatticeColourMatrix tmp_gt(UGrid);
+    LatticeGaugeField Umu_coulomb = Umu;
     // FourierAcceleratedGaugeFixer<PeriodicGimplR>::SteepestDescentGaugeFix(Umu, tmp_gt, alpha, 10000, 1.0e-12, 1.0e-12, true, coulomb_dir);    
-    FourierAcceleratedGaugeFixer<PeriodicGimplR>::SteepestDescentGaugeFix(Umu, tmp_gt, alpha, 10000, 1.0e-12, 1.0e-12, true);    
+    FourierAcceleratedGaugeFixer<PeriodicGimplR>::SteepestDescentGaugeFix(Umu_coulomb, tmp_gt, alpha, 10000, 1.0e-12, 1.0e-12, true);    
+
     std::cout << "after gauge-fixing" << std::endl;
     print_grid_field_site(tmp_gt, {0,1,2,3});
+    print_grid_field_site(Umu_coulomb, {0,1,2,3});
+
+
+    // ??? tmp_gt is different from adj(g); but they both transform Umu to original cold configuration
+    std::cout << "transform Umu with tmp_gt" << std::endl;
+    SU<3>::GaugeTransform(Umu, tmp_gt); // Original Umu, transformed by tmp_gt, should equal to Coulomb gauge Umu. // However, tmp_gt is not equal to g or adj(g)
     print_grid_field_site(Umu, {0,1,2,3});
+
+    // std::cout << "transform Umu with tmp_gt" << std::endl;
+    // LatticeColourMatrix g_adj = adj(g);
+    // SU<3>::GaugeTransform(Umu, g_adj); // Original Umu, transformed by tmp_gt, should equal to Coulomb gauge Umu. // However, tmp_gt is not equal to g or adj(g)
+    // print_grid_field_site(Umu, {0,1,2,3});
 
     plaq = WilsonLoops<PeriodicGimplR>::avgPlaquette(Umu);
     std::cout << " final plaquette "<< plaq << std::endl;
