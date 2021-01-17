@@ -74,7 +74,8 @@ int main(int argc, char **argv)
   omega[10] = std::complex<double>(0.0365221637144842, -0.03343945161367745);
   omega[11] = std::complex<double>(0.0365221637144842, 0.03343945161367745);
 
-  string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props";
+  // string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/my_point_l_test";
+  string output_prefix = "/sdcc/u/ydzhao/decays/gauge_tranf_test/saved_field/point_l";
   string Umu_dir = "/hpcgpfs01/work/lqcd/etap/chulwoo/evec/24ID1Gev/configurations";
   string evec_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/evecs";
 
@@ -168,7 +169,8 @@ int main(int argc, char **argv)
     /////////////////////////////////////////
 
     vector<Coordinate> point_srcs(1);  // FIXME: should iterate over many point sources 
-    point_srcs[0] = Coordinate(std::vector<int>{0,0,7,25});
+    // point_srcs[0] = Coordinate(std::vector<int>{0,0,7,25});
+    point_srcs[0] = Coordinate(std::vector<int>{0,0,22,7});
 
     for(Coordinate point_src: point_srcs) {
       std::cout << GridLogMessage << "point_src: " << point_src << std::endl;
@@ -193,9 +195,9 @@ int main(int argc, char **argv)
         }
       }
 
-      string prop_fname = output_prefix + "/my_point_l_test/" + to_string(traj)  + "/" + coor2str(point_src.toVector());
+      string prop_fname = output_prefix + "/" + to_string(traj)  + "/" + coor2str(point_src.toVector());
       writeScidac_prop_d2f(prop, prop_fname);
-    }  // end of loop of tW
+    }  // end of loop of point sources
 
   }  // end of loop of traj
 

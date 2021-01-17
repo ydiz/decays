@@ -1,4 +1,6 @@
-// p.s. make sure that const doGaugeTransTest = false in env_bnl.h.
+// This file is the same as point_l.cc, except that it performs a random gauge transformation on Umu, and check if the resulting propagator following L(x, x0) -> g(x) L(x, x0) g(x0)^dagger
+// 
+// ??? How does ZMobius eigenvector change after gauge transformation??  In this code, I am not using eigenvectors. It takes about 0.5 h to do one CG, and about 6h for one point source.
 
 #include "/direct/sdcc+u/ydzhao/A2AGrid/read_compressed.h"
 #include "kaon/kaon.h" // do not know why, but kaon.h must be after a2a_field.h
@@ -131,10 +133,13 @@ int main(int argc, char **argv)
   omega[10] = std::complex<double>(0.0365221637144842, -0.03343945161367745);
   omega[11] = std::complex<double>(0.0365221637144842, 0.03343945161367745);
 
-  string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/sequential";
+  // string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/sequential";
+  string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/sequential_gauge_trans_test";
+  string original_prop_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/sequential"; // propagator for Umu without gauge transformation
   string Umu_dir = "/hpcgpfs01/work/lqcd/etap/chulwoo/evec/24ID1Gev/configurations";
   string evec_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/evecs";
-  string point_l_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/point_l";
+  // string point_l_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/point_l";
+  string point_l_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/point_l_gauge_trans_test";
 
   int target_traj;
   if( GridCmdOptionExists(argv, argv+argc, "--traj") ) {
@@ -169,6 +174,11 @@ int main(int argc, char **argv)
   GridCartesian *mobFGrid_f = SpaceTimeGrid::makeFiveDimGrid(Ls_outer, UGrid_f);
   GridRedBlackCartesian *mobFrbGrid_f = SpaceTimeGrid::makeFiveDimRedBlackGrid(Ls_outer, UGrid_f);
 
+  // genereate a random gauge transformation field
+  LatticeColourMatrix g_test(UGrid);
+  GridParallelRNG pRNG(UGrid); pRNG.SeedFixedIntegers({1,2,3,4});
+  SU<3>::LieRandomize(pRNG, g_test, 1.0);  // g_test must be the same as the g_test in point_l_gauge_trans_test.cc
+
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
 
     /////////////////////////////////////////
@@ -196,7 +206,7 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     std::cout << GridLogMessage << "Will calculate " << new_pts.size() << " point sources in this job" << std::endl;
 
-    if(new_pts.empty()) continue;
+    // if(new_pts.empty()) continue; // For gauge transformation test, I commented this out.
 
     /////////////////////////////////////////
     // Read Gauge Field and do Gauge fixing
@@ -205,6 +215,9 @@ int main(int argc, char **argv)
     FieldMetaData header;
     NerscIO::readConfiguration(Umu, header, Umu_dir + "/ckpoint_lat." + to_string(traj));
 
+    // !!! perform gauge transformation
+    SU<3>::GaugeTransform(Umu, g_test); // U_mu(x) -> g(x) U_mu(x) g(x+mu)^dagger
+
     /////////////////////////////////////////
     // Read eigenvectors 
     /////////////////////////////////////////
@@ -212,7 +225,7 @@ int main(int argc, char **argv)
 
     vector<double> evals;
     vector<LatticeFermionF> evecs_f;
-    load_compressed_evecs(evec_dir, evals, evecs_f, FGrid_f, FrbGrid_f);  
+    // load_compressed_evecs(evec_dir, evals, evecs_f, FGrid_f, FrbGrid_f);  // !!! MUST NOT use eigenvectors; the eigenvectors change after we do a gauge transformation on U
 
     /////////////////////////////////////////
     // Set Operators
@@ -251,6 +264,8 @@ int main(int argc, char **argv)
     // Calculate Sequential Propagators
     /////////////////////////////////////////
     
+    new_pts.clear(); new_pts.push_back(std::vector<int>{0,0,22,7}); // Test Only One point source
+
     for(const vector<int> &v: new_pts) {
       cout << GridLogMessage << "v: " << v << endl;
 
@@ -297,6 +312,24 @@ int main(int argc, char **argv)
       }
       string prop_fname = output_prefix + "/" + to_string(traj)  + "/" + coor2str(v);
       writeScidac_prop_d2f(prop, prop_fname);
+
+      // Test gauge transformation relationship: L(x, x0) -> g(x) L(x, x0) g(x0)^dagger 
+      
+      LatticePropagator prop2(UGrid);  // propagator calculated on the original lattice gauge
+      string prop2_fname = original_prop_prefix + "/" + to_string(traj)  + "/" + coor2str(v);
+      readScidac_prop_f2d(prop2, prop2_fname);
+
+      LatticeColourMatrixSite g_test_x0;
+      peekSite(g_test_x0, g_test, Coordinate(v));
+      prop2 = g_test * prop2 * adj(g_test_x0); // Gauge transformation test: L(x,x0) -> g(x) L(x,x0) g(x0)^dagger
+
+      print_grid_field_site(prop, {0,1,2,3});
+      print_grid_field_site(prop2, {0,1,2,3});
+      LatticePropagator tmp = prop - prop2;
+      std::cout << "diff: " << norm2(tmp) << std::endl;  // Guage transformation test is passed if prop == prop2
+
+
+
     }  // end of loop of point sources
 
   }  // end of loop of traj

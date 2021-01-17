@@ -9,11 +9,17 @@ namespace QCD {
 
 class Env {
 public:
+
+
   // std::vector<int> lat_size;
   GridCartesian *grid;
   std::string ensemble;
   std::string out_prefix;
   std::vector<int> lat_size;
+
+  // const bool doGaugeTransTest = true; // Gauge transformation test: the amplitude should be the same no matter whether doGaugeTransTest is true or false
+  const bool doGaugeTransTest = false; // Gauge transformation test: the amplitude should be the same no matter whether doGaugeTransTest is true or false
+  LatticeColourMatrix *g_test;
 
   int traj;
 
@@ -53,8 +59,53 @@ public:
 
 };
 
+
+
+
+
+
+Env::Env(const std::string &_ensemble) // cannot initialize grid in initializer list; it depends on lat_size
+{
+
+  ensemble = _ensemble;
+
+  if(ensemble=="24ID") {
+    lat_size = {24, 24, 24, 64};
+    M_pi = 0.13975;
+    N_pi = 51.561594;
+
+    M_K = 0.50365;     // \pm 0.0008
+    N_K = 55.42;        // \pm 0.21
+
+    Z_V = 0.72672;
+
+    out_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/results/";
+  }
+  else assert(0);
+
+  grid = SpaceTimeGrid::makeFourDimGrid(lat_size, GridDefaultSimd(Nd, vComplex::Nsimd()), GridDefaultMpi()); 
+  grid->show_decomposition();
+
+  assert(dirExists(out_prefix));
+
+  // gauge transfomration test
+  if(doGaugeTransTest) {
+    GridParallelRNG pRNG(grid); pRNG.SeedFixedIntegers({1,2,3,4});
+
+    g_test = new LatticeColourMatrix(grid);
+    SU<3>::LieRandomize(pRNG, *g_test, 1.0);    // genereate a random gauge transformation field
+
+    print_grid_field_site(*g_test, {0,0,0,0});
+    std::cout << GridLogMessage << "doGaugeTransTest: True" << std::endl;
+  }
+  else std::cout << GridLogMessage << "doGaugeTransTest: False" << std::endl;
+}
+
+
+
 std::vector<std::vector<int>> Env::get_xgs(char quark) {
   std::string path = point_path(quark);  
+  std::cout << GridLogMessage << path << std::endl;
   return my_get_xgs(path, true);    // defined in kaon/utils.h
 
   // std::vector<std::vector<int>> xgs;
@@ -76,34 +127,6 @@ std::vector<std::vector<int>> Env::get_xgs(char quark) {
   // return xgs;
 }
 
-
-
-
-
-Env::Env(const std::string &_ensemble) {
-
-  ensemble = _ensemble;
-
-  if(ensemble=="24ID") {
-    lat_size = {24, 24, 24, 64};
-    M_pi = 0.13975;
-    N_pi = 51.561594;
-
-    M_K = 0.50365;     // \pm 0.0008
-    N_K = 55.42;        // \pm 0.21
-
-    Z_V = 0.72672;
-
-    out_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/results/";
-  }
-  else assert(0);
-
-  grid = SpaceTimeGrid::makeFourDimGrid(lat_size, GridDefaultSimd(Nd, vComplex::Nsimd()), GridDefaultMpi());
-  grid->show_decomposition();
-
-  assert(dirExists(out_prefix));
-}
-
 void Env::setup_traj(int _traj) {
   using namespace std;
   traj = _traj;
@@ -118,6 +141,12 @@ void Env::setup_traj(int _traj) {
 LatticePropagator Env::get_Lxx() const {
   LatticePropagator Lxx(grid);
   readScidac(Lxx, Lxx_path());
+
+
+  if(doGaugeTransTest) {
+    Lxx = (*g_test) * Lxx * adj(*g_test); // Gauge transformation test: Lxx -> g(x) L(x,x) g(x)^dagger
+  }
+
   return Lxx;
 }
 
@@ -126,6 +155,8 @@ LatticeColourMatrix Env::get_gaugeTransform() const {
   LatticeColourMatrix gt(grid);
   // readScidac(gt, gauge_transform_path());
   read_luchang_dist_gt(gt, gauge_transform_path());
+
+  // p.s. For gauge transformation test, do not need to change this function; g_test is multiplied in function get_wall
   return gt;
 }
 
@@ -179,8 +210,12 @@ std::vector<LatticePropagator> Env::get_wall(char quark, bool useCoulombSink/* =
     // readScidac(gt, gauge_transform_path());
     read_luchang_dist_gt(gt, gauge_transform_path());
 
-    // for(int t=0; t<T; ++t) wall_props[t] = gt * wall_props[t];
     for(int t=0; t<T; ++t) wall_props[t] = adj(gt) * wall_props[t];
+
+
+    if(doGaugeTransTest) {
+      for(int t=0; t<T; ++t) wall_props[t] = (*g_test) * wall_props[t]; // Gauge transformation test: L(x, tK) -> g(x) L(x, tK)
+    }
   }
 
   return wall_props;
@@ -190,12 +225,25 @@ LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const 
   LatticePropagator point_prop(grid);
   // read_qlat_propagator(point_prop, point_path(src, quark));   
   readScidac_prop_f2d(point_prop, point_path(src, quark));
+
+
+  if(doGaugeTransTest) {
+    LatticeColourMatrixSite g_test_x0;
+    peekSite(g_test_x0, *g_test, Coordinate(src));
+    point_prop = (*g_test) * point_prop * adj(g_test_x0); // Gauge transformation test: L(x,x0) -> g(x) L(x,x0) g(x0)^dagger
+  }
   return point_prop;
 }
 
 LatticePropagator Env::get_sequential(const std::vector<int> &src) const {
   LatticePropagator seq_prop(grid);
   readScidac_prop_f2d(seq_prop, sequential_path(src));
+
+  if(doGaugeTransTest) {
+    LatticeColourMatrixSite g_test_x0;
+    peekSite(g_test_x0, *g_test, Coordinate(src));
+    seq_prop = (*g_test) * seq_prop * adj(g_test_x0); // Gauge transformation test: L(x,x0) -> g(x) L(x,x0) g(x0)^dagger
+  }
   return seq_prop;
 }
 

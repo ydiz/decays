@@ -51,8 +51,8 @@ int main(int argc, char* argv[])
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
     env.setup_traj(traj);
 
-    std::vector<LatticePropagator> wl = env.get_wall('l');
-    std::vector<LatticePropagator> ws = env.get_wall('s');
+    std::vector<LatticePropagator> wl = env.get_wall('l', false); // do not use Coulomb sink
+    std::vector<LatticePropagator> ws = env.get_wall('s', false);
 
     LatticeKGG rst_D1Q1_allsrc(env.grid), rst_D1Q2_allsrc(env.grid), rst_D2Q1_allsrc(env.grid), rst_D2Q2_allsrc(env.grid); 
     vector<LatticeKGG*> rst_vec_allsrc= {&rst_D1Q1_allsrc, &rst_D1Q2_allsrc, &rst_D2Q1_allsrc, &rst_D2Q2_allsrc}; 
@@ -60,6 +60,10 @@ int main(int argc, char* argv[])
 
     int num_pt_src = 0;
     if(env.N_pt_src != -1) env.xgs_s.resize(env.N_pt_src);
+
+    // env.xgs_s.clear(); env.xgs_s.push_back({3,23,9,29}); // FIXME: for test, remove this
+
+
     for(const auto &x: env.xgs_s) {
       ++num_pt_src;
 
@@ -167,6 +171,11 @@ int main(int argc, char* argv[])
     std::cout << GridLogMessage << "Number of point sources: " << num_pt_src << std::endl;
     for(auto rst: rst_vec_allsrc) *rst = *rst * (1. / double(num_pt_src));  
 
+    // FIXME: 
+    // print_grid_field_site(rst_D1Q1_allsrc, {0,1,2,3});
+    // print_grid_field_site(rst_D1Q2_allsrc, {0,1,2,3});
+    // print_grid_field_site(rst_D2Q1_allsrc, {0,1,2,3});
+    // print_grid_field_site(rst_D2Q2_allsrc, {0,1,2,3});
     writeScidac(rst_D1Q1_allsrc, env.out_prefix + "/typeI/D1Q1." + to_string(traj));
     writeScidac(rst_D1Q2_allsrc, env.out_prefix + "/typeI/D1Q2." + to_string(traj));
     writeScidac(rst_D2Q1_allsrc, env.out_prefix + "/typeI/D2Q1." + to_string(traj));

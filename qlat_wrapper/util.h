@@ -261,6 +261,38 @@ void grid_convert(Grid::LatticeColourMatrix& grid_gt, const qlat::GaugeTransform
   }
 }
 
+
+void grid_convert(Grid::LatticeGaugeField& grid_gf, const qlat::GaugeField& qlat_gf)
+{
+  using namespace Grid;
+  using namespace Grid::QCD;
+  const qlat::Geometry& geo = qlat_gf.geo;
+#pragma omp parallel for
+  for (long index = 0; index < geo.local_volume(); ++index) {
+    const qlat::Coordinate xl = geo.coordinate_from_index(index); // get local coordinate
+    const qlat::Vector<qlat::ColorMatrix> ms = qlat_gf.get_elems_const(xl); // ms is a vector of WilsonMatrix; vector size is 1
+		assert(ms.size()==4);
+		
+		typename LatticeGaugeField::vector_object::scalar_object grid_gf_site;
+		// assert(sizeof(ms) == sizeof(grid_gf_site));
+
+    for(int mu=0; mu<4; ++mu) {
+      qlat::ColorMatrix qlat_gf_site = ms[mu];
+      Complex *p_qlat = (Complex *)&qlat_gf_site; 
+      std::copy( p_qlat, p_qlat + 9, (Complex *)&grid_gf_site(mu) );	
+    }
+
+    // pokeLocalSite(grid_gt_site, grid_gt, coor);
+    std::vector<int> coor(xl.begin(), xl.end()); 
+    Coordinate c(coor);
+    pokeLocalSite(grid_gf_site, grid_gf, c);
+  }
+}
+
+
+
+
+
 template<class T> // T can be ComplexF or ComplexD
 typename std::enable_if<std::is_same<T, Grid::ComplexF>::value || std::is_same<T, Grid::ComplexD>::value, void>::type 
 grid_convert(Grid::Lattice<Grid::iSpinColourMatrix<typename TypeMap<T>::type >>& grid_prop, const qlat::Propagator4dT<T>& qlat_prop)
@@ -408,7 +440,7 @@ void read_luchang_PGG(LatticePGG &lat, const std::string &path) { // read file x
   grid_convert(lat, qlat_pgg);
 }
 
-void read_luchang_gt(LatticeColourMatrix &gt, const std::string &path) { // 
+void read_luchang_gt(LatticeColourMatrix &gt, const std::string &path) { // gauge transformation that is not saved as dist
   assert(dirExists(path));
   qlat::GaugeTransform qlat_gt;
   std::cout << GridLogMessage << "before reading" << std::endl;
@@ -418,7 +450,7 @@ void read_luchang_gt(LatticeColourMatrix &gt, const std::string &path) { //
 }
 
 
-void read_luchang_dist_gt(LatticeColourMatrix &gt, const std::string &path) { // 
+void read_luchang_dist_gt(LatticeColourMatrix &gt, const std::string &path) { // gauge transformation that is saved as dist
   assert(dirExists(path));
 
   qlat::GaugeTransform qlat_gt;
@@ -427,15 +459,19 @@ void read_luchang_dist_gt(LatticeColourMatrix &gt, const std::string &path) { //
   qlat::to_from_big_endian_64(qlat::get_data(qlat_gt));
   std::cout << GridLogMessage << "after reading" << std::endl;
   grid_convert(gt, qlat_gt);
-
-  //
-  //
-  // qlat::GaugeTransform qlat_gt;
-  // std::cout << GridLogMessage << "before reading" << std::endl;
-  // read_field_double(qlat_gt, path);
-  // std::cout << GridLogMessage << "after reading" << std::endl;
-  // grid_convert(gt, qlat_gt);
 }
+
+void read_luchang_dist_gaugefield(LatticeGaugeField &lat, const std::string &path) { // 
+  assert(dirExists(path));
+
+  qlat::GaugeField qlat_gf;
+  qlat::dist_read_field(qlat_gf, path);
+  std::cout << GridLogMessage << "before reading" << std::endl;
+  qlat::to_from_big_endian_64(qlat::get_data(qlat_gf));
+  std::cout << GridLogMessage << "after reading" << std::endl;
+  grid_convert(lat, qlat_gf);
+}
+
 
 
 

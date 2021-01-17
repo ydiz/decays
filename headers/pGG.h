@@ -24,6 +24,7 @@ using LatticeLorentzColour = Lattice<iMatrix<iScalar<iMatrix<vComplex, 3> >, 4>>
 
 using LatticeFermionSite = typename LatticeFermion::vector_object::scalar_object;
 using LatticePropagatorSite = typename LatticePropagator::vector_object::scalar_object;
+using LatticeColourMatrixSite = typename LatticeColourMatrix::vector_object::scalar_object;
 using LatticeComplexSite = typename LatticeComplex::vector_object::scalar_object;
 using LatticePGGSite = typename LatticePGG::vector_object::scalar_object;
 using LatticeKGGSite = typename LatticeKGG::vector_object::scalar_object;

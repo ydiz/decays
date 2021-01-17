@@ -69,8 +69,8 @@ int main(int argc, char **argv)
     int coulomb_dir = Nd - 1;
     LatticeColourMatrix tmp_gt(UGrid);
     LatticeGaugeField Umu_coulomb = Umu;
-    // FourierAcceleratedGaugeFixer<PeriodicGimplR>::SteepestDescentGaugeFix(Umu, tmp_gt, alpha, 10000, 1.0e-12, 1.0e-12, true, coulomb_dir);    
-    FourierAcceleratedGaugeFixer<PeriodicGimplR>::SteepestDescentGaugeFix(Umu_coulomb, tmp_gt, alpha, 10000, 1.0e-12, 1.0e-12, true);    
+    FourierAcceleratedGaugeFixer<PeriodicGimplR>::SteepestDescentGaugeFix(Umu, tmp_gt, alpha, 10000, 1.0e-12, 1.0e-12, true, coulomb_dir);    // Coulomb gauge fixing
+    // FourierAcceleratedGaugeFixer<PeriodicGimplR>::SteepestDescentGaugeFix(Umu_coulomb, tmp_gt, alpha, 10000, 1.0e-12, 1.0e-12, true);  // Landau gauge fixing   
 
     std::cout << "after gauge-fixing" << std::endl;
     print_grid_field_site(tmp_gt, {0,1,2,3});
