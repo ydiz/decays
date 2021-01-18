@@ -22,7 +22,7 @@
 #include "env_bnl.h"
 #endif
 
-#include "kaon_init.h"
+// #include "kaon_init.h"
 
 #include "convolution.h"
 

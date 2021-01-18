@@ -2,6 +2,8 @@
 
 #include "../../../kaon/kaon.h"
 
+// For 24ID, on 16 nodes, without using eigenvectors, need ~8h for 1 trajectory
+
 using namespace std;
 using namespace Grid;
 using namespace Grid::QCD;
@@ -42,10 +44,12 @@ int main(int argc, char **argv)
   std::cout << "mass: " << mass << std::endl;
   std::cout << "b: " << b << std::endl;
 
-  // string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props";
   string output_prefix = "./free_field_props";
 
+
   ////////////////////////////////////////////////////////////
+
+  int T = fdims[3];
 
   GridCartesian *UGrid = SpaceTimeGrid::makeFourDimGrid(fdims, GridDefaultSimd(4, vComplexD::Nsimd()), GridDefaultMpi());
   GridRedBlackCartesian *UrbGrid = SpaceTimeGrid::makeFourDimRedBlackGrid(UGrid);
@@ -65,6 +69,7 @@ int main(int argc, char **argv)
   // FieldMetaData header;
   // NerscIO::readConfiguration(Umu, header, Umu_dir + "/ckpoint_lat." + to_string(traj));
 
+
   /////////////////////////////////////////
   // Set Operators
   /////////////////////////////////////////
@@ -74,8 +79,8 @@ int main(int argc, char **argv)
 
   // Must set boundary phase in time direction to -1
   typename MobiusFermionD::ImplParams params;
-  std::vector<Complex> boundary_phases(4, 1.);   // For free field test, all directions must be periodic
-  // boundary_phases[3] = -1.;
+  std::vector<Complex> boundary_phases(4, 1.);  // For free field test, all directions must be periodic
+  // boundary_phases[3] = -1.;   // 
   params.boundary_phases = boundary_phases;
 
   MobiusFermionD Dmob = MobiusFermionD(Umu, *FGrid, *FrbGrid, *UGrid, *UrbGrid, mass, M5, b, b-1., params);
@@ -92,59 +97,50 @@ int main(int argc, char **argv)
   // Calculate Wall Source Propagators
   /////////////////////////////////////////
 
+  Lattice<iScalar<vInteger>> t(UGrid);
+  LatticeCoordinate(t, Tp);
 
-  vector<Coordinate> point_srcs(1);  // FIXME: should iterate over many point sources 
-  // point_srcs[0] = Coordinate(std::vector<int>{0,0,7,25});
-  point_srcs[0] = Coordinate(std::vector<int>{0,0,0,0});
+  int tW = 0; // position of source is tW=0
+  // for(int tW=0; tW<T; ++tW) {
+  std::cout << GridLogMessage << "t_wall: " << tW << std::endl;
+  LatticePropagator fullSrc(UGrid);
+  fullSrc = 1.;
+  fullSrc = where((t == tW), fullSrc, 0. * fullSrc);
 
-  for(Coordinate point_src: point_srcs) {
-    std::cout << GridLogMessage << "point_src: " << point_src << std::endl;
+  LatticePropagator prop(UGrid);
+  for(int s = 0; s < 4; ++s) {
+    for(int c = 0; c < 3; ++c) {
+      std::cout << GridLogMessage << "s: " << s << " c: " << c << std::endl;
+      LatticeFermion src(UGrid), src5d(FGrid), sol(UGrid), sol5d(FGrid);
 
-    LatticePropagator prop(UGrid);
-    for(int s = 0; s < 4; ++s) {
-      for(int c = 0; c < 3; ++c) {
-        std::cout << GridLogMessage << "s: " << s << " c: " << c << std::endl;
-        LatticeFermion src(UGrid), src5d(FGrid), sol(UGrid), sol5d(FGrid);
+      PropToFerm<WilsonImplR>(src, fullSrc, s, c);
 
-        // Construct 4d source
+      Dmob.ImportPhysicalFermionSource(src, src5d);
 
-        src = Zero();
-        LatticeFermionSite site = Zero();
-        site()(s)(c) = 1.;
-        pokeSite(site, src, point_src);
+      solver(Dmob, src5d, sol5d); // zyd: Dmob is not used, but required for syntax // In the MixedPrecisionConjugateGradientOp class, Dmob is not used
 
-        // Solve propagator
-        Dmob.ImportPhysicalFermionSource(src, src5d);
+      Dmob.ExportPhysicalFermionSolution(sol5d, sol); // 5d->4d, v(x) = P_L v(x,0) + P_R v(x, Ls-1)
 
-        solver(Dmob, src5d, sol5d); // zyd: Dmob is not used, but required for syntax // In the MixedPrecisionConjugateGradientOp class, Dmob is not used
-
-        Dmob.ExportPhysicalFermionSolution(sol5d, sol); // 5d->4d, v(x) = P_L v(x,0) + P_R v(x, Ls-1)
-
-        FermToProp<WilsonImplR>(prop, sol, s, c);
-      }
+      FermToProp<WilsonImplR>(prop, sol, s, c);
     }
+  }
 
-    string prop_fname = output_prefix + "/point_s/" + coor2str(point_src.toVector());
-    writeScidac_prop_d2f(prop, prop_fname);
+  string prop_fname = output_prefix + "/wall_s/" + std::to_string(tW);
+  writeScidac_prop_d2f(prop, prop_fname);
 
-    // std::cout << prop << std::endl;
-    std::cout << "Full propagator at {0,0,0,0}" << std::endl;
-    print_grid_field_site(prop, {0,0,0,0});
+  // // std::cout << prop << std::endl;
+  // std::cout << "Full propagator at {0,0,0,0}" << std::endl;
+  // print_grid_field_site(prop, {0,0,0,0});
 
 
-    LatticeSpinMatrix tmp = peekColour(prop, 0, 0); // The color index dependence of prop is delta_{a,b}, and is trivial
-    std::cout << "Propagator without color index" << std::endl;
-    print_grid_field_site(tmp, {0,1,2,3});
-    print_grid_field_site(tmp, {3,2,0,1});
-    print_grid_field_site(tmp, {3,2,1,0});
+  LatticeSpinMatrix tmp = peekColour(prop, 0, 0); // The color index dependence of prop is delta_{a,b}, and is trivial
+  for(int t=0; t<T; ++t) print_grid_field_site(tmp, {0,0,0,t}); // I checked that all sites with the same t are equal
 
-    std::cout << "Propagator without color index" << std::endl;
-    std::cout << tmp << std::endl;
-  }  // end of loop of point src
-
+  // }  // end of loop of tW
 
 
   std::cout << "FINISHED!" << std::endl;
+
   Grid_finalize();
 }
 
