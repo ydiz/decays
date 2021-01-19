@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 
       string prop_fname = output_prefix + "/point_s/" + to_string(traj)  + "/" + coor2str(point_src.toVector());
       writeScidac_prop_d2f(prop, prop_fname);
-    }  // end of loop of tW
+    }  // end of loop of point sources
 
   }  // end of loop of traj
 
