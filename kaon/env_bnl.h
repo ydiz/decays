@@ -11,7 +11,6 @@ class Env {
 public:
 
 
-  // std::vector<int> lat_size;
   GridCartesian *grid;
   std::string ensemble;
   std::string out_prefix;
@@ -41,7 +40,7 @@ public:
   LatticePropagator get_Lxx() const;
   LatticePropagator get_sequential(const std::vector<int> &src) const;
   LatticeColourMatrix get_gaugeTransform() const;
-  std::vector<LatticeFermionD> get_a2a(char vw) const;
+  // std::vector<LatticeFermionD> get_a2a(char vw) const;
 
   void toCoulombVW(const LatticeColourMatrix &gt, std::vector<LatticeFermionD> &in) const;
   LatticePropagator toCoulombSink(const LatticeColourMatrix &gt, const LatticePropagator &in) const;
@@ -162,28 +161,30 @@ LatticeColourMatrix Env::get_gaugeTransform() const {
 
 
 
-std::vector<LatticeFermionD> Env::get_a2a(char vw) const {
-  int nl = 2000, nh = 768;
-  // int nl = 1, nh = 1;
-  std::string prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/a2a/24ID/timeDilutedA2AVectors";
+// std::vector<LatticeFermionD> Env::get_a2a(char vw) const {
+//   int nl = 2000, nh = 768;
+//   // int nl = 1, nh = 1;
+//   std::string prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/a2a/24ID/timeDilutedA2AVectors";
+//
+//   std::vector<LatticeFermionD> low(nl, grid), high(nh, grid);
+//   print_memory();
+//
+//   if(vw == 'v') {
+//     A2AVectorsIo::read(low, prefix + "/vl", false, traj);
+//     A2AVectorsIo::read(high, prefix + "/vh", false, traj);
+//   }
+//   else if(vw == 'w') {
+//     A2AVectorsIo::read(low, prefix + "/wl", false, traj);
+//     A2AVectorsIo::read(high, prefix + "/wh", false, traj);
+//   }
+//   else assert(0);
+//
+//   low.insert(low.end(), high.begin(), high.end());          high.clear();
+//   print_memory();
+//   return low;
+// }
 
-  std::vector<LatticeFermionD> low(nl, grid), high(nh, grid);
-  print_memory();
 
-  if(vw == 'v') {
-    A2AVectorsIo::read(low, prefix + "/vl", false, traj);
-    A2AVectorsIo::read(high, prefix + "/vh", false, traj);
-  }
-  else if(vw == 'w') {
-    A2AVectorsIo::read(low, prefix + "/wl", false, traj);
-    A2AVectorsIo::read(high, prefix + "/wh", false, traj);
-  }
-  else assert(0);
-
-  low.insert(low.end(), high.begin(), high.end());          high.clear();
-  print_memory();
-  return low;
-}
 
 ///////////////////////////////
 // paths
@@ -247,13 +248,6 @@ LatticePropagator Env::get_sequential(const std::vector<int> &src) const {
   return seq_prop;
 }
 
-// #endif   // end of #ifdef USE_MY_PROPAGATOR
-
-// LatticePropagator Env::get_wall(int t, char quark) const {
-//   LatticePropagator wall_prop(grid);
-//   readScidac_prop_f2d(wall_prop, wall_path(t, quark));
-//   return wall_prop;
-// }
 
 
 void Env::toCoulombVW(const LatticeColourMatrix &gt, std::vector<LatticeFermionD> &in) const {
@@ -284,8 +278,6 @@ std::string Env::point_path(char quark) const {
 
 
 std::string Env::point_path(const std::vector<int> &src, char quark) const {
-  // std::cout << "src: " << src << std::endl;
-  // std::cout << "src: " << coor2str(src) << std::endl;
   std::string path;
   if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2str(src);
   else assert(0);
@@ -310,27 +302,9 @@ std::string Env::sequential_path(const std::vector<int> &src) const {
 }
 
 
-// std::string Env::point_path(const std::vector<int> &src, char quark) const {
-//   std::string path;
-//   // if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2CSL(src);
-//   std::string type = (quark=='l') ? "0" : "1";
-//   if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_luchang_props/point/prop-hvp ; results=" + std::to_string(traj) +  "/huge-data/prop-point-src/xg=(" + coor2CSL(src)  + ") ; type=" + type + " ; accuracy=0";
-//     // "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2CSL(src);
-//   else assert(0);
-//   std::cout << "reading from " << path << std::endl;
-//
-//
-//   // if(!dirExists(path)) {
-//   //   std::cout << "!!!!!!!!!!!! point src directory does not exist: " << path << std::endl;
-//   //   return "";
-//   // }
-//   return path;
-// }
-
 std::string Env::wall_path(int t, char quark) const {
   std::string path;
   if(ensemble=="24ID") {
-    // path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/wall_" + std::string(1, quark) + "/"  + std::to_string(traj) + "/" + std::to_string(t);
     if(quark == 'l') path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_luchang_props/wall_l/results/results="  + std::to_string(traj) + "/huge-data/wall_src_propagator/t=" + std::to_string(t);
     else if(quark == 's') path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/wall_s/"  + std::to_string(traj) + "/" + std::to_string(t);
   }
@@ -342,7 +316,6 @@ std::string Env::wall_path(int t, char quark) const {
 
 std::string Env::gauge_transform_path() const {
   std::string path;
-  // if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/gauge_transform/"  + std::to_string(traj) ;
   if(ensemble=="24ID") path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_luchang_props/wall_l/results/results=" + std::to_string(traj) + "/huge-data/gauge-transform";
   else assert(0);
   assert(dirExists(path));
@@ -372,70 +345,3 @@ std::string Env::Lxx_path() const {
 
 
 
-
-
-// #ifdef USE_SPARSE
-// std::vector<LatticePropagator> Env::get_wall(char quark, bool useCoulombSink/* = false */) const {
-//   using namespace qlat;
-//   using namespace std;
-//
-//   int T = grid->_fdimensions[Tdir];
-//   vector<LatticePropagator> wall_props(T, grid);  // sometimes this fails, do not know why.
-//
-//   string type;
-//   if(quark == 'l') type = "0";
-//   else if (quark == 's') type = "1";
-//
-//   for(int t=0; t<T; ++t) {
-//     // readScidac_prop_f2d(wall_props[t], wall_path(t, quark));
-//     string fname = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/prop-wall-src/tslice=" + to_string(t) + " ; type=" + type + " ; accuracy=1.sfield";
-//     std::cout << GridLogMessage << fname << std::endl;
-//     assert(dirExists(fname));
-//
-//     Propagator4d qlat_prop;
-//     read_selected_field_double_from_float(qlat_prop, fname, fsel);
-//
-//     grid_convert(wall_props[t], qlat_prop);
-//   }
-//
-//   if(useCoulombSink) {}   // For the stored Coulomb propagators, sink is in Coulomb gauge
-//   else {
-//     qlat::GaugeTransform qlat_gt;
-//     string gt_path = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/gauge-transform.field";
-//     std::cout << GridLogMessage << gt_path << std::endl;
-//     assert(dirExists(gt_path));
-//     read_field_double(qlat_gt, gt_path);
-//
-//     qlat::GaugeTransform qlat_gtinv;
-//     qlat::gt_inverse(qlat_gtinv, qlat_gt); // FIXME: make sure that I should use qlat_gtinv instead of qlat_gt
-//
-//     LatticeColourMatrix gt(grid);
-//     grid_convert(gt, qlat_gtinv);
-//
-//     for(int t=0; t<T; ++t) wall_props[t] = gt * wall_props[t];
-//   }
-//   return wall_props;
-// }
-//
-// LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const {
-//   using namespace qlat;
-//   using namespace std;
-//
-//   LatticePropagator point_prop(grid);
-//
-//   string fname = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID/propagators/results=" + to_string(traj) + "/prop-point-src/xg=(" + coor2CSL(src)  +") ; type=0 ; accuracy=0.sfield";
-//   std::cout << GridLogMessage << fname << std::endl;
-//   assert(dirExists(fname));
-//   Propagator4d qlat_prop;
-//   read_selected_field_double_from_float(qlat_prop, fname, fsel);
-//
-//   qlat::print_qlat_field(qlat_prop);
-//   assert(0);
-//   grid_convert(point_prop, qlat_prop);
-//
-//   print_grid_field_site(point_prop, {10,0,0,0});
-//   return point_prop;
-// }
-// #endif
-//
-//
