@@ -42,7 +42,7 @@ public:
   LatticeColourMatrix get_gaugeTransform() const;
   // std::vector<LatticeFermionD> get_a2a(char vw) const;
 
-  void toCoulombVW(const LatticeColourMatrix &gt, std::vector<LatticeFermionD> &in) const;
+  // void toCoulombVW(const LatticeColourMatrix &gt, std::vector<LatticeFermionD> &in) const;
   LatticePropagator toCoulombSink(const LatticeColourMatrix &gt, const LatticePropagator &in) const;
 
   Env(const std::string &_ensemble);
@@ -250,9 +250,9 @@ LatticePropagator Env::get_sequential(const std::vector<int> &src) const {
 
 
 
-void Env::toCoulombVW(const LatticeColourMatrix &gt, std::vector<LatticeFermionD> &in) const {
-  for(LatticeFermionD &x: in) x = gt * x;
-}
+// void Env::toCoulombVW(const LatticeColourMatrix &gt, std::vector<LatticeFermionD> &in) const {
+//   for(LatticeFermionD &x: in) x = gt * x;
+// }
 
 LatticePropagator Env::toCoulombSink(const LatticeColourMatrix &gt, const LatticePropagator &in) const {
   LatticePropagator out(in.Grid());

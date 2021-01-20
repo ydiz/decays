@@ -35,7 +35,8 @@ int main(int argc, char **argv)
   // vector<int> fdims = {24, 24, 24, 64};
 
   int Ls = 16;
-  double mass = 0.06, b = 1.0, M5 = 1.0;
+  double mass = 0.04, b = 1.0, M5 = 1.0;   // light quark
+  // double mass = 0.06, b = 1.0, M5 = 1.0;  // heavy quark
   vector<int> fdims = {8, 8, 8, 8};
 
   std::cout << "Lat size: " << fdims << std::endl;
@@ -77,7 +78,6 @@ int main(int argc, char **argv)
   LatticeGaugeFieldF Umu_f(UGrid_f);
   precisionChange(Umu_f, Umu);
 
-  // Must set boundary phase in time direction to -1
   typename MobiusFermionD::ImplParams params;
   std::vector<Complex> boundary_phases(4, 1.);  // For free field test, all directions must be periodic
   // boundary_phases[3] = -1.;   // 
@@ -125,7 +125,8 @@ int main(int argc, char **argv)
     }
   }
 
-  string prop_fname = output_prefix + "/wall_s/" + std::to_string(tW);
+  // string prop_fname = output_prefix + "/wall_s/" + std::to_string(tW);
+  string prop_fname = output_prefix + "/wall_l/" + std::to_string(tW);
   writeScidac_prop_d2f(prop, prop_fname);
 
   // // std::cout << prop << std::endl;
