@@ -108,7 +108,8 @@ int main(int argc, char **argv)
   SchurDiagTwoOperator<MobiusFermionD, LatticeFermionD> mobHermOp = SchurDiagTwoOperator<MobiusFermionD, LatticeFermionD>(Dmob);
   SchurDiagTwoOperator<MobiusFermionF, LatticeFermionF> mobHermOp_f = SchurDiagTwoOperator<MobiusFermionF, LatticeFermionF>(Dmob_f);
 
-  double resid = 1e-8;
+  // double resid = 1e-8;
+  double resid = 1e-16;
   int max_iters = 10000;
   MixedPrecisionConjugateGradientOp<LatticeFermionD, LatticeFermionF> mCG(resid, max_iters, 50, FrbGrid_f, mobHermOp_f, mobHermOp);
   SchurRedBlackDiagTwoSolve<LatticeFermionD> solver(mCG);

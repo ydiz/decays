@@ -36,8 +36,8 @@ int main(int argc, char* argv[])
 
   // change those parameters
   int tsep = 12;  // tv = tK + tsep
-  int tsep2 = 6;  // tx >= tK + tsep2
-  int tsep3 = 4;  // tx <= tK + T/2 - tsep3
+  // int tsep2 = 6;  // tx >= tK + tsep2
+  // int tsep3 = 4;  // tx <= tK + T/2 - tsep3
 
   Env env("24ID");
   env.N_pt_src = -1;  
@@ -52,8 +52,10 @@ int main(int argc, char* argv[])
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');
 
-    int num_timeSlices = T/2 - tsep3 - tsep2 + 1;
-    vector<Complex> rst_Q1_avgSrc(num_timeSlices, 0.), rst_Q2_avgSrc(num_timeSlices, 0.); // average amplitude on each time slice after averaging over 512 point sources
+    // int num_timeSlices = T/2 - tsep3 - tsep2 + 1;
+    // vector<Complex> rst_Q1_avgSrc(num_timeSlices, 0.), rst_Q2_avgSrc(num_timeSlices, 0.); // average amplitude on each time slice after averaging over 512 point sources
+
+    vector<Complex> rst_Q1_avgSrc(T, 0.), rst_Q2_avgSrc(T, 0.); // average amplitude on each time slice after averaging over 512 point sources // Note: index 0 is the position of point v
 
     int num_pt_src = 0;
     if(env.N_pt_src != -1) env.xgs_l.resize(env.N_pt_src);
@@ -82,17 +84,26 @@ int main(int argc, char* argv[])
         tmp_Q2 += trace(gL[rho] * f1 * gL[rho] * f2);
       }
 
-      int lower_bound = tK + tsep2, upper_bound = tK + T/2 - tsep3; // both lower_bound and upper_bound can be greater than T
-      Sum_Interval_TimeSlice sum_interval(lower_bound, upper_bound, T); 
-      vector<LatticeComplexSite> rst_Q1_tmp = sum_interval(tmp_Q1);
-      vector<LatticeComplexSite> rst_Q2_tmp = sum_interval(tmp_Q2);
-      vector<Complex> rst_Q1; for(LatticeComplexSite x: rst_Q1_tmp) rst_Q1.push_back(x()()());
-      vector<Complex> rst_Q2; for(LatticeComplexSite x: rst_Q2_tmp) rst_Q2.push_back(x()()());
-      assert(rst_Q1.size() == rst_Q1_avgSrc.size());
-      assert(rst_Q2.size() == rst_Q2_avgSrc.size());
+      vector<LatticeComplexSite> rst_Q1, rst_Q2;
+      sliceSum(tmp_Q1, rst_Q1, Tdir);
+      sliceSum(tmp_Q2, rst_Q2, Tdir);
+      for(int i=0; i<T; ++i) {
+        rst_Q1_avgSrc[i] += rst_Q1[(i+v[3])%T]()()(); // rst_Q1_avgSrc[0] is the time slice of point v
+        rst_Q2_avgSrc[i] += rst_Q2[(i+v[3])%T]()()();
+      }
 
-      for(int i=0; i<rst_Q1.size(); ++i) rst_Q1_avgSrc[i] += rst_Q1[i];
-      for(int i=0; i<rst_Q2.size(); ++i) rst_Q2_avgSrc[i] += rst_Q2[i];
+
+      // int lower_bound = tK + tsep2, upper_bound = tK + T/2 - tsep3; // both lower_bound and upper_bound can be greater than T
+      // Sum_Interval_TimeSlice sum_interval(lower_bound, upper_bound, T); 
+      // vector<LatticeComplexSite> rst_Q1_tmp = sum_interval(tmp_Q1);
+      // vector<LatticeComplexSite> rst_Q2_tmp = sum_interval(tmp_Q2);
+      // vector<Complex> rst_Q1; for(LatticeComplexSite x: rst_Q1_tmp) rst_Q1.push_back(x()()());
+      // vector<Complex> rst_Q2; for(LatticeComplexSite x: rst_Q2_tmp) rst_Q2.push_back(x()()());
+      // assert(rst_Q1.size() == rst_Q1_avgSrc.size());
+      // assert(rst_Q2.size() == rst_Q2_avgSrc.size());
+      //
+      // for(int i=0; i<rst_Q1.size(); ++i) rst_Q1_avgSrc[i] += rst_Q1[i];
+      // for(int i=0; i<rst_Q2.size(); ++i) rst_Q2_avgSrc[i] += rst_Q2[i];
 
 
     } // end of point source loop

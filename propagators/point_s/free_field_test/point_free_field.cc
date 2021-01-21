@@ -1,3 +1,5 @@
+// p.s. To switch to heavy quark, need to change 1) mass parameter 2) prop_name (saved parameter path)
+//
 // Note: for free field test, the boundary condition must be periodic, i.e. boundary_phases must be (1,1,1,1), instead of (1,1,1,-1)
 
 #include "../../../kaon/kaon.h"
@@ -33,8 +35,8 @@ int main(int argc, char **argv)
   // vector<int> fdims = {24, 24, 24, 64};
 
   int Ls = 16;
-  double mass = 0.04, b = 1.0, M5 = 1.0; // light quark
-  // double mass = 0.06, b = 1.0, M5 = 1.0; // heavy quark
+  // double mass = 0.04, b = 1.0, M5 = 1.0; // light quark
+  double mass = 0.06, b = 1.0, M5 = 1.0; // heavy quark
   vector<int> fdims = {8, 8, 8, 8};
 
   std::cout << "Lat size: " << fdims << std::endl;
@@ -84,7 +86,8 @@ int main(int argc, char **argv)
   SchurDiagTwoOperator<MobiusFermionD, LatticeFermionD> mobHermOp = SchurDiagTwoOperator<MobiusFermionD, LatticeFermionD>(Dmob);
   SchurDiagTwoOperator<MobiusFermionF, LatticeFermionF> mobHermOp_f = SchurDiagTwoOperator<MobiusFermionF, LatticeFermionF>(Dmob_f);
 
-  double resid = 1e-8;
+  // double resid = 1e-8;
+  double resid = 1e-16;
   int max_iters = 10000;
   MixedPrecisionConjugateGradientOp<LatticeFermionD, LatticeFermionF> mCG(resid, max_iters, 50, FrbGrid_f, mobHermOp_f, mobHermOp);
   SchurRedBlackDiagTwoSolve<LatticeFermionD> solver(mCG);
@@ -125,7 +128,8 @@ int main(int argc, char **argv)
       }
     }
 
-    string prop_fname = output_prefix + "/point_l/" + coor2str(point_src.toVector());
+    // string prop_fname = output_prefix + "/point_l/" + coor2str(point_src.toVector());
+    string prop_fname = output_prefix + "/point_s/" + coor2str(point_src.toVector());
     writeScidac_prop_d2f(prop, prop_fname);
 
     // std::cout << prop << std::endl;
