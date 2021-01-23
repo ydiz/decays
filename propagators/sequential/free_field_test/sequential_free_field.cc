@@ -1,7 +1,6 @@
 // This file is adapted from sequential.cc; However, the solvers are not MADWF, but the MixedPrecisionCG from propagator/point_s/point_s.cc
 
 #include "kaon/kaon.h" // do not know why, but kaon.h must be after a2a_field.h
-#include "amplitude/form_factor.h"
 
 // On 16 nodes, it takes ~10min to solve for one point source
 
@@ -27,23 +26,23 @@ public:
 
 
 
-
-LatticeKGG calc_leptonic_with_coef(double M_K, const std::vector<int> &v, GridCartesian *grid) {  // return L_munu(u, v), where v is a fixed point.
-
-  LatticeKGG lep(grid);
-
-  form_factor_integrand(lep, M_K);
-
-  double lep_coef = 2. / std::pow(M_K, 4);
-  // double hadron_coef = env.Z_V * env.Z_V * 2. * env.M_K / env.N_K;  // Note: I did not multiply hadronic coefficient
-
-  lep = lep * lep_coef;
-
-  for(int mu=0; mu<4; ++mu) lep = Cshift(lep, mu, -v[mu]); // shift v to origin 
-
-  return lep;
-}
-
+//
+// LatticeKGG calc_leptonic_with_coef(double M_K, const std::vector<int> &v, GridCartesian *grid) {  // return L_munu(u, v), where v is a fixed point.
+//
+//   LatticeKGG lep(grid);
+//
+//   form_factor_integrand(lep, M_K);
+//
+//   double lep_coef = 2. / std::pow(M_K, 4);
+//   // double hadron_coef = env.Z_V * env.Z_V * 2. * env.M_K / env.N_K;  // Note: I did not multiply hadronic coefficient
+//
+//   lep = lep * lep_coef;
+//
+//   for(int mu=0; mu<4; ++mu) lep = Cshift(lep, mu, -v[mu]); // shift v to origin 
+//
+//   return lep;
+// }
+//
 
 
 
@@ -58,6 +57,8 @@ int main(int argc, char **argv)
   double mass = 0.04, b = 1.0, M5 = 1.0; // light quark
   vector<int> fdims = {8, 8, 8, 8};
   double M_K = 0.5;
+
+  int max_uv_sep = 3; // The maximum separation between u and v to sum over
 
   // int Ls_outer = 24, Ls_inner = 12;
   // double mass = 0.00107, b = 2.5, M5 = 1.8;  // !! mass must be the mass of light quark
@@ -126,7 +127,9 @@ int main(int argc, char **argv)
     // Construct Source
     /////////////////////////////////////////
 
-    LatticeKGG lep = calc_leptonic_with_coef(M_K, v, UGrid);
+    // LatticeKGG lep = calc_leptonic_with_coef(M_K, v, UGrid);
+    LatticeKGG lep(UGrid);
+    EM_factor_half_lattice(lep, v, M_K, max_uv_sep);
 
     LatticePropagator Luv(UGrid);
     string point_l_path = point_l_prefix + "/" + coor2str(v);

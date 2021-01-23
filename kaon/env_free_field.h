@@ -93,7 +93,7 @@ Env::Env(const std::string &_ensemble) // cannot initialize grid in initializer 
 
 // Free field test // The source can only be at (0,0,0,0)
 std::vector<std::vector<int>> Env::get_xgs(char quark) {
-  return {{0,0,0,0}, {1,2,3,4}, {6,4,7,2};
+  return {{0,0,0,0}, {1,2,3,4}, {6,4,7,2}};
 }
 
 void Env::setup_traj(int _traj) {

@@ -2,7 +2,6 @@
 
 #include "/direct/sdcc+u/ydzhao/A2AGrid/read_compressed.h"
 #include "kaon/kaon.h" // do not know why, but kaon.h must be after a2a_field.h
-#include "amplitude/form_factor.h"
 
 // On 16 nodes, it takes ~10min to solve for one point source
 
@@ -49,61 +48,6 @@ void load_compressed_evecs(const std::string &evec_dir, std::vector<double> &eva
 
 
 
-void restrictTimeRange(LatticePropagator &lat, int vt)  { // The allowed interval of u is: vt <= ut <= vt+16
-
-  const int T = lat.Grid()->_fdimensions[3];
-
-  thread_for(ss, lat.Grid()->lSites(), {
-    Coordinate lcoor, gcoor;
-    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
-
-    int ut = gcoor[3];
-
-    int dist;   // dist = u_t - v_t, taking periodic bundary condition into account
-    if(abs(ut - vt)<=T/2) dist = ut - vt;
-    else if(abs(ut + T - vt) <= T/2) dist = ut + T - vt;
-    else dist = ut - T - vt;
-
-    LatticePropagatorSite m;
-    if(dist==0) {}                      // if u_t == v_t , do nothing
-    else if(dist > 0 && dist <= T/4) {  // u_t>v_t && u_t - v_t <= T/4  // if u is on the right of v, multiple it by 2
-      peekLocalSite(m, lat, lcoor);
-      m = 2. * m;
-      pokeLocalSite(m, lat, lcoor);
-    }   
-    else {                           // else, set to 0
-      m = Zero(); 
-      pokeLocalSite(m, lat, lcoor);
-    }   
-
-  }); 
-}
-
-
-
-
-LatticeKGG calc_leptonic_with_coef(double M_K, const std::vector<int> &v, GridCartesian *grid) {  // return L_munu(u, v), where v is a fixed point.
-
-  LatticeKGG lep(grid);
-
-  form_factor_integrand(lep, M_K);
-
-  double lep_coef = 2. / std::pow(M_K, 4);
-  // double hadron_coef = env.Z_V * env.Z_V * 2. * env.M_K / env.N_K;  // Note: I did not multiply hadronic coefficient
-  
-  lep = lep * lep_coef;
-
-  for(int mu=0; mu<4; ++mu) lep = Cshift(lep, mu, -v[mu]); // shift center to v  
-
-  return lep;
-}
-
-
-
-
-
-
-
 
 int main(int argc, char **argv)
 {
@@ -115,6 +59,10 @@ int main(int argc, char **argv)
   double mass = 0.00107, b = 2.5, M5 = 1.8;  // !! mass must be the mass of light quark
   double M_K = 0.50365;
   vector<int> fdims = {24, 24, 24, 64};
+
+
+  int max_uv_sep = 16;   // The maximum separation between u and v to sum over
+
 
   std::vector<std::complex<double>> omega;
   omega.resize(12);
@@ -258,7 +206,9 @@ int main(int argc, char **argv)
       // Construct Source
       /////////////////////////////////////////
       
-      LatticeKGG lep = calc_leptonic_with_coef(M_K, v, UGrid);
+      // LatticeKGG lep = calc_leptonic_with_coef(M_K, v, UGrid);
+      LatticeKGG lep(UGrid);
+      EM_factor_half_lattice(lep, v, M_K, max_uv_sep);
 
       LatticePropagator Luv(UGrid);
       string point_l_path = point_l_prefix + "/" + to_string(traj) + "/" + coor2str(v);
@@ -273,7 +223,7 @@ int main(int argc, char **argv)
         }
       }
 
-      restrictTimeRange(fullSrc, v[3]); // source is non-zero only for where vt <= ut <= vt+T/4; When ut>vt, multiply by 2
+      // restrictTimeRange(fullSrc, v[3]); // source is non-zero only for where vt <= ut <= vt+T/4; When ut>vt, multiply by 2
 
       /////////////////////////////////////////
       // Run CG (MADWF)
