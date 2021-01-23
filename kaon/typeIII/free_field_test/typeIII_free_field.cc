@@ -139,12 +139,13 @@ int main(int argc, char* argv[])
     std::cout << "traj [" << traj << "] amplitude Q1 by time slice: " << rst_Q1_avgSrc << std::endl;
     std::cout << "traj [" << traj << "] amplitude Q2 by time slice: " << rst_Q2_avgSrc << std::endl;
 
-    Complex total_amplitude_Q1 = 0., total_amplitude_Q2 = 0.;
-    for(Complex x: rst_Q1_avgSrc) total_amplitude_Q1 += x;
-    for(Complex x: rst_Q2_avgSrc) total_amplitude_Q2 += x;
-
-    std::cout << "traj [" << traj << "] total amplitude Q1: " << total_amplitude_Q1 << std::endl;
-    std::cout << "traj [" << traj << "] total amplitude Q2: " << total_amplitude_Q2 << std::endl;
+    // // Should not sum over all x_t
+    // Complex total_amplitude_Q1 = 0., total_amplitude_Q2 = 0.;
+    // for(Complex x: rst_Q1_avgSrc) total_amplitude_Q1 += x;
+    // for(Complex x: rst_Q2_avgSrc) total_amplitude_Q2 += x;
+    //
+    // std::cout << "traj [" << traj << "] total amplitude Q1: " << total_amplitude_Q1 << std::endl;
+    // std::cout << "traj [" << traj << "] total amplitude Q2: " << total_amplitude_Q2 << std::endl;
 
   } // end of traj loop
 

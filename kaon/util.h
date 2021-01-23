@@ -23,6 +23,62 @@ std::array<const Gamma, 4> gmu5 = { // gamma_mu * gamma5
 std::array<const GammaL, 4> gL {GammaL(gmu[0]), GammaL(gmu[1]), GammaL(gmu[2]), GammaL(gmu[3])};
 
 
+
+// EM factor on half lattice; if r_t < 0 or r_t > max_uv_sep, Euv = 0; If r_t == 0, do not change Euv; If 0 < r_t <= max_uv_sep, multiply Euv by 2.
+// The factor 2 / M_K^4 is included.
+void EM_factor_half_lattice(LatticeKGG &lat, const std::vector<int> &v, double M_K, int max_uv_sep) { // max sep is maximum allowed |u0-v0|
+
+  lat = Zero();
+
+  const int T = lat.Grid()->_fdimensions[3];
+  parallel_for(int ss=0; ss<lat.Grid()->lSites(); ss++) {
+
+    Coordinate lcoor, gcoor;
+    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
+
+    gcoor = my_smod(gcoor, lat.Grid()->_fdimensions);  // smod: if x > T/2, map x to x-T
+
+    if(gcoor[Tdir] < 0 || gcoor[Tdir] > max_uv_sep) continue; // Non-zero only for 0 <= t <= max_uv_sep
+    else {  
+
+      double w = std::sqrt(gcoor[0]*gcoor[0] + gcoor[1]*gcoor[1] + gcoor[2]*gcoor[2]);
+
+      double val;
+      if(w==0) val = 0.;
+      else {
+        double t = M_K * 0.5 * w;
+        double sin_t, cos_t;
+        sincos(t, &sin_t, &cos_t);
+        val = ( - cos_t * M_K * w + 2 * sin_t) / w / w / w * std::exp(M_K * 0.5 * gcoor[Tdir]);
+      }
+
+      if(gcoor[Tdir] > 0) val *= 2.;  // if t > 0, multiply it by 2.
+
+      typename LatticeKGG::vector_object::scalar_object m;
+      m = Zero();
+      m(0, 1)()() = Complex(val * gcoor[Zdir], 0); 
+      m(0, 2)()() = Complex(-val * gcoor[Ydir], 0); // Minus sign comes from spinor matrix
+      m(1, 2)()() = Complex(val * gcoor[Xdir], 0); 
+      m(1, 0)()() = - m(0, 1)()();
+      m(2, 0)()() = - m(0, 2)()();
+      m(2, 1)()() = - m(1, 2)()();
+
+      pokeLocalSite(m, lat, lcoor);
+    }
+  }
+
+  lat *= (2. / M_K / M_K / M_K / M_K);
+
+
+  for(int mu=0; mu<4; ++mu) {  // shift center to v
+    if(v[mu] != 0) lat = Cshift(lat, mu, -v[mu]);
+  }
+
+  // std::cout << lat << std::endl;
+  // exit(0);
+}
+
+
 struct Sum_Interval {
   int lower_bound, upper_bound, T;
 
