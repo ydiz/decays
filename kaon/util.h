@@ -4,8 +4,11 @@
 #include <iterator>
 
 namespace Grid {
-namespace QCD {
 
+template<class vobj> auto peekLorentz(const Lattice<vobj> &rhs, int i, int j) -> decltype(PeekIndex<LorentzIndex>(rhs,0,0))
+{
+    return PeekIndex<LorentzIndex>(rhs, i, j);
+}
 
 
 // g5, gmu, gmu5, gL
@@ -314,7 +317,7 @@ std::vector<std::vector<int>> my_get_xgs(const std::string &path, bool allowPath
 
 
 
-}}
+}
 
 // template<typename T>
 // void CrossCorrelation_typeI(const Lattice<T> &lat1, const Lattice<T> &lat2) {

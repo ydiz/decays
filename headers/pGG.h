@@ -7,7 +7,6 @@
 
 
 namespace Grid {
-namespace QCD {
 
 
 // to use Scidac, we cannot make PGGElem have only one level (like iMatrix<Complex, 4>)
@@ -77,4 +76,4 @@ void get_luchang_exp_factor(LatticeComplex &lat, double Mpi, double t_min) {
 
 
 
-}}
+}

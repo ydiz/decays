@@ -31,7 +31,6 @@ void print_memory() {
 
 
 namespace Grid {
-namespace QCD {
 
 
 
@@ -207,4 +206,4 @@ Lattice<T> get_reflection(const Lattice<T> &lat) {
 
 
 
-}}
+}

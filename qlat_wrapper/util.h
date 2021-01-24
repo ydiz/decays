@@ -21,7 +21,6 @@ inline Coordinate grid_convert(const Grid::Coordinate& x)
 inline int id_node_from_grid(const Grid::GridCartesian* UGrid)
 {
   using namespace Grid;
-  using namespace Grid::QCD;
   Grid::Coordinate mpi_layout = UGrid->_processors;
   Grid::Coordinate mpi_corr = UGrid->_processor_coor;
   const Coordinate size_node = grid_convert(mpi_layout);
@@ -109,15 +108,13 @@ struct TypeMap<Grid::ComplexD> {
 };
 
 namespace Grid {
-namespace QCD {
 using LatticeLoop = Lattice<iScalar<iScalar<iVector<vComplex, 4> > >>;
 
-}}
+}
 
-void grid_convert(Grid::QCD::LatticeLoop& grid_loop, const qlat::FieldM<qlat::Complex, 4>& qlat_loop)
+void grid_convert(Grid::LatticeLoop& grid_loop, const qlat::FieldM<qlat::Complex, 4>& qlat_loop)
 {
   using namespace Grid;
-  using namespace Grid::QCD;
   const qlat::Geometry& geo = qlat_loop.geo;
 #pragma omp parallel for
   for (long index = 0; index < geo.local_volume(); ++index) {
@@ -142,10 +139,9 @@ void grid_convert(Grid::QCD::LatticeLoop& grid_loop, const qlat::FieldM<qlat::Co
 
 
 // only for double precision PionGGElemField
-void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::PionGGElemField& qlat_pgg)
+void grid_convert(Grid::LatticePGG& grid_pgg, const qlat::PionGGElemField& qlat_pgg)
 {
   using namespace Grid;
-  using namespace Grid::QCD;
   const qlat::Geometry& geo = qlat_pgg.geo;
 #pragma omp parallel for
   for (long index = 0; index < geo.local_volume(); ++index) {
@@ -171,10 +167,9 @@ void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::PionGGElemField& 
 }
 
 // For cheng's three point function 
-void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::FieldM<qlat::Complex, 16>& qlat_pgg)
+void grid_convert(Grid::LatticePGG& grid_pgg, const qlat::FieldM<qlat::Complex, 16>& qlat_pgg)
 {
   using namespace Grid;
-  using namespace Grid::QCD;
   const qlat::Geometry& geo = qlat_pgg.geo;
 #pragma omp parallel for
   for (long index = 0; index < geo.local_volume(); ++index) {
@@ -203,10 +198,9 @@ void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::FieldM<qlat::Comp
 // For luchang's three point function // file "decay" and "fission"
 // Here, input is a 8x8 matrix. mu=0-7, nu=0-7; we take only the top left submatrix
 // see https://rbc.phys.columbia.edu/rbc_ukqcd/individual_postings/luchang/0001%20pion-gg%20status/
-void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::FieldM<qlat::Complex, 64>& qlat_pgg)
+void grid_convert(Grid::LatticePGG& grid_pgg, const qlat::FieldM<qlat::Complex, 64>& qlat_pgg)
 {
   using namespace Grid;
-  using namespace Grid::QCD;
   const qlat::Geometry& geo = qlat_pgg.geo;
 #pragma omp parallel for
   for (long index = 0; index < geo.local_volume(); ++index) {
@@ -236,7 +230,6 @@ void grid_convert(Grid::QCD::LatticePGG& grid_pgg, const qlat::FieldM<qlat::Comp
 void grid_convert(Grid::LatticeColourMatrix& grid_gt, const qlat::GaugeTransform& qlat_gt)
 {
   using namespace Grid;
-  using namespace Grid::QCD;
   const qlat::Geometry& geo = qlat_gt.geo;
 #pragma omp parallel for
   for (long index = 0; index < geo.local_volume(); ++index) {
@@ -265,7 +258,6 @@ void grid_convert(Grid::LatticeColourMatrix& grid_gt, const qlat::GaugeTransform
 void grid_convert(Grid::LatticeGaugeField& grid_gf, const qlat::GaugeField& qlat_gf)
 {
   using namespace Grid;
-  using namespace Grid::QCD;
   const qlat::Geometry& geo = qlat_gf.geo;
 #pragma omp parallel for
   for (long index = 0; index < geo.local_volume(); ++index) {
@@ -298,7 +290,6 @@ typename std::enable_if<std::is_same<T, Grid::ComplexF>::value || std::is_same<T
 grid_convert(Grid::Lattice<Grid::iSpinColourMatrix<typename TypeMap<T>::type >>& grid_prop, const qlat::Propagator4dT<T>& qlat_prop)
 {
   using namespace Grid;
-  using namespace Grid::QCD;
   const qlat::Geometry& geo = qlat_prop.geo;
 #pragma omp parallel for
   for (long index = 0; index < geo.local_volume(); ++index) {
@@ -392,7 +383,6 @@ void print_field(const T &field) {
 }
 
 namespace Grid {
-namespace QCD {
 // FIXME: grid_convert has not been defined
 void read_loop(LatticeLoop &lat, const std::string &path) {
   qlat::FieldM<Complex, 4> qlat_loop;
@@ -489,5 +479,5 @@ void read_luchang_dist_gaugefield(LatticeGaugeField &lat, const std::string &pat
 //   grid_convert(lat, qlat_pgg);
 // }
 
-}}
+}
 
