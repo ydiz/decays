@@ -73,17 +73,18 @@ int main(int argc, char* argv[])
 
       int tK = (x[3] - tsep + T) % T;
 
-      vector<LatticePropagator> Fu(4, env.grid), Gv(4, env.grid); // F_mu(u, x)
-      for(int mu=0; mu<4; ++mu) Fu[mu] = adj(pl) * gmu5[mu] * wl[tK];
+      vector<LatticePropagator> Fv(4, env.grid), Gu(4, env.grid); // F_mu(u, x)
 
-      for(int nu=0; nu<4; ++nu) Gv[nu] = adj(ws[tK]) * gmu5[nu] * ps; 
+      for(int nu=0; nu<4; ++nu) Fv[nu] = adj(pl) * gmu5[nu] * wl[tK];
       LatticeComplex exp_factor = exp_v0_tK(env.grid, tK, env.M_K);
-      for(int nu=0; nu<4; ++nu) Gv[nu] = Gv[nu] * exp_factor;           // G_nu(v, x) *= exp(M_k * (v_0 - t_K))
+      for(int nu=0; nu<4; ++nu) Fv[nu] = Fv[nu] * exp_factor;           // F_nu(v, x) *= exp(M_k * (v_0 - t_K))
 
-      vector<LatticePropagator> Cv = conv_with_E_typeII(Fu, env.M_K, max_uv_sep);
+      for(int mu=0; mu<4; ++mu) Gu[mu] = adj(ws[tK]) * gmu5[mu] * ps; 
+
+      vector<LatticePropagator> Cv = conv_with_E_typeII(Gu, env.M_K, max_uv_sep);
 
       LatticePropagator A(env.grid); A = Zero();
-      for(int nu=0; nu<4; ++nu) A += Cv[nu] * Gv[nu];
+      for(int nu=0; nu<4; ++nu) A += Fv[nu] * Cv[nu];
       A = A - adj(A);  // Contribution of K0_bar
       // std::cout << A << std::endl;
       // exit(0);

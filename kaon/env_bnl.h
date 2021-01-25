@@ -4,7 +4,6 @@
 // #include "/sdcc/u/ydzhao/A2AGrid/io.h"
 
 namespace Grid {
-namespace QCD {
 
 
 class Env {
@@ -339,7 +338,7 @@ std::string Env::Lxx_path() const {
 
 
 
-}}
+}
 
 
 

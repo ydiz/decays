@@ -1,5 +1,5 @@
 #include "kaon/kaon.h"
-#include "kaon/typeII/typeII.h"
+#include "kaon/typeI/typeI.h"
 
 using namespace std;
 using namespace Grid;
@@ -66,33 +66,41 @@ int main(int argc, char* argv[])
       std::cout << "Point source: " << x << std::endl;
       ++num_pt_src;
 
-      LatticePropagator pl = env.get_point(x, 'l'); // pl = L(x, v) or L(u, v)
-      LatticePropagator ps = env.get_point(x, 's'); // ps = H(x, v) or H(u, v)
+      LatticePropagator pl = env.get_point(x, 'l'); 
+      LatticePropagator ps = env.get_point(x, 's'); 
       LatticePropagatorSite Lxx; // L(x, x)
       peekSite(Lxx, pl, x);
 
       int tK = (x[3] - tsep + T) % T;
 
-      vector<LatticePropagator> Fu(4, env.grid), Gv(4, env.grid); // F_mu(u, x)
-      for(int mu=0; mu<4; ++mu) Fu[mu] = adj(pl) * gmu5[mu] * wl[tK];
+      LatticePropagatorSite ws_x; // H(x, tK)
+      peekSite(ws_x, ws[tK], x);
 
-      for(int nu=0; nu<4; ++nu) Gv[nu] = adj(ws[tK]) * gmu5[nu] * ps; 
+      vector<vector<LatticeColourMatrix>> Fv(4, vector<LatticeColourMatrix>(4, env.grid)); // F_{mu,rho}(u, x)
       LatticeComplex exp_factor = exp_v0_tK(env.grid, tK, env.M_K);
-      for(int nu=0; nu<4; ++nu) Gv[nu] = Gv[nu] * exp_factor;           // G_nu(v, x) *= exp(M_k * (v_0 - t_K))
+      for(int nu=0; nu<4; ++nu) {
+        LatticePropagator A = adj(pl) * gmu5[nu] * wl[tK] * adj(ws_x);
+#ifndef CUTH_FREE_FIELD
+        A = A - adj(A);              //  add contribution from K0_bar
+#endif
+        for(int rho=0; rho<4; ++rho) Fv[nu][rho] = traceS(gL[rho] * A) * exp_factor; 
+      }
 
-      vector<LatticePropagator> Cv = conv_with_E_typeII(Fu, env.M_K, max_uv_sep);
+      vector<vector<LatticeColourMatrix>> Gu(4, vector<LatticeColourMatrix>(4, env.grid)); // G_{nu,rho}(v, x)
+      for(int mu=0; mu<4; ++mu) {
+        LatticePropagator tmp = adj(pl) * gmu5[mu] * pl;
+        for(int rho=0; rho<4; ++rho) Gu[mu][rho] = traceS(gL[rho] * tmp); 
+      }
 
-      LatticePropagator A(env.grid); A = Zero();
-      for(int nu=0; nu<4; ++nu) A += Cv[nu] * Gv[nu];
-      A = A - adj(A);  // Contribution of K0_bar
-      // std::cout << A << std::endl;
-      // exit(0);
+      vector<vector<LatticeColourMatrix>> Cv = conv_with_E_typeI(Gu, env.M_K, max_uv_sep);
 
       LatticeComplex rst_Q1(env.grid); rst_Q1 = Zero();
       LatticeComplex rst_Q2(env.grid); rst_Q2 = Zero();
-      for(int rho=0; rho<4; ++rho) {
-        rst_Q1 += trace(gL[rho] * Lxx) * trace(gL[rho] * A);
-        rst_Q2 += trace(gL[rho] * Lxx * gL[rho] * A);
+      for(int nu=0; nu<4; ++nu) {
+        for(int rho=0; rho<4; ++rho) {
+          rst_Q1 += trace(Cv[nu][rho]) * trace(Fv[nu][rho]) ;
+          rst_Q2 += trace(Cv[nu][rho] * Fv[nu][rho]);
+        }
       }
 
       vector<LatticeComplexSite> rst_Q1_vt, rst_Q2_vt; // Sum over each time slice of v
