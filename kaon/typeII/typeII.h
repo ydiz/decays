@@ -23,10 +23,11 @@ std::vector<LatticePropagator> conv_with_E_typeII(const std::vector<LatticePropa
 
   vector<LatticePropagator> rst(4, grid);
   for(int mu=0; mu<4; ++mu) rst[mu] = Zero();
+
   for(int nu=0; nu<3; ++nu) {   // Here, nu != 3, because E_{3, mu} = 0
     for(int mu=0; mu<3; ++mu) { // Here, mu != 3, because E_{nu, 3} = 0
       if(mu==nu) continue;  // if mu==nu, E_{mu,mu} = 0
-      rst[nu] += Euv_fft_conj[nu][mu] * F_fft[mu];
+      rst[nu] += Euv_fft_conj[mu][nu] * F_fft[mu];
     }
   }
 

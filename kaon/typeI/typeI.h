@@ -32,7 +32,7 @@ std::vector<std::vector<LatticeColourMatrix>> conv_with_E_typeI(const std::vecto
 
       for(int mu=0; mu<3; ++mu) {   // Here, mu != 3, because E_{nu, 3} = 0
         if(mu==nu) continue;  // if mu==nu, E_{mu,mu} = 0
-        rst[nu][rho] += Euv_fft_conj[nu][mu] * F_fft[mu][rho];
+        rst[nu][rho] += Euv_fft_conj[mu][nu] * F_fft[mu][rho];
       }
     }
   }
