@@ -5,8 +5,8 @@ using namespace Grid;
 
 int main(int argc, char* argv[])
 {
-  // Grid_init(&argc, &argv);
-  zyd_init_Grid_Qlattice(argc, argv);
+  Grid_init(&argc, &argv);
+  // zyd_init_Grid_Qlattice(argc, argv);
 
   int target_traj;
   if( GridCmdOptionExists(argv, argv+argc, "--traj") ) {
@@ -65,8 +65,7 @@ int main(int argc, char* argv[])
 
       LatticePropagator sequential = env.get_sequential(v);
 
-      int tK = v[3] - tsep;
-      if(tK < 0) tK += T;
+      int tK = (v[3] - tsep + T) % T;
 
       LatticePropagator f1(env.grid);
       f1 = sequential * g5 * adj(pl);

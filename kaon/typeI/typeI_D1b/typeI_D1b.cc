@@ -80,9 +80,7 @@ int main(int argc, char* argv[])
       LatticeComplex exp_factor = exp_v0_tK(env.grid, tK, env.M_K);
       for(int nu=0; nu<4; ++nu) {
         LatticePropagator A = adj(pl) * gmu5[nu] * wl[tK] * adj(ws_x);
-#ifndef CUTH_FREE_FIELD
         A = A - adj(A);              //  add contribution from K0_bar
-#endif
         for(int rho=0; rho<4; ++rho) Fv[nu][rho] = traceS(gL[rho] * A) * exp_factor; 
       }
 

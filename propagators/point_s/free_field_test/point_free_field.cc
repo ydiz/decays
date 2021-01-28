@@ -6,7 +6,6 @@
 
 using namespace std;
 using namespace Grid;
-using namespace Grid::QCD;
 
 #ifndef USE_CPS 
 template<class FieldD,class FieldF, typename std::enable_if< getPrecision<FieldD>::value == 2, int>::type = 0,typename std::enable_if< getPrecision    <FieldF>::value == 1, int>::type = 0 > 
@@ -34,16 +33,22 @@ int main(int argc, char **argv)
   // double mass = 0.085, b = 2.5, M5 = 1.8;  // !! mass must be the mass of strange quark
   // vector<int> fdims = {24, 24, 24, 64};
 
+  double mass = 0.04, b = 1.0, M5 = 1.0; // light quark
+  string quark_type = "l";  // used in output path
+  // double mass = 0.06, b = 1.0, M5 = 1.0; // heavy quark
+  // string quark_type = "s";  // used in output path
   int Ls = 16;
-  // double mass = 0.04, b = 1.0, M5 = 1.0; // light quark
-  double mass = 0.06, b = 1.0, M5 = 1.0; // heavy quark
   vector<int> fdims = {8, 8, 8, 8};
+  // double time_boundary_phase = 0.; // No boundary phase; periodic boundary condition
+  double time_boundary_phase = 113. * M_PI / 180.;  // 113 degrees
 
   std::cout << "Lat size: " << fdims << std::endl;
   std::cout << "Ls: " << Ls << std::endl;
   std::cout << "M5: " << M5 << std::endl;
   std::cout << "mass: " << mass << std::endl;
+  std::cout << "quark_type: " << quark_type << std::endl;
   std::cout << "b: " << b << std::endl;
+  std::cout << "time_boundary_phase: " << time_boundary_phase << std::endl;
 
   // string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props";
   string output_prefix = "./free_field_props";
@@ -78,6 +83,8 @@ int main(int argc, char **argv)
   // Must set boundary phase in time direction to -1
   typename MobiusFermionD::ImplParams params;
   std::vector<Complex> boundary_phases(4, 1.);   // For free field test, all directions must be periodic
+  boundary_phases[3] = std::exp(Complex(0., time_boundary_phase)); // exp(i alpha)
+  std::cout << "boundary_phases: " << boundary_phases << std::endl;
   // boundary_phases[3] = -1.;
   params.boundary_phases = boundary_phases;
 
@@ -86,7 +93,7 @@ int main(int argc, char **argv)
   SchurDiagTwoOperator<MobiusFermionD, LatticeFermionD> mobHermOp = SchurDiagTwoOperator<MobiusFermionD, LatticeFermionD>(Dmob);
   SchurDiagTwoOperator<MobiusFermionF, LatticeFermionF> mobHermOp_f = SchurDiagTwoOperator<MobiusFermionF, LatticeFermionF>(Dmob_f);
 
-  // double resid = 1e-8;
+  // double resid = 1e-8;   // FIXME: change to 1e-16
   double resid = 1e-16;
   int max_iters = 10000;
   MixedPrecisionConjugateGradientOp<LatticeFermionD, LatticeFermionF> mCG(resid, max_iters, 50, FrbGrid_f, mobHermOp_f, mobHermOp);
@@ -98,8 +105,8 @@ int main(int argc, char **argv)
 
 
   vector<Coordinate> point_srcs(1);  // FIXME: should iterate over many point sources 
-  // point_srcs[0] = Coordinate(std::vector<int>{0,0,7,25});
   point_srcs[0] = Coordinate(std::vector<int>{0,0,0,0});
+  // point_srcs[0] = Coordinate(std::vector<int>{1,2,3,4});
 
   for(Coordinate point_src: point_srcs) {
     std::cout << GridLogMessage << "point_src: " << point_src << std::endl;
@@ -129,7 +136,7 @@ int main(int argc, char **argv)
     }
 
     // string prop_fname = output_prefix + "/point_l/" + coor2str(point_src.toVector());
-    string prop_fname = output_prefix + "/point_s/" + coor2str(point_src.toVector());
+    string prop_fname = output_prefix + "/point_" + quark_type + "/" + coor2str(point_src.toVector());
     writeScidac_prop_d2f(prop, prop_fname);
 
     // std::cout << prop << std::endl;
@@ -138,10 +145,10 @@ int main(int argc, char **argv)
 
 
     LatticeSpinMatrix tmp = peekColour(prop, 0, 0); // The color index dependence of prop is delta_{a,b}, and is trivial
-    std::cout << "Propagator without color index" << std::endl;
-    print_grid_field_site(tmp, {0,1,2,3});
-    print_grid_field_site(tmp, {3,2,0,1});
-    print_grid_field_site(tmp, {3,2,1,0});
+    // std::cout << "Propagator without color index" << std::endl;
+    // print_grid_field_site(tmp, {0,1,2,3});
+    // print_grid_field_site(tmp, {3,2,0,1});
+    // print_grid_field_site(tmp, {3,2,1,0});
 
     std::cout << "Propagator without color index" << std::endl;
     std::cout << tmp << std::endl;

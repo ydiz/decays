@@ -7,7 +7,6 @@
 
 using namespace std;
 using namespace Grid;
-using namespace Grid::QCD;
 
 void load_compressed_evecs(const std::string &evec_dir, std::vector<double> &evals, std::vector<LatticeFermionF> &evecs_f, Grid::GridCartesian *FGrid_f, Grid::GridRedBlackCartesian *FrbGrid_f) {
 

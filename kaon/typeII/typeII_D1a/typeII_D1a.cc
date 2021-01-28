@@ -85,8 +85,6 @@ int main(int argc, char* argv[])
       LatticePropagator A(env.grid); A = Zero();
       for(int nu=0; nu<4; ++nu) A += Cv[nu] * Gv[nu];
       A = A - adj(A);  // Contribution of K0_bar
-      // std::cout << A << std::endl;
-      // exit(0);
 
       LatticeComplex rst_Q1(env.grid); rst_Q1 = Zero();
       LatticeComplex rst_Q2(env.grid); rst_Q2 = Zero();

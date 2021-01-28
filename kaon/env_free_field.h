@@ -108,11 +108,13 @@ void Env::setup_traj(int _traj) {
 
 
 LatticePropagator Env::get_Lxx() const {
-  LatticePropagator Lxx(grid);
-  Lxx = 1.0;
+  LatticePropagator point_prop = get_point({0,0,0,0}, 'l');
+  LatticePropagatorSite site;
+  peekSite(site, point_prop, Coordinate({0,0,0,0}));
 
-  std::cout << "!!!!!! Using Lxx for free field test; M5 MUST be 1.0, and m_l must be 0.04 !!!!!" << std::endl;
-  Lxx *= 0.00727982;
+  LatticePropagator Lxx(grid);
+  Lxx = site;
+
   return Lxx;
 }
 
@@ -159,17 +161,22 @@ std::vector<LatticePropagator> Env::get_wall(char quark, bool useCoulombSink/* =
   int T = grid->_fdimensions[Tdir];
   std::vector<LatticePropagator> wall_props(T, grid);  // sometimes this fails, do not know why.
 
-  std::string fname;
-  if(quark == 'l')  fname="/home/ydzhao/cuth/decays/propagators/wall_s/free_field_test/free_field_props/wall_l/0";   
-  else if(quark == 's') fname="/home/ydzhao/cuth/decays/propagators/wall_s/free_field_test/free_field_props/wall_s/0";
+  std::string prefix;
+  if(quark == 'l')  prefix = "/home/ydzhao/cuth/decays/propagators/wall_s/free_field_test/free_field_props/wall_l/";   
+  else if(quark == 's') prefix = "/home/ydzhao/cuth/decays/propagators/wall_s/free_field_test/free_field_props/wall_s/";
 
-  readScidac_prop_f2d(wall_props[0], fname);
-  for(int t=1; t<T; ++t) wall_props[t] = Cshift(wall_props[0], 3, -t);
+  for(int t=0; t<T; ++t) {
+    std::string fname = prefix + "/" + std::to_string(t);
+    readScidac_prop_f2d(wall_props[t], fname);
+  }
 
   return wall_props;
 }
 
 LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const {
+
+  for(int mu=0; mu<4; ++mu) assert(src[mu]==0);
+
   LatticePropagator point_prop(grid);
 
   std::string fname;
@@ -177,22 +184,21 @@ LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const 
   else if(quark == 's') fname="/home/ydzhao/cuth/decays/propagators/point_s/free_field_test/free_field_props/point_s/0_0_0_0";
   readScidac_prop_f2d(point_prop, fname);
 
-  for(int mu=0; mu<4; ++mu) {
-    if(src[mu]!=0) point_prop = Cshift(point_prop, mu, -src[mu]);
-  }
-
   return point_prop;
 }
 
 
 LatticePropagator Env::get_sequential(const std::vector<int> &src) const {
+
+  for(int mu=0; mu<4; ++mu) assert(src[mu]==0);
+
   std::string fname = "/home/ydzhao/cuth/decays/propagators/sequential/free_field_test/free_field_props/0_0_0_0";
   LatticePropagator seq_prop(grid);
   readScidac_prop_f2d(seq_prop, fname);
 
-  for(int mu=0; mu<4; ++mu) {
-    if(src[mu]!=0) seq_prop = Cshift(seq_prop, mu, -src[mu]);
-  }
+  // for(int mu=0; mu<4; ++mu) {
+  //   if(src[mu]!=0) seq_prop = Cshift(seq_prop, mu, -src[mu]);
+  // }
   return seq_prop;
 }
 

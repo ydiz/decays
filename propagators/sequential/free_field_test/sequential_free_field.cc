@@ -6,7 +6,6 @@
 
 using namespace std;
 using namespace Grid;
-using namespace Grid::QCD;
 
 
 #ifndef USE_CPS 
@@ -53,17 +52,27 @@ int main(int argc, char **argv)
 {
   Grid_init(&argc, &argv);
 
-  int Ls = 16;
-  double mass = 0.04, b = 1.0, M5 = 1.0; // light quark
-  vector<int> fdims = {8, 8, 8, 8};
-  double M_K = 0.5;
-
-  int max_uv_sep = 3; // The maximum separation between u and v to sum over
-
   // int Ls_outer = 24, Ls_inner = 12;
   // double mass = 0.00107, b = 2.5, M5 = 1.8;  // !! mass must be the mass of light quark
   // double M_K = 0.50365;
   // vector<int> fdims = {24, 24, 24, 64};
+
+  int Ls = 16;
+  double mass = 0.04, b = 1.0, M5 = 1.0; // light quark
+  vector<int> fdims = {8, 8, 8, 8};
+  double M_K = 0.5;
+  int max_uv_sep = 3; // The maximum separation between u and v
+  // double time_boundary_phase = 0.; // No boundary phase; periodic boundary condition
+  double time_boundary_phase = 113. * M_PI / 180.;  // 113 degrees
+
+  std::cout << "Lat size: " << fdims << std::endl;
+  std::cout << "Ls: " << Ls << std::endl;
+  std::cout << "M5: " << M5 << std::endl;
+  std::cout << "mass: " << mass << std::endl;
+  std::cout << "b: " << b << std::endl;
+  std::cout << "M_K: " << M_K << std::endl;
+  std::cout << "max_uv_sep: " << max_uv_sep << std::endl;
+  std::cout << "time_boundary_phase: " << time_boundary_phase << std::endl;
 
 
   string output_prefix = "./free_field_props";
@@ -99,6 +108,7 @@ int main(int argc, char **argv)
 
   typename MobiusFermionD::ImplParams params;
   std::vector<Complex> boundary_phases(4, 1.);  // For free field test, all directions must be periodic
+  boundary_phases[3] = std::exp(Complex(0., time_boundary_phase)); // exp(i alpha)
   // boundary_phases[3] = -1.;   // 
   params.boundary_phases = boundary_phases;
 
@@ -134,6 +144,10 @@ int main(int argc, char **argv)
     LatticePropagator Luv(UGrid);
     string point_l_path = point_l_prefix + "/" + coor2str(v);
     readScidac_prop_f2d(Luv, point_l_path);
+
+    // std::cout << "Luv:" << std::endl;
+    // std::cout << Luv << std::endl;
+    // return 0;
 
     LatticePropagator fullSrc(UGrid);  fullSrc = Zero();
     for(int mu=0; mu<4; ++mu) {

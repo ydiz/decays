@@ -68,8 +68,6 @@ int main(int argc, char* argv[])
 
       LatticePropagator pl = env.get_point(x, 'l'); 
       LatticePropagator ps = env.get_point(x, 's'); 
-      LatticePropagatorSite Lxx; // L(x, x)
-      peekSite(Lxx, pl, x);
 
       int tK = (x[3] - tsep + T) % T;
 
@@ -79,11 +77,8 @@ int main(int argc, char* argv[])
       vector<vector<LatticeColourMatrix>> Fu(4, vector<LatticeColourMatrix>(4, env.grid)); // F_{mu,rho}(u, x)
       for(int mu=0; mu<4; ++mu) {
         LatticePropagator A = adj(pl) * gmu5[mu] * wl[tK] * adj(ws_x);
-#ifndef CUTH_FREE_FIELD
         A = A - adj(A);              //  add contribution from K0_bar
-#endif
         for(int rho=0; rho<4; ++rho) Fu[mu][rho] = traceS(gL[rho] * A); 
-
       }
 
       vector<vector<LatticeColourMatrix>> Gv(4, vector<LatticeColourMatrix>(4, env.grid)); // G_{nu,rho}(v, x)

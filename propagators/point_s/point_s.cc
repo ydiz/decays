@@ -2,7 +2,6 @@
 
 using namespace std;
 using namespace Grid;
-using namespace Grid::QCD;
 
 #ifndef USE_CPS 
 template<class FieldD,class FieldF, typename std::enable_if< getPrecision<FieldD>::value == 2, int>::type = 0,typename std::enable_if< getPrecision    <FieldF>::value == 1, int>::type = 0 > 
