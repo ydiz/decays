@@ -72,9 +72,7 @@ int main(int argc, char* argv[])
 
       LatticePropagator f2(env.grid);
       f2 = wl[tK] * adj(ws[tK]);
-#ifndef CUTH_FREE_FIELD
       f2 = f2 - adj(f2);             // to incorporate the contribution of K0 bar f2 = wl[tK] * adj(ws[tK]) - ws[tK] * adj(wl[tK]) 
-#endif
 
 
       LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid);

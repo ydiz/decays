@@ -81,7 +81,6 @@ int main(int argc, char* argv[])
       }
       LatticePropagatorSite g = sum(g_u);
 
-
       // calculate contraction
       LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid);
       rst_Q1 = Zero(); rst_Q2 = Zero();
