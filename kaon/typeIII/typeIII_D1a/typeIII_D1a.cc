@@ -74,11 +74,19 @@ int main(int argc, char* argv[])
       f2 = wl[tK] * adj(ws[tK]);
       f2 = f2 - adj(f2);             // to incorporate the contribution of K0 bar f2 = wl[tK] * adj(ws[tK]) - ws[tK] * adj(wl[tK]) 
 
+      // {  // for test
+      //   LatticeComplex tmp(env.grid);
+      //   // tmp = trace(g5 * f1);
+      //   tmp = trace(f1);
+      //   std::cout << tmp << std::endl;
+      //   exit(0);
+      // }
 
       LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid);
       rst_Q1 = Zero(); rst_Q2 = Zero();
       for(int rho=0; rho<4; ++rho) {
         rst_Q1 += trace(gL[rho] * f1) *  trace(gL[rho] * f2);
+        // rst_Q1 += trace(g5 * f1) *  trace(gL[rho] * f2);
         rst_Q2 += trace(gL[rho] * f1 * gL[rho] * f2);
       }
 

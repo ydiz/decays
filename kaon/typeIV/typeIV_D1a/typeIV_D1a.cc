@@ -42,8 +42,6 @@ int main(int argc, char* argv[])
 
   env.N_pt_src = -1;  
 
-  // double hadron_coef = env.Z_V * env.Z_V * 2. * env.M_K / env.N_K;  // coefficient of hadronic part
-
   const int T = env.grid->_fdimensions[3];
 
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
@@ -82,19 +80,29 @@ int main(int argc, char* argv[])
       LatticePropagatorSite g = sum(g_u);
 
       // calculate contraction
-      LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid);
-      rst_Q1 = Zero(); rst_Q2 = Zero();
+      LatticePropagator f_Q1_K(env.grid), f_Q1_Kbar(env.grid), f_Q2_K(env.grid), f_Q2_Kbar(env.grid);
+      f_Q1_K = Zero(); f_Q1_Kbar = Zero(); f_Q2_K = Zero(); f_Q2_Kbar = Zero();
       for(int rho=0; rho<4; ++rho) {
-        rst_Q1 += trace(gL[rho] * Lxx) * ( trace( adj(ws[tK]) * gL[rho] * pl * g ) 
-                                           - trace( adj(pl) * gL[rho] * ws[tK]  * adj(g) ) );   // K bar
-        rst_Q2 += trace( adj(ws[tK]) * gL[rho] * Lxx *  gL[rho] * pl * g) 
-                  - trace( adj(pl) * gL[rho] * Lxx * gL[rho] * ws[tK] * adj(g) );
+        f_Q1_K += trace(gL[rho] * Lxx) * adj(ws[tK]) * gL[rho] * pl;
+        f_Q1_Kbar += trace(gL[rho] * Lxx) * adj(pl) * gL[rho] * ws[tK];
+
+        f_Q2_K += adj(ws[tK]) * gL[rho] * Lxx *  gL[rho] * pl;
+        f_Q2_Kbar += adj(pl) * gL[rho] * Lxx * gL[rho] * ws[tK];
       }
 
+      vector<LatticePropagatorSite> f_Q1_K_xt, f_Q1_Kbar_xt, f_Q2_K_xt, f_Q2_Kbar_xt;
+      sliceSum(f_Q1_K, f_Q1_K_xt, Tdir);
+      sliceSum(f_Q1_Kbar, f_Q1_Kbar_xt, Tdir);
+      sliceSum(f_Q2_K, f_Q2_K_xt, Tdir);
+      sliceSum(f_Q2_Kbar, f_Q2_Kbar_xt, Tdir);
 
-      vector<LatticeComplexSite> rst_Q1_xt, rst_Q2_xt;
-      sliceSum(rst_Q1, rst_Q1_xt, Tdir);
-      sliceSum(rst_Q2, rst_Q2_xt, Tdir);
+      vector<LatticeComplexSite> rst_Q1_xt(T), rst_Q2_xt(T);
+      for(int i=0; i<T; ++i) {
+        rst_Q1_xt[i] = trace(f_Q1_K_xt[i] * g - f_Q1_Kbar_xt[i] * adj(g));
+        rst_Q2_xt[i] = trace(f_Q2_K_xt[i] * g - f_Q2_Kbar_xt[i] * adj(g));
+      }
+      // sliceSum(rst_Q1, rst_Q1_xt, Tdir);
+      // sliceSum(rst_Q2, rst_Q2_xt, Tdir);
       for(int i=0; i<T; ++i) {
         rst_Q1_xt_avgSrc[i] += rst_Q1_xt[(i+v[3])%T]()()(); // rst_Q1_avgSrc[0] is the time slice of point v
         rst_Q2_xt_avgSrc[i] += rst_Q2_xt[(i+v[3])%T]()()();
@@ -111,9 +119,6 @@ int main(int argc, char* argv[])
 
       rst_Q1_xt_avgSrc[i] /= double(num_pt_src);
       rst_Q2_xt_avgSrc[i] /= double(num_pt_src);
-
-      // rst_Q1_avgSrc[i] *= hadron_coef; // Do not multiply hadron_coef in C++
-      // rst_Q2_avgSrc[i] *= hadron_coef;
     }
 
     std::cout << "traj [" << traj << "] amplitude Q1 by time slice: " << rst_Q1_xt_avgSrc << std::endl;

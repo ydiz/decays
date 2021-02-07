@@ -89,7 +89,8 @@ int main(int argc, char* argv[])
       LatticeComplex rst_Q1(env.grid); rst_Q1 = Zero();
       LatticeComplex rst_Q2(env.grid); rst_Q2 = Zero();
       for(int rho=0; rho<4; ++rho) {
-        rst_Q1 += trace(gL[rho] * Lxx) * trace(gL[rho] * A);
+        // rst_Q1 += trace(gL[rho] * Lxx) * trace(gL[rho] * A);
+        rst_Q1 += trace(gL[rho] * Lxx) * trace(g5 * A);
         rst_Q2 += trace(gL[rho] * Lxx * gL[rho] * A);
       }
 
