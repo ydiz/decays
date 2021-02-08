@@ -1,5 +1,5 @@
-#include "typeI_utils.h"
-#include "typeI_diagrams.h"
+#include "typeII_utils.h"
+#include "typeII_diagrams.h"
 
 using namespace std;
 using namespace Grid;
@@ -20,8 +20,7 @@ int main(int argc, char* argv[])
   Env env("24ID");
 #endif
 
-  map<string, decltype(&typeI_D1a)> amplitude_func {{"typeI_D1a", typeI_D1a},  {"typeI_D1b", typeI_D1b}, 
-                                                    {"typeI_D2a", typeI_D2a},  {"typeI_D2b", typeI_D2b}};
+  map<string, decltype(&typeII_D1a)> amplitude_func {{"typeII_D1a", typeII_D1a},  {"typeII_D1b", typeII_D1b}};
 
   // env.N_pt_src = 1;  // keep only one point
   env.N_pt_src = -1;  // Use all points
@@ -94,6 +93,8 @@ int main(int argc, char* argv[])
         int tsep = tseps[tsep_idx];
         int tK = (x[3] - tsep + T) % T;
 
+        // vector<Complex> rst_Q1_vt(T), rst_Q2_vt(T);
+        // typeI_D1a(x, tK, rst_Q1_vt, rst_Q2_vt, env, wl, ws, max_uv_sep);
         LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid);
         amplitude_func[diagram](x, tK, rst_Q1, rst_Q2, env, wl, ws, pl, ps, max_uv_sep);
 

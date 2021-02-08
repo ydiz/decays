@@ -8,12 +8,10 @@ namespace Grid {
 // Possible optimization for type I: for diagram b, Fourier transformation does not depend on tK and can be done outside of the tsep loop
 
 void typeI_D1a(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, LatticeComplex &rst_Q2, 
-                     Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, int max_uv_sep) {
+               Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, 
+               const LatticePropagator &pl, const LatticePropagator &ps, int max_uv_sep) {
   using namespace std;
   const int T = env.grid->_fdimensions[3];
-
-  LatticePropagator pl = env.get_point(x, 'l'); 
-  LatticePropagator ps = env.get_point(x, 's'); 
 
   LatticePropagatorSite ws_x; // H(x, tK)
   peekSite(ws_x, ws[tK], x);
@@ -45,12 +43,10 @@ void typeI_D1a(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, Lattic
 
 
 void typeI_D2a(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, LatticeComplex &rst_Q2, 
-                     Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, int max_uv_sep) {
+                     Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, 
+                     const LatticePropagator &pl, const LatticePropagator &ps, int max_uv_sep) {
   using namespace std;
   const int T = env.grid->_fdimensions[3];
-
-  LatticePropagator pl = env.get_point(x, 'l'); 
-  LatticePropagator ps = env.get_point(x, 's'); 
 
   LatticePropagatorSite wl_x; // L(x, tK)
   peekSite(wl_x, wl[tK], x);
@@ -82,12 +78,10 @@ void typeI_D2a(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, Lattic
 
 
 void typeI_D1b(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, LatticeComplex &rst_Q2, 
-                     Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, int max_uv_sep) {
+                     Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, 
+                     const LatticePropagator &pl, const LatticePropagator &ps, int max_uv_sep) {
   using namespace std;
   const int T = env.grid->_fdimensions[3];
-
-  LatticePropagator pl = env.get_point(x, 'l'); 
-  LatticePropagator ps = env.get_point(x, 's'); 
 
   LatticePropagatorSite ws_x; // H(x, tK)
   peekSite(ws_x, ws[tK], x);
@@ -119,12 +113,10 @@ void typeI_D1b(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, Lattic
 
 
 void typeI_D2b(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, LatticeComplex &rst_Q2, 
-                     Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, int max_uv_sep) {
+                     Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, 
+                     const LatticePropagator &pl, const LatticePropagator &ps, int max_uv_sep) {
   using namespace std;
   const int T = env.grid->_fdimensions[3];
-
-  LatticePropagator pl = env.get_point(x, 'l'); 
-  LatticePropagator ps = env.get_point(x, 's'); 
 
   LatticePropagatorSite wl_x; // L(x, tK)
   peekSite(wl_x, wl[tK], x);
