@@ -34,6 +34,7 @@ LatticeComplex exp_v0_tK(GridCartesian *grid, int t_K, double M_K) {
   LatticeComplex lat(grid);
   int T = lat.Grid()->_fdimensions[3];
 
+  autoView(lat_v, lat, CpuWrite);
   thread_for(ss, lat.Grid()->lSites(), {
     Coordinate lcoor, gcoor;
     localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
@@ -47,7 +48,7 @@ LatticeComplex exp_v0_tK(GridCartesian *grid, int t_K, double M_K) {
     }
     else m = Zero();
 
-		pokeLocalSite(m, lat, lcoor);
+		pokeLocalSite(m, lat_v, lcoor);
   });
 
   return lat;

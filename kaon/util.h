@@ -34,6 +34,8 @@ void EM_factor_half_lattice(LatticeKGG &lat, const std::vector<int> &v, double M
   lat = Zero();
 
   const int T = lat.Grid()->_fdimensions[3];
+
+  autoView(lat_v, lat, CpuWrite);
   parallel_for(int ss=0; ss<lat.Grid()->lSites(); ss++) {
 
     Coordinate lcoor, gcoor;
@@ -66,7 +68,8 @@ void EM_factor_half_lattice(LatticeKGG &lat, const std::vector<int> &v, double M
       m(2, 0)()() = - m(0, 2)()();
       m(2, 1)()() = - m(1, 2)()();
 
-      pokeLocalSite(m, lat, lcoor);
+      // pokeLocalSite(m, lat, lcoor);
+      pokeLocalSite(m, lat_v, lcoor);
     }
   }
 
@@ -140,8 +143,10 @@ inline iColourMatrix<vtype> traceS(const iSpinColourMatrix<vtype> &p) {
 
 LatticeColourMatrix traceS(const LatticePropagator &p) {
   LatticeColourMatrix rst(p.Grid());
-  auto rst_v = rst.View();
-  auto p_v = p.View();
+  // auto rst_v = rst.View();
+  // auto p_v = p.View();
+  autoView(rst_v, rst, CpuWrite);
+  autoView(p_v, p, CpuRead);
   parallel_for(int ss=0; ss<p.Grid()->oSites(); ++ss)
     rst_v[ss] = traceS(p_v[ss]);
   return rst;
@@ -162,8 +167,10 @@ inline iMatrix<iScalar<iScalar<vComplex>>, 4> traceC(const iMatrix<iScalar<iMatr
 
 LatticeKGG traceC(const LatticeLorentzColour &p) {
   LatticeKGG rst(p.Grid());
-  auto rst_v = rst.View();
-  auto p_v = p.View();
+  // auto rst_v = rst.View();
+  // auto p_v = p.View();
+  autoView(rst_v, rst, CpuWrite);
+  autoView(p_v, p, CpuRead);
   parallel_for(int ss=0; ss<p.Grid()->oSites(); ++ss) {
     rst_v[ss] = traceC(p_v[ss]);
   }
@@ -216,45 +223,45 @@ std::string coor2str(const std::vector<int> &x) { // [1,2,3,4] -> 1_2_3_4
 }
 
 
-void zero_mask(LatticeComplex &lat, int t_wall, int right_min = 5) {
-  int T = lat.Grid()->_fdimensions[3];
-  std::vector<int> vec(T);
-  for(int t=0; t<T; ++t) {
-    if(left_distance(t_wall, t, T) < T/2 || right_distance(t_wall, t, T) < right_min) vec[t] = 0.;
-    else vec[t] = 1.;
-  }
-  
-	parallel_for(int ss=0; ss<lat.Grid()->lSites(); ss++){
-    // std::vector<int> lcoor, gcoor;
-    Coordinate lcoor, gcoor;
-    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
-
-    int t = gcoor[3];
-		typename LatticeComplex::vector_object::scalar_object m;
-		m()()() = Complex(vec[t], 0.);
-		pokeLocalSite(m, lat, lcoor);
-  }
-}
-
-
-
-// return exp(coeff * t_x), where tx is in [-T/2, T/2]
-void exp_lat(LatticeComplex &lat, double coeff) {
-
-	parallel_for(int ss=0; ss<lat.Grid()->lSites(); ss++){
-    // std::vector<int> lcoor, gcoor;
-    Coordinate lcoor, gcoor;
-    localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
-
-		double val;
-		int xt = qlat::smod(gcoor[Tdir], lat.Grid()->_fdimensions[Tdir]);
-    val = std::exp(coeff * xt); // translation factor
-
-		typename LatticeComplex::vector_object::scalar_object m;
-		m()()() = Complex(val, 0.);
-		pokeLocalSite(m, lat, lcoor);
-	}
-}
+// void zero_mask(LatticeComplex &lat, int t_wall, int right_min = 5) {
+//   int T = lat.Grid()->_fdimensions[3];
+//   std::vector<int> vec(T);
+//   for(int t=0; t<T; ++t) {
+//     if(left_distance(t_wall, t, T) < T/2 || right_distance(t_wall, t, T) < right_min) vec[t] = 0.;
+//     else vec[t] = 1.;
+//   }
+//   
+// 	parallel_for(int ss=0; ss<lat.Grid()->lSites(); ss++){
+//     // std::vector<int> lcoor, gcoor;
+//     Coordinate lcoor, gcoor;
+//     localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
+//
+//     int t = gcoor[3];
+// 		typename LatticeComplex::vector_object::scalar_object m;
+// 		m()()() = Complex(vec[t], 0.);
+// 		pokeLocalSite(m, lat, lcoor);
+//   }
+// }
+//
+//
+//
+// // return exp(coeff * t_x), where tx is in [-T/2, T/2]
+// void exp_lat(LatticeComplex &lat, double coeff) {
+//
+// 	parallel_for(int ss=0; ss<lat.Grid()->lSites(); ss++){
+//     // std::vector<int> lcoor, gcoor;
+//     Coordinate lcoor, gcoor;
+//     localIndexToLocalGlobalCoor(lat.Grid(), ss, lcoor, gcoor);
+//
+// 		double val;
+// 		int xt = my_smod(gcoor[Tdir], lat.Grid()->_fdimensions[Tdir]);
+//     val = std::exp(coeff * xt); // translation factor
+//
+// 		typename LatticeComplex::vector_object::scalar_object m;
+// 		m()()() = Complex(val, 0.);
+// 		pokeLocalSite(m, lat, lcoor);
+// 	}
+// }
 
 
 

@@ -3,13 +3,12 @@
 #include <headers/headers.h>
 #include "util.h"
 
-// #ifdef BNL
-// #include "/sdcc/u/ydzhao/A2AGrid/io.h"
-// #endif
-
-#include <qlat/qlat.h>
+#ifdef CORI
+#include "env_cori.h"
+#endif
 
 #ifdef BNL
+#include <qlat/qlat.h>
 #include "env_bnl.h"
 #endif
 
