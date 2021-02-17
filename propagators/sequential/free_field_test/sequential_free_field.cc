@@ -129,7 +129,8 @@ int main(int argc, char **argv)
   // Calculate Sequential Propagators
   /////////////////////////////////////////
 
-  vector<vector<int>> new_pts = {{0,0,0,0}};
+  // vector<vector<int>> new_pts = {{0,0,0,0}};
+  vector<vector<int>> new_pts = {{0,0,0,0}, {0,0,0,1}, {0,0,0,2}, {0,0,0,3}, {0,0,0,4}, {0,0,0,5}, {0,0,0,6}, {0,0,0,7}};
   for(const vector<int> &v: new_pts) {
     cout << GridLogMessage << "v: " << v << endl;
 
@@ -199,14 +200,14 @@ int main(int argc, char **argv)
     string prop_fname = output_prefix + "/" + coor2str(v);
     writeScidac_prop_d2f(prop, prop_fname);
 
-    // std::cout << prop << std::endl;
-    std::cout << "Full propagator at {0,0,0,0}" << std::endl;
-    print_grid_field_site(prop, {0,0,0,0});
-
-
-    LatticeSpinMatrix tmp = peekColour(prop, 0, 0); // The color index dependence of prop is delta_{a,b}, and is trivial
-    std::cout << "Propagator without color index" << std::endl;
-    std::cout << tmp << std::endl;
+    // // std::cout << prop << std::endl;
+    // std::cout << "Full propagator at {0,0,0,0}" << std::endl;
+    // print_grid_field_site(prop, {0,0,0,0});
+    //
+    //
+    // LatticeSpinMatrix tmp = peekColour(prop, 0, 0); // The color index dependence of prop is delta_{a,b}, and is trivial
+    // std::cout << "Propagator without color index" << std::endl;
+    // std::cout << tmp << std::endl;
 
   }  // end of loop of point sources
 

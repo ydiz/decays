@@ -93,7 +93,8 @@ Env::Env(const std::string &_ensemble) // cannot initialize grid in initializer 
 // Free field test // The source can only be at (0,0,0,0)
 std::vector<std::vector<int>> Env::get_xgs(char quark) {
   // return {{0,0,0,0}, {1,2,3,4}, {6,4,7,2}};
-  return {{0,0,0,0}};
+  // return {{0,0,0,0}};
+  return {{0,0,0,0}, {0,0,0,1}, {0,0,0,2}, {0,0,0,3}, {0,0,0,4}, {0,0,0,5}, {0,0,0,6}, {0,0,0,7}};
 }
 
 void Env::setup_traj(int _traj) {
@@ -175,13 +176,12 @@ std::vector<LatticePropagator> Env::get_wall(char quark, bool useCoulombSink/* =
 
 LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const {
 
-  for(int mu=0; mu<4; ++mu) assert(src[mu]==0);
 
   LatticePropagator point_prop(grid);
 
   std::string fname;
-  if(quark == 'l')  fname="/home/ydzhao/cuth/decays/propagators/point_s/free_field_test/free_field_props/point_l/0_0_0_0";   
-  else if(quark == 's') fname="/home/ydzhao/cuth/decays/propagators/point_s/free_field_test/free_field_props/point_s/0_0_0_0";
+  if(quark == 'l')  fname="/home/ydzhao/cuth/decays/propagators/point_s/free_field_test/free_field_props/point_l/" + coor2str(src);   
+  else if(quark == 's') fname="/home/ydzhao/cuth/decays/propagators/point_s/free_field_test/free_field_props/point_s/" + coor2str(src);
   readScidac_prop_f2d(point_prop, fname);
 
   return point_prop;
@@ -190,9 +190,7 @@ LatticePropagator Env::get_point(const std::vector<int> &src, char quark) const 
 
 LatticePropagator Env::get_sequential(const std::vector<int> &src) const {
 
-  for(int mu=0; mu<4; ++mu) assert(src[mu]==0);
-
-  std::string fname = "/home/ydzhao/cuth/decays/propagators/sequential/free_field_test/free_field_props/0_0_0_0";
+  std::string fname = "/home/ydzhao/cuth/decays/propagators/sequential/free_field_test/free_field_props/" + coor2str(src);
   LatticePropagator seq_prop(grid);
   readScidac_prop_f2d(seq_prop, fname);
 
