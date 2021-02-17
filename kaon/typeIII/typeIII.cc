@@ -65,16 +65,19 @@ int main(int argc, char* argv[])
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');
 
-    int num_pt_src = 0;
-    std::vector<int> pt_counts_slices(T, 0);
     if(env.N_pt_src != -1) env.xgs_l.resize(env.N_pt_src);
+
+    std::vector<int> pt_counts_slices(T, 0);
+    for(const auto &pt: env.xgs_l) ++pt_counts_slices[pt[3]]; // Number of point sources on each time slice
+    for(int i=0; i<T; ++i) assert(pt_counts_slices[i] > 0); // Must have at least one point source on each time slice
+
+    int num_pt_src = 0;
     for(const auto &v: env.xgs_l) {
       std::cout << "# Point source: " << num_pt_src << std::endl;
       std::cout << "Point source: " << v << std::endl;
+      ++num_pt_src;
 
       int vt = v[3];
-      ++num_pt_src;
-      ++pt_counts_slices[vt];
 
       LatticePropagator pl = env.get_point(v, 'l'); // pl = L(x, v) 
       LatticePropagator sequential = env.get_sequential(v);
@@ -87,26 +90,15 @@ int main(int argc, char* argv[])
         sliceSum(rst_Q1, rst_Q1_xt, Tdir);
         sliceSum(rst_Q2, rst_Q2_xt, Tdir);
         for(int xt=0; xt<T; ++xt) {
-          table3d_Q1[tK][xt][vt] += rst_Q1_xt[xt]()()();
-          table3d_Q2[tK][xt][vt] += rst_Q2_xt[xt]()()();
+          table3d_Q1[tK][xt][vt] += rst_Q1_xt[xt]()()() / double(pt_counts_slices[vt]); // divide by number of point sources on each time slice
+          table3d_Q2[tK][xt][vt] += rst_Q2_xt[xt]()()() / double(pt_counts_slices[vt]);
         }
       }
 
     } // end of point source loop
 
-    std::cout << GridLogMessage << "Number of point sources: " << num_pt_src << std::endl;
-
-
-    for(int tK=0; tK<T; ++tK) {
-      for(int xt=0; xt<T; ++xt) {
-        for(int vt=0; vt<T; ++vt) {
-          if(pt_counts_slices[vt] > 0) {
-            table3d_Q1[tK][xt][vt] /= double(pt_counts_slices[vt]); // Divided by number of point sources on each vt slice
-            table3d_Q2[tK][xt][vt] /= double(pt_counts_slices[vt]);
-          }
-        }
-      }
-    }
+    std::cout << "Total number of point sources: " << num_pt_src << std::endl;
+    std::cout << "Number of point sources on each time slice: " << pt_counts_slices << std::endl;
 
     // std::cout << "traj [" << traj << "] amplitude Q1 by time slice: " << table3d_Q1 << std::endl;
     // std::cout << "traj [" << traj << "] amplitude Q2 by time slice: " << table3d_Q2 << std::endl;

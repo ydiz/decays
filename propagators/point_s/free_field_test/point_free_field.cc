@@ -33,10 +33,10 @@ int main(int argc, char **argv)
   // double mass = 0.085, b = 2.5, M5 = 1.8;  // !! mass must be the mass of strange quark
   // vector<int> fdims = {24, 24, 24, 64};
 
-  // double mass = 0.04, b = 1.0, M5 = 1.0; // light quark
-  // string quark_type = "l";  // used in output path
-  double mass = 0.06, b = 1.0, M5 = 1.0; // heavy quark
-  string quark_type = "s";  // used in output path
+  double mass = 0.04, b = 1.0, M5 = 1.0; // light quark
+  string quark_type = "l";  // used in output path
+  // double mass = 0.06, b = 1.0, M5 = 1.0; // heavy quark
+  // string quark_type = "s";  // used in output path
   int Ls = 16;
   vector<int> fdims = {8, 8, 8, 8};
   // double time_boundary_phase = 0.; // No boundary phase; periodic boundary condition
@@ -107,11 +107,14 @@ int main(int argc, char **argv)
   // vector<Coordinate> point_srcs(1);  // FIXME: should iterate over many point sources 
   // point_srcs[0] = Coordinate(std::vector<int>{0,0,0,0});
 
-  int T = fdims[3];
-  vector<Coordinate> point_srcs(T);  
-  for(int i=0; i<T; ++i) point_srcs[i] = Coordinate(std::vector<int>{0,0,0,i});
+  // int T = fdims[3];
+  // vector<Coordinate> point_srcs(T);  
+  // for(int i=0; i<T; ++i) point_srcs[i] = Coordinate(std::vector<int>{0,0,0,i});
 
-  for(Coordinate point_src: point_srcs) {
+  // vector<vector<int>> point_srcs = {{0,0,0,0}, {0,0,0,1}, {0,0,0,2}, {0,0,0,3}, {0,0,0,4}, {0,0,0,5}, {0,0,0,6}, {0,0,0,7}};
+  vector<vector<int>> point_srcs = {{1,0,0,0}, {1,0,0,1}, {1,0,0,2}, {1,0,0,3}};
+
+  for(const auto &point_src: point_srcs) {
     std::cout << GridLogMessage << "point_src: " << point_src << std::endl;
 
     LatticePropagator prop(UGrid);
@@ -139,7 +142,8 @@ int main(int argc, char **argv)
     }
 
     // string prop_fname = output_prefix + "/point_l/" + coor2str(point_src.toVector());
-    string prop_fname = output_prefix + "/point_" + quark_type + "/" + coor2str(point_src.toVector());
+    // string prop_fname = output_prefix + "/point_" + quark_type + "/" + coor2str(point_src.toVector());
+    string prop_fname = output_prefix + "/point_" + quark_type + "/" + coor2str(point_src);
     writeScidac_prop_d2f(prop, prop_fname);
 
     // // std::cout << prop << std::endl;
