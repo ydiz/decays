@@ -1,5 +1,5 @@
 #include "kaon/kaon.h"
-#include "typeIV_a_diagrams.h"
+#include "typeV_diagrams.h"
 #include "../table3d_utils.h"
 
 using namespace std;
@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 #endif
 
   env.N_pt_src = -1;  
-  map<string, decltype(&typeIV_D1a)> amplitude_func {{"typeIV_D1a", typeIV_D1a},  {"typeIV_D2a", typeIV_D2a}};
+  map<string, decltype(&typeV)> amplitude_func {{"typeV", typeV}};
 
   string diagram;
   if( GridCmdOptionExists(argv, argv+argc, "--diagram") ) {
@@ -61,8 +61,10 @@ int main(int argc, char* argv[])
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
     env.setup_traj(traj);
 
-    vector<vector<vector<Complex>>> table3d_Q1=initialize_table3d(T); // table3d[tK][xt][vt]
-    vector<vector<vector<Complex>>> table3d_Q2=initialize_table3d(T);
+    vector<vector<vector<Complex>>> table3d_D1Q1=initialize_table3d(T); // table3d[tK][xt][vt]
+    vector<vector<vector<Complex>>> table3d_D1Q2=initialize_table3d(T);
+    vector<vector<vector<Complex>>> table3d_D2Q1=initialize_table3d(T); 
+    vector<vector<vector<Complex>>> table3d_D2Q2=initialize_table3d(T);
 
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');
@@ -82,20 +84,23 @@ int main(int argc, char* argv[])
 
       int vt = v[3];
 
-      LatticePropagator point_prop(env.grid);
-      if(diagram=="typeIV_D1a") point_prop = env.get_point(v, 'l'); // pl = L(x, v) // for typeIV_D1a 
-      else point_prop = env.get_point(v, 's'); // ps = H(x, v) // for typeIV_D2a
+      LatticePropagator pl = env.get_point(v, 'l'); // pl = L(x, v) 
+      LatticePropagator ps = env.get_point(v, 's'); // ps = H(x, v)
 
       for(int tK=0; tK<T; ++tK) {
-        LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid);
-        amplitude_func[diagram](v, tK, rst_Q1, rst_Q2, env, wl, ws, point_prop, Lxx, max_uv_sep);
+        LatticeComplex rst_D1Q1(env.grid), rst_D1Q2(env.grid), rst_D2Q1(env.grid), rst_D2Q2(env.grid);
+        amplitude_func[diagram](v, tK, rst_D1Q1, rst_D1Q2, rst_D2Q1, rst_D2Q2, env, wl, ws, pl, ps, Lxx, max_uv_sep);
 
-        vector<LatticeComplexSite> rst_Q1_xt, rst_Q2_xt;
-        sliceSum(rst_Q1, rst_Q1_xt, Tdir);
-        sliceSum(rst_Q2, rst_Q2_xt, Tdir);
+        vector<LatticeComplexSite> rst_D1Q1_xt, rst_D1Q2_xt, rst_D2Q1_xt, rst_D2Q2_xt;
+        sliceSum(rst_D1Q1, rst_D1Q1_xt, Tdir);
+        sliceSum(rst_D1Q2, rst_D1Q2_xt, Tdir);
+        sliceSum(rst_D2Q1, rst_D2Q1_xt, Tdir);
+        sliceSum(rst_D2Q2, rst_D2Q2_xt, Tdir);
         for(int xt=0; xt<T; ++xt) {
-          table3d_Q1[tK][xt][vt] += rst_Q1_xt[xt]()()() / double(pt_counts_slices[vt]); // divide by number of point sources on each time slice
-          table3d_Q2[tK][xt][vt] += rst_Q2_xt[xt]()()() / double(pt_counts_slices[vt]);
+          table3d_D1Q1[tK][xt][vt] += rst_D1Q1_xt[xt]()()() / double(pt_counts_slices[vt]); // divide by number of point sources on each time slice
+          table3d_D1Q2[tK][xt][vt] += rst_D1Q2_xt[xt]()()() / double(pt_counts_slices[vt]);
+          table3d_D2Q1[tK][xt][vt] += rst_D2Q1_xt[xt]()()() / double(pt_counts_slices[vt]); 
+          table3d_D2Q2[tK][xt][vt] += rst_D2Q2_xt[xt]()()() / double(pt_counts_slices[vt]);
         }
       }
 
@@ -107,10 +112,14 @@ int main(int argc, char* argv[])
     // std::cout << "traj [" << traj << "] amplitude Q1 by time slice: " << table3d_Q1 << std::endl;
     // std::cout << "traj [" << traj << "] amplitude Q2 by time slice: " << table3d_Q2 << std::endl;
 
-    vector<vector<Complex>> table2d_Q1 = table3d_to_table2d(table3d_Q1);  // table2d[tK][vt], with xt=0
-    vector<vector<Complex>> table2d_Q2 = table3d_to_table2d(table3d_Q2);
-    std::cout << "traj [" << traj << "] amplitude Q1: " << table2d_Q1 << std::endl;
-    std::cout << "traj [" << traj << "] amplitude Q2: " << table2d_Q2 << std::endl;
+    vector<vector<Complex>> table2d_D1Q1 = table3d_to_table2d(table3d_D1Q1);  // table2d[tK][vt], with xt=0
+    vector<vector<Complex>> table2d_D1Q2 = table3d_to_table2d(table3d_D1Q2);
+    vector<vector<Complex>> table2d_D2Q1 = table3d_to_table2d(table3d_D2Q1);  // table2d[tK][vt], with xt=0
+    vector<vector<Complex>> table2d_D2Q2 = table3d_to_table2d(table3d_D2Q2);
+    std::cout << "traj [" << traj << "] amplitude D1Q1: " << table2d_D1Q1 << std::endl;
+    std::cout << "traj [" << traj << "] amplitude D1Q2: " << table2d_D1Q2 << std::endl;
+    std::cout << "traj [" << traj << "] amplitude D2Q1: " << table2d_D2Q1 << std::endl;
+    std::cout << "traj [" << traj << "] amplitude D2Q2: " << table2d_D2Q2 << std::endl;
 
   } // end of traj loop
 

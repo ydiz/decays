@@ -35,8 +35,8 @@ void typeIV_D1a(const std::vector<int> &v, int tK, LatticeComplex &rst_Q1, Latti
     f_Q2_Kbar += adj(pl) * gL[rho] * Lxx * gL[rho] * ws[tK];
   }
 
-  rst_Q1 = trace(f_Q1_K * g - f_Q1_Kbar * adj(g));
-  rst_Q2 = trace(f_Q2_K * g - f_Q2_Kbar * adj(g));
+  rst_Q1 = trace(f_Q1_K * g + f_Q1_Kbar * adj(g));
+  rst_Q2 = trace(f_Q2_K * g + f_Q2_Kbar * adj(g));
 
   int tsep = (v[3] - tK + T) % T;
   rst_Q1 *= std::exp(env.M_K * tsep);  // multiply all amplitudes by exp(M_K * (v0 - tK))
@@ -76,8 +76,8 @@ void typeIV_D2a(const std::vector<int> &v, int tK, LatticeComplex &rst_Q1, Latti
     f_Q2_Kbar += adj(wl[tK]) * gL[rho] * Lxx * gL[rho] * ps;
   }
 
-  rst_Q1 = trace(f_Q1_K * g - f_Q1_Kbar * adj(g));
-  rst_Q2 = trace(f_Q2_K * g - f_Q2_Kbar * adj(g));
+  rst_Q1 = trace(f_Q1_K * g + f_Q1_Kbar * adj(g));
+  rst_Q2 = trace(f_Q2_K * g + f_Q2_Kbar * adj(g));
 
   int tsep = (v[3] - tK + T) % T;
   rst_Q1 *= std::exp(env.M_K * tsep);  // multiply all amplitudes by exp(M_K * (v0 - tK))

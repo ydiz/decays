@@ -110,8 +110,8 @@ void typeIV_D1b(const std::vector<int> &u, int tK, std::vector<std::vector<Compl
   int tsep = (u[3] - tK + T) % T;
   for(int xt=0; xt<T; ++xt) {
     for(int vt=0; vt<T; ++vt) {
-      rst_Q1_xt_vt[xt][vt] = trace(f_Q1_K_xt[xt] * g_vt[vt] - f_Q1_Kbar_xt[xt] * adj(g_vt[vt]))()()();
-      rst_Q2_xt_vt[xt][vt] = trace(f_Q2_K_xt[xt] * g_vt[vt] - f_Q2_Kbar_xt[xt] * adj(g_vt[vt]))()()();
+      rst_Q1_xt_vt[xt][vt] = trace(f_Q1_K_xt[xt] * g_vt[vt] + f_Q1_Kbar_xt[xt] * adj(g_vt[vt]))()()();
+      rst_Q2_xt_vt[xt][vt] = trace(f_Q2_K_xt[xt] * g_vt[vt] + f_Q2_Kbar_xt[xt] * adj(g_vt[vt]))()()();
 
       rst_Q1_xt_vt[xt][vt] *= std::exp(env.M_K * tsep);  // multiply all amplitudes by exp(M_K * (u0 - tK))
       rst_Q2_xt_vt[xt][vt] *= std::exp(env.M_K * tsep);
@@ -169,8 +169,8 @@ void typeIV_D2b(const std::vector<int> &u, int tK, std::vector<std::vector<Compl
   int tsep = (u[3] - tK + T) % T;
   for(int xt=0; xt<T; ++xt) {
     for(int vt=0; vt<T; ++vt) {
-      rst_Q1_xt_vt[xt][vt] = trace(f_Q1_K_xt[xt] * g_vt[vt] - f_Q1_Kbar_xt[xt] * adj(g_vt[vt]))()()();
-      rst_Q2_xt_vt[xt][vt] = trace(f_Q2_K_xt[xt] * g_vt[vt] - f_Q2_Kbar_xt[xt] * adj(g_vt[vt]))()()();
+      rst_Q1_xt_vt[xt][vt] = trace(f_Q1_K_xt[xt] * g_vt[vt] + f_Q1_Kbar_xt[xt] * adj(g_vt[vt]))()()();
+      rst_Q2_xt_vt[xt][vt] = trace(f_Q2_K_xt[xt] * g_vt[vt] + f_Q2_Kbar_xt[xt] * adj(g_vt[vt]))()()();
 
       rst_Q1_xt_vt[xt][vt] *= std::exp(env.M_K * tsep);  // multiply all amplitudes by exp(M_K * (u0 - tK))
       rst_Q2_xt_vt[xt][vt] *= std::exp(env.M_K * tsep);

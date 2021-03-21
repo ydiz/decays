@@ -19,7 +19,7 @@ void typeI_D1a(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, Lattic
   vector<vector<LatticeColourMatrix>> Fu(4, vector<LatticeColourMatrix>(4, env.grid)); // F_{mu,rho}(u, x)
   for(int mu=0; mu<4; ++mu) {
     LatticePropagator A = adj(pl) * gmu5[mu] * wl[tK] * adj(ws_x);
-    A = A - adj(A);              //  add contribution from K0_bar
+    A = A + adj(A);              //  add contribution from K0_bar
     for(int rho=0; rho<4; ++rho) Fu[mu][rho] = traceS(gL[rho] * A); 
   }
 
@@ -54,7 +54,7 @@ void typeI_D2a(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, Lattic
   vector<vector<LatticeColourMatrix>> Fu(4, vector<LatticeColourMatrix>(4, env.grid)); // F_{mu,rho}(u, x)
   for(int mu=0; mu<4; ++mu) {
     LatticePropagator A = wl_x * adj(ws[tK]) * gmu5[mu] * ps;
-    A = A - adj(A);              //  add contribution from K0_bar
+    A = A + adj(A);              //  add contribution from K0_bar
     for(int rho=0; rho<4; ++rho) Fu[mu][rho] = traceS(gL[rho] * A); 
   }
 
@@ -90,7 +90,7 @@ void typeI_D1b(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, Lattic
   LatticeComplex exp_factor = exp_v0_tK(env.grid, tK, env.M_K);
   for(int nu=0; nu<4; ++nu) {
     LatticePropagator A = adj(pl) * gmu5[nu] * wl[tK] * adj(ws_x);
-    A = A - adj(A);              //  add contribution from K0_bar
+    A = A + adj(A);              //  add contribution from K0_bar
     for(int rho=0; rho<4; ++rho) Fv[nu][rho] = traceS(gL[rho] * A) * exp_factor; 
   }
 
@@ -125,7 +125,7 @@ void typeI_D2b(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, Lattic
   LatticeComplex exp_factor = exp_v0_tK(env.grid, tK, env.M_K);
   for(int nu=0; nu<4; ++nu) {
     LatticePropagator A = wl_x * adj(ws[tK]) * gmu5[nu] * ps;
-    A = A - adj(A);              //  add contribution from K0_bar
+    A = A + adj(A);              //  add contribution from K0_bar
     for(int rho=0; rho<4; ++rho) Fv[nu][rho] = traceS(gL[rho] * A) * exp_factor; 
   }
 

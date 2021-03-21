@@ -26,7 +26,7 @@ void typeII_D1a(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, Latti
 
   LatticePropagator A(env.grid); A = Zero();
   for(int nu=0; nu<4; ++nu) A += Cv[nu] * Gv[nu];
-  A = A - adj(A);  // Contribution of K0_bar
+  A = A + adj(A);  // Contribution of K0_bar
 
   rst_Q1 = Zero(); rst_Q2 = Zero();
   for(int rho=0; rho<4; ++rho) {
@@ -56,7 +56,7 @@ void typeII_D1b(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, Latti
 
   LatticePropagator A(env.grid); A = Zero();
   for(int nu=0; nu<4; ++nu) A += Fv[nu] * Cv[nu];
-  A = A - adj(A);  // Contribution of K0_bar
+  A = A + adj(A);  // Contribution of K0_bar
 
   rst_Q1 = Zero(); rst_Q2 = Zero();
   for(int rho=0; rho<4; ++rho) {

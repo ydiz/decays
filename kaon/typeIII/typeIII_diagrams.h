@@ -17,7 +17,7 @@ void typeIII_D1a(const std::vector<int> &v, int tK, LatticeComplex &rst_Q1, Latt
 
   LatticePropagator f2(env.grid);
   f2 = wl[tK] * adj(ws[tK]);
-  f2 = f2 - adj(f2);             // to incorporate the contribution of K0 bar f2 = wl[tK] * adj(ws[tK]) - ws[tK] * adj(wl[tK]) 
+  f2 = f2 + adj(f2);             // to incorporate the contribution of K0 bar f2 = wl[tK] * adj(ws[tK]) - ws[tK] * adj(wl[tK]) 
 
   rst_Q1 = Zero(); rst_Q2 = Zero();
   for(int rho=0; rho<4; ++rho) {
@@ -44,7 +44,7 @@ void typeIII_D1b(const std::vector<int> &v, int tK, LatticeComplex &rst_Q1, Latt
 
   LatticePropagator f2(env.grid);
   f2 = wl[tK] * adj(ws[tK]);
-  f2 = f2 - adj(f2);             // to incorporate the contribution of K0 bar f2 = wl[tK] * adj(ws[tK]) - ws[tK] * adj(wl[tK]) 
+  f2 = f2 + adj(f2);             // to incorporate the contribution of K0 bar f2 = wl[tK] * adj(ws[tK]) - ws[tK] * adj(wl[tK]) 
 
   rst_Q1 = Zero(); rst_Q2 = Zero();
   for(int rho=0; rho<4; ++rho) {
