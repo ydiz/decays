@@ -63,6 +63,7 @@ int main(int argc, char* argv[])
 
     vector<vector<vector<Complex>>> table3d_Q1=initialize_table3d(T); // table3d[tK][xt][vt]
     vector<vector<vector<Complex>>> table3d_Q2=initialize_table3d(T);
+    vector<vector<vector<Complex>>> table3d_sBar_d=initialize_table3d(T);
 
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');
@@ -88,13 +89,14 @@ int main(int argc, char* argv[])
 
       for(int tK=0; tK<T; ++tK) {
         // LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid);
-        vector<vector<Complex>> rst_Q1_xt_vt, rst_Q2_xt_vt;
-        amplitude_func[diagram](u, tK, rst_Q1_xt_vt, rst_Q2_xt_vt, env, wl, ws, point_prop, Lxx, max_uv_sep);
+        vector<vector<Complex>> rst_Q1_xt_vt, rst_Q2_xt_vt, sBar_d_xt_vt;
+        amplitude_func[diagram](u, tK, rst_Q1_xt_vt, rst_Q2_xt_vt, sBar_d_xt_vt, env, wl, ws, point_prop, Lxx, max_uv_sep);
 
         for(int xt=0; xt<T; ++xt) {
           for(int vt=0; vt<T; ++vt) {
             table3d_Q1[tK][xt][vt] += rst_Q1_xt_vt[xt][vt] / double(pt_counts_slices[ut]); // divide by number of point sources on each time slice  // Note: u0 is summed over by summing over all point sources.
             table3d_Q2[tK][xt][vt] += rst_Q2_xt_vt[xt][vt] / double(pt_counts_slices[ut]);
+            table3d_sBar_d[tK][xt][vt] += sBar_d_xt_vt[xt][vt] / double(pt_counts_slices[ut]);
           }
         }
       }
@@ -104,15 +106,12 @@ int main(int argc, char* argv[])
     std::cout << "Total number of point sources: " << num_pt_src << std::endl;
     std::cout << "Number of point sources on each time slice: " << pt_counts_slices << std::endl;
 
-    // std::cout << "table3d_Q1[tK=0][xt][vt] (to compare with python code): "<< table3d_Q1[0] << std::endl << std::endl;   // to compare with the output of python code; they should be the exactly same
-    //
-    // // std::cout << "traj [" << traj << "] amplitude Q1 by time slice: " << table3d_Q1 << std::endl;
-    // // std::cout << "traj [" << traj << "] amplitude Q2 by time slice: " << table3d_Q2 << std::endl;
-
     vector<vector<Complex>> table2d_Q1 = table3d_to_table2d(table3d_Q1);  // table2d[tK][vt], with xt=0
     vector<vector<Complex>> table2d_Q2 = table3d_to_table2d(table3d_Q2);
+    vector<vector<Complex>> table2d_sBar_d = table3d_to_table2d(table3d_sBar_d);
     std::cout << "traj [" << traj << "] amplitude Q1: " << table2d_Q1 << std::endl;
     std::cout << "traj [" << traj << "] amplitude Q2: " << table2d_Q2 << std::endl;
+    std::cout << "traj [" << traj << "] amplitude sBar_d T2 diagram b: " << table2d_sBar_d << std::endl;
 
   } // end of traj loop
 

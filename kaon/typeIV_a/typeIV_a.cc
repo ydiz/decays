@@ -63,6 +63,7 @@ int main(int argc, char* argv[])
 
     vector<vector<vector<Complex>>> table3d_Q1=initialize_table3d(T); // table3d[tK][xt][vt]
     vector<vector<vector<Complex>>> table3d_Q2=initialize_table3d(T);
+    vector<vector<vector<Complex>>> table3d_sBar_d=initialize_table3d(T);
 
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');
@@ -87,15 +88,17 @@ int main(int argc, char* argv[])
       else point_prop = env.get_point(v, 's'); // ps = H(x, v) // for typeIV_D2a
 
       for(int tK=0; tK<T; ++tK) {
-        LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid);
-        amplitude_func[diagram](v, tK, rst_Q1, rst_Q2, env, wl, ws, point_prop, Lxx, max_uv_sep);
+        LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid), rst_sBar_d(env.grid);
+        amplitude_func[diagram](v, tK, rst_Q1, rst_Q2, rst_sBar_d, env, wl, ws, point_prop, Lxx, max_uv_sep);
 
-        vector<LatticeComplexSite> rst_Q1_xt, rst_Q2_xt;
+        vector<LatticeComplexSite> rst_Q1_xt, rst_Q2_xt, rst_sBar_d_xt;
         sliceSum(rst_Q1, rst_Q1_xt, Tdir);
         sliceSum(rst_Q2, rst_Q2_xt, Tdir);
+        sliceSum(rst_sBar_d, rst_sBar_d_xt, Tdir);
         for(int xt=0; xt<T; ++xt) {
           table3d_Q1[tK][xt][vt] += rst_Q1_xt[xt]()()() / double(pt_counts_slices[vt]); // divide by number of point sources on each time slice
           table3d_Q2[tK][xt][vt] += rst_Q2_xt[xt]()()() / double(pt_counts_slices[vt]);
+          table3d_sBar_d[tK][xt][vt] += rst_sBar_d_xt[xt]()()() / double(pt_counts_slices[vt]);
         }
       }
 
@@ -109,8 +112,10 @@ int main(int argc, char* argv[])
 
     vector<vector<Complex>> table2d_Q1 = table3d_to_table2d(table3d_Q1);  // table2d[tK][vt], with xt=0
     vector<vector<Complex>> table2d_Q2 = table3d_to_table2d(table3d_Q2);
+    vector<vector<Complex>> table2d_sBar_d = table3d_to_table2d(table3d_sBar_d);
     std::cout << "traj [" << traj << "] amplitude Q1: " << table2d_Q1 << std::endl;
     std::cout << "traj [" << traj << "] amplitude Q2: " << table2d_Q2 << std::endl;
+    std::cout << "traj [" << traj << "] amplitude sBar_d T2 diagram a: " << table2d_sBar_d << std::endl;
 
   } // end of traj loop
 

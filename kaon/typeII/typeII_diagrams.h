@@ -6,7 +6,8 @@ namespace Grid {
 
 // For each x and tK, return amplitude as a function of v
 
-void typeII_D1a(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, LatticeComplex &rst_Q2, 
+void typeII_D1a(const std::vector<int> &x, int tK, 
+                LatticeComplex &rst_Q1, LatticeComplex &rst_Q2, LatticeComplex &sBar_d_T1D1a, 
                 Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, 
                 const LatticePropagator &pl, const LatticePropagator &ps, int max_uv_sep) {
   using namespace std;
@@ -26,6 +27,9 @@ void typeII_D1a(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, Latti
 
   LatticePropagator A(env.grid); A = Zero();
   for(int nu=0; nu<4; ++nu) A += Cv[nu] * Gv[nu];
+
+  sBar_d_T1D1a = trace(g5 * A);  // for <JJ sbar d K0>
+
   A = A + adj(A);  // Contribution of K0_bar
 
   rst_Q1 = Zero(); rst_Q2 = Zero();
@@ -35,7 +39,8 @@ void typeII_D1a(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, Latti
   }
 }
 
-void typeII_D1b(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, LatticeComplex &rst_Q2, 
+void typeII_D1b(const std::vector<int> &x, int tK, 
+                LatticeComplex &rst_Q1, LatticeComplex &rst_Q2, LatticeComplex &sBar_d_T1D1b, 
                 Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, 
                 const LatticePropagator &pl, const LatticePropagator &ps, int max_uv_sep) {
   using namespace std;
@@ -56,6 +61,9 @@ void typeII_D1b(const std::vector<int> &x, int tK, LatticeComplex &rst_Q1, Latti
 
   LatticePropagator A(env.grid); A = Zero();
   for(int nu=0; nu<4; ++nu) A += Fv[nu] * Cv[nu];
+
+  sBar_d_T1D1b = trace(g5 * A);  // for <JJ sbar d K0>
+
   A = A + adj(A);  // Contribution of K0_bar
 
   rst_Q1 = Zero(); rst_Q2 = Zero();

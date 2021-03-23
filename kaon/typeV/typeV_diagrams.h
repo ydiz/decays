@@ -5,7 +5,7 @@
 namespace Grid {
 
 void typeV(const std::vector<int> &v, int tK, LatticeComplex &rst_D1Q1, LatticeComplex &rst_D1Q2, 
-           LatticeComplex &rst_D2Q1, LatticeComplex &rst_D2Q2,
+           LatticeComplex &rst_D2Q1, LatticeComplex &rst_D2Q2, LatticeComplex &sBar_d_D1, LatticeComplex &sBar_d_D2,
            Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, 
            const LatticePropagator &pl, const LatticePropagator &ps, const LatticePropagator &Lxx, int max_uv_sep) {
   using namespace std;
@@ -28,6 +28,10 @@ void typeV(const std::vector<int> &v, int tK, LatticeComplex &rst_D1Q1, LatticeC
   LatticeComplexSite f_D2 = sum(fu_D2);
 
   LatticePropagator g_x = wl[tK] * adj(ws[tK]); 
+
+  sBar_d_D1 = f_D1 * trace(g5 * g_x);
+  sBar_d_D2 = f_D2 * trace(g5 * g_x);
+
   g_x = g_x + adj(g_x);
 
   rst_D1Q1 = Zero(); rst_D1Q2 = Zero(); rst_D2Q1 = Zero(); rst_D2Q2 = Zero();
@@ -39,6 +43,8 @@ void typeV(const std::vector<int> &v, int tK, LatticeComplex &rst_D1Q1, LatticeC
   }
 
   int tsep = (v[3] - tK + T) % T;
+  sBar_d_D1 *= std::exp(env.M_K * tsep);
+  sBar_d_D2 *= std::exp(env.M_K * tsep);
   rst_D1Q1 *= std::exp(env.M_K * tsep);  // multiply all amplitudes by exp(M_K * (v0 - tK))
   rst_D1Q2 *= std::exp(env.M_K * tsep);
   rst_D2Q1 *= std::exp(env.M_K * tsep); 

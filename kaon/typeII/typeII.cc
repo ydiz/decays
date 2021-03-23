@@ -70,10 +70,11 @@ int main(int argc, char* argv[])
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
     env.setup_traj(traj);
 
-    vector<vector<Complex>> table2d_Q1(tseps.size()), table2d_Q2(tseps.size());
+    vector<vector<Complex>> table2d_Q1(tseps.size()), table2d_Q2(tseps.size()), table2d_sBar_d(tseps.size());
     for(int i=0; i<tseps.size(); ++i) {
       table2d_Q1[i].resize(T, 0.);
       table2d_Q2[i].resize(T, 0.);
+      table2d_sBar_d[i].resize(T, 0.);
     }
 
     vector<LatticePropagator> wl = env.get_wall('l');
@@ -93,18 +94,18 @@ int main(int argc, char* argv[])
         int tsep = tseps[tsep_idx];
         int tK = (x[3] - tsep + T) % T;
 
-        // vector<Complex> rst_Q1_vt(T), rst_Q2_vt(T);
-        // typeI_D1a(x, tK, rst_Q1_vt, rst_Q2_vt, env, wl, ws, max_uv_sep);
-        LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid);
-        amplitude_func[diagram](x, tK, rst_Q1, rst_Q2, env, wl, ws, pl, ps, max_uv_sep);
+        LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid), rst_sBar_d(env.grid);
+        amplitude_func[diagram](x, tK, rst_Q1, rst_Q2, rst_sBar_d, env, wl, ws, pl, ps, max_uv_sep);
 
-        vector<LatticeComplexSite> rst_Q1_vt, rst_Q2_vt; // Sum over each time slice of v
+        vector<LatticeComplexSite> rst_Q1_vt, rst_Q2_vt, rst_sBar_d_vt; // Sum over each time slice of v
         sliceSum(rst_Q1, rst_Q1_vt, Tdir);
         sliceSum(rst_Q2, rst_Q2_vt, Tdir);
+        sliceSum(rst_sBar_d, rst_sBar_d_vt, Tdir);
 
         for(int vt=0; vt<T; ++vt) {
           table2d_Q1[tsep_idx][vt] += rst_Q1_vt[(vt+x[3])%T]()()(); // For table2d, xt := 0
           table2d_Q2[tsep_idx][vt] += rst_Q2_vt[(vt+x[3])%T]()()();
+          table2d_sBar_d[tsep_idx][vt] += rst_sBar_d_vt[(vt+x[3])%T]()()();
         }
       }
 
@@ -115,11 +116,13 @@ int main(int argc, char* argv[])
       for(int i=0; i<T; ++i) {
         table2d_Q1[tsep_idx][i] /= double(num_pt_src);
         table2d_Q2[tsep_idx][i] /= double(num_pt_src);
+        table2d_sBar_d[tsep_idx][i] /= double(num_pt_src);
       }
     }
 
-    std::cout << "traj [" << traj << "] table2d_Q1: " << table2d_Q1 << std::endl;
-    std::cout << "traj [" << traj << "] table2d_Q2: " << table2d_Q2 << std::endl;
+    std::cout << "traj [" << traj << "] table2d_Q1: " << table2d_Q1 << std::endl;  // <JJ Q1 K_L>
+    std::cout << "traj [" << traj << "] table2d_Q2: " << table2d_Q2 << std::endl;  // <JJ Q2 K_L>
+    std::cout << "traj [" << traj << "] table2d_sBar_d T1D1: " << table2d_sBar_d << std::endl; // <JJ sBar d K0>
 
   } // end of traj loop
 

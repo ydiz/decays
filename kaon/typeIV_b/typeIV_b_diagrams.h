@@ -64,7 +64,7 @@ void EM_factor_left_half(LatticeKGG &lat, const std::vector<int> &u, double M_K,
 
 
 void typeIV_D1b(const std::vector<int> &u, int tK, std::vector<std::vector<Complex>> &rst_Q1_xt_vt, 
-                std::vector<std::vector<Complex>> &rst_Q2_xt_vt,
+                std::vector<std::vector<Complex>> &rst_Q2_xt_vt, std::vector<std::vector<Complex>> &sBar_d_T2D1b_xt_vt,
                 Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, 
                 const LatticePropagator &pl, const LatticePropagator &Lxx, int max_uv_sep) {
   using namespace std;
@@ -86,10 +86,9 @@ void typeIV_D1b(const std::vector<int> &u, int tK, std::vector<std::vector<Compl
 
   vector<LatticePropagatorSite> g_vt;
   sliceSum(g_u, g_vt, Tdir);
-  // LatticePropagatorSite g = sum(g_u);
 
   // calculate contraction
-  LatticePropagator f_Q1_K(env.grid), f_Q1_Kbar(env.grid), f_Q2_K(env.grid), f_Q2_Kbar(env.grid);
+  LatticePropagator f_Q1_K(env.grid), f_Q1_Kbar(env.grid), f_Q2_K(env.grid), f_Q2_Kbar(env.grid), f_sBar_d(env.grid);
   f_Q1_K = Zero(); f_Q1_Kbar = Zero(); f_Q2_K = Zero(); f_Q2_Kbar = Zero();
   for(int rho=0; rho<4; ++rho) {
     f_Q1_K += trace(gL[rho] * Lxx) * adj(ws[tK]) * gL[rho] * pl;
@@ -98,23 +97,28 @@ void typeIV_D1b(const std::vector<int> &u, int tK, std::vector<std::vector<Compl
     f_Q2_K += adj(ws[tK]) * gL[rho] * Lxx *  gL[rho] * pl;
     f_Q2_Kbar += adj(pl) * gL[rho] * Lxx * gL[rho] * ws[tK];
   }
+  f_sBar_d = adj(ws[tK]) * g5 * pl;
 
   vector<LatticePropagatorSite> f_Q1_K_xt; sliceSum(f_Q1_K, f_Q1_K_xt, Tdir);
   vector<LatticePropagatorSite> f_Q1_Kbar_xt; sliceSum(f_Q1_Kbar, f_Q1_Kbar_xt, Tdir);
   vector<LatticePropagatorSite> f_Q2_K_xt; sliceSum(f_Q2_K, f_Q2_K_xt, Tdir);
   vector<LatticePropagatorSite> f_Q2_Kbar_xt; sliceSum(f_Q2_Kbar, f_Q2_Kbar_xt, Tdir);
+  vector<LatticePropagatorSite> f_sBar_d_xt; sliceSum(f_sBar_d, f_sBar_d_xt, Tdir);
 
   rst_Q1_xt_vt.resize(T); for(auto &x: rst_Q1_xt_vt) x.resize(T);
   rst_Q2_xt_vt.resize(T); for(auto &x: rst_Q2_xt_vt) x.resize(T);
+  sBar_d_T2D1b_xt_vt.resize(T); for(auto &x: sBar_d_T2D1b_xt_vt) x.resize(T);
 
   int tsep = (u[3] - tK + T) % T;
   for(int xt=0; xt<T; ++xt) {
     for(int vt=0; vt<T; ++vt) {
       rst_Q1_xt_vt[xt][vt] = trace(f_Q1_K_xt[xt] * g_vt[vt] + f_Q1_Kbar_xt[xt] * adj(g_vt[vt]))()()();
       rst_Q2_xt_vt[xt][vt] = trace(f_Q2_K_xt[xt] * g_vt[vt] + f_Q2_Kbar_xt[xt] * adj(g_vt[vt]))()()();
+      sBar_d_T2D1b_xt_vt[xt][vt] = trace(f_sBar_d_xt[xt] * g_vt[vt])()()();
 
       rst_Q1_xt_vt[xt][vt] *= std::exp(env.M_K * tsep);  // multiply all amplitudes by exp(M_K * (u0 - tK))
       rst_Q2_xt_vt[xt][vt] *= std::exp(env.M_K * tsep);
+      sBar_d_T2D1b_xt_vt[xt][vt] *= std::exp(env.M_K * tsep);
     }
   }
 
@@ -123,7 +127,7 @@ void typeIV_D1b(const std::vector<int> &u, int tK, std::vector<std::vector<Compl
 
 
 void typeIV_D2b(const std::vector<int> &u, int tK, std::vector<std::vector<Complex>> &rst_Q1_xt_vt, 
-                std::vector<std::vector<Complex>> &rst_Q2_xt_vt,
+                std::vector<std::vector<Complex>> &rst_Q2_xt_vt, std::vector<std::vector<Complex>> &sBar_d_T2D2b_xt_vt,
                 Env &env, const std::vector<LatticePropagator> &wl, const std::vector<LatticePropagator> &ws, 
                 const LatticePropagator &ps, const LatticePropagator &Lxx, int max_uv_sep) {
   using namespace std;
@@ -148,7 +152,7 @@ void typeIV_D2b(const std::vector<int> &u, int tK, std::vector<std::vector<Compl
   sliceSum(g_u, g_vt, Tdir);
 
   // calculate contraction
-  LatticePropagator f_Q1_K(env.grid), f_Q1_Kbar(env.grid), f_Q2_K(env.grid), f_Q2_Kbar(env.grid);
+  LatticePropagator f_Q1_K(env.grid), f_Q1_Kbar(env.grid), f_Q2_K(env.grid), f_Q2_Kbar(env.grid), f_sBar_d(env.grid);
   f_Q1_K = Zero(); f_Q1_Kbar = Zero(); f_Q2_K = Zero(); f_Q2_Kbar = Zero();
   for(int rho=0; rho<4; ++rho) {
     f_Q1_K += trace(gL[rho] * Lxx) * adj(ps) * gL[rho] * wl[tK];
@@ -157,33 +161,31 @@ void typeIV_D2b(const std::vector<int> &u, int tK, std::vector<std::vector<Compl
     f_Q2_K += adj(ps) * gL[rho] * Lxx *  gL[rho] * wl[tK];
     f_Q2_Kbar += adj(wl[tK]) * gL[rho] * Lxx * gL[rho] * ps;
   }
+  f_sBar_d = adj(ps) * g5 * wl[tK];
 
   vector<LatticePropagatorSite> f_Q1_K_xt; sliceSum(f_Q1_K, f_Q1_K_xt, Tdir);
   vector<LatticePropagatorSite> f_Q1_Kbar_xt; sliceSum(f_Q1_Kbar, f_Q1_Kbar_xt, Tdir);
   vector<LatticePropagatorSite> f_Q2_K_xt; sliceSum(f_Q2_K, f_Q2_K_xt, Tdir);
   vector<LatticePropagatorSite> f_Q2_Kbar_xt; sliceSum(f_Q2_Kbar, f_Q2_Kbar_xt, Tdir);
+  vector<LatticePropagatorSite> f_sBar_d_xt; sliceSum(f_sBar_d, f_sBar_d_xt, Tdir);
 
   rst_Q1_xt_vt.resize(T); for(auto &x: rst_Q1_xt_vt) x.resize(T);
   rst_Q2_xt_vt.resize(T); for(auto &x: rst_Q2_xt_vt) x.resize(T);
+  sBar_d_T2D2b_xt_vt.resize(T); for(auto &x: sBar_d_T2D2b_xt_vt) x.resize(T);
 
   int tsep = (u[3] - tK + T) % T;
   for(int xt=0; xt<T; ++xt) {
     for(int vt=0; vt<T; ++vt) {
       rst_Q1_xt_vt[xt][vt] = trace(f_Q1_K_xt[xt] * g_vt[vt] + f_Q1_Kbar_xt[xt] * adj(g_vt[vt]))()()();
       rst_Q2_xt_vt[xt][vt] = trace(f_Q2_K_xt[xt] * g_vt[vt] + f_Q2_Kbar_xt[xt] * adj(g_vt[vt]))()()();
+      sBar_d_T2D2b_xt_vt[xt][vt] = trace(f_sBar_d_xt[xt] * g_vt[vt])()()();
 
       rst_Q1_xt_vt[xt][vt] *= std::exp(env.M_K * tsep);  // multiply all amplitudes by exp(M_K * (u0 - tK))
       rst_Q2_xt_vt[xt][vt] *= std::exp(env.M_K * tsep);
+      sBar_d_T2D2b_xt_vt[xt][vt] *= std::exp(env.M_K * tsep);
     }
   }
 
-
-  // rst_Q1 = trace(f_Q1_K * g - f_Q1_Kbar * adj(g));
-  // rst_Q2 = trace(f_Q2_K * g - f_Q2_Kbar * adj(g));
-  //
-  // int tsep = (v[3] - tK + T) % T;
-  // rst_Q1 *= std::exp(env.M_K * tsep);  // multiply all amplitudes by exp(M_K * (v0 - tK))
-  // rst_Q2 *= std::exp(env.M_K * tsep);
 }
 
 
