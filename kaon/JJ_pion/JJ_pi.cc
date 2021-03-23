@@ -68,9 +68,20 @@ int main(int argc, char* argv[])
   int N_t_seps = t_seps.size();
   std::cout << "t_seps: " << t_seps << std::endl;
 
-  int traj_start = 1234, traj_end = 1234, traj_sep = 10;
-  int traj_num = (traj_end - traj_start) / traj_sep + 1;
+  int target_traj;
+  if( GridCmdOptionExists(argv, argv+argc, "--traj") ) {
+    string arg = GridCmdOptionPayload(argv, argv+argc, "--traj");
+    GridCmdOptionInt(arg, target_traj);
+  }
+  else {
+    std::cout << "--traj not specified; exiting" << std::endl;
+    exit(0);
+  }
 
+  int traj_start = target_traj;
+  int traj_end = target_traj;
+  int traj_sep = 10;
+  int traj_num = (traj_end - traj_start) / traj_sep + 1;
   std::cout << std::string(20, '*') << std::endl;
   std::cout << "traj_start: " << traj_start << std::endl;
   std::cout << "traj_end: " << traj_end << std::endl;

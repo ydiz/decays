@@ -5,7 +5,9 @@
 !*/
 
 # Whitelist the file you're interested in.
+!*.c
 !*.cc
 !*.h
+!*.py
 !.gitignore
 
