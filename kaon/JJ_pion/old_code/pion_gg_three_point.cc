@@ -54,19 +54,12 @@ double combine_kaon_form_factor(const LatticeKGG &hadronic, const Env &env) {
 }
 
 
-
-
-
-
-
-
 int main(int argc, char* argv[])
 {
-  // Grid_init(&argc, &argv);
-  zyd_init_Grid_Qlattice(argc, argv);
+  Grid_init(&argc, &argv);
+  // zyd_init_Grid_Qlattice(argc, argv);
 
-  // int traj_start = 2300, traj_end = 2300, traj_sep = 100; // for 24ID, kaon wall
-  int traj_start = 2160, traj_end = 2250, traj_sep = 10; // for 24ID, kaon wall
+  int traj_start = 1234, traj_end = 1234, traj_sep = 10;
   int traj_num = (traj_end - traj_start) / traj_sep + 1;
 
   std::cout << std::string(20, '*') << std::endl;
