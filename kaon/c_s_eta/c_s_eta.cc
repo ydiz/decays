@@ -101,6 +101,7 @@ int main(int argc, char* argv[])
 
 
     for(int t_K=0; t_K<T; ++t_K) { // iterate through the position of Kaon wall
+      std::cout << GridLogMessage << "tK: " << t_K << std::endl;
       const LatticePropagator &wl_K = wl[t_K]; // L(x, t_K)
       const LatticePropagator &ws_K = ws[t_K]; // H(x, t_K)
 
