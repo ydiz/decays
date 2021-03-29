@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
   // Note: table_4d[traj][t_sep][t_K][x_t]; already shifted -> x_t=0 is the position of kaon
   for(const string &diagram: diagrams) {
     std::cout << std::string(40, '*') << std::endl;
-    std::cout << diagram << ": " << average_tK(table_4d[diagram]) << std::endl;
+    std::cout << "traj [" << target_traj << "] table2d " << diagram << ": " << average_tK(table_4d[diagram])[0] << std::endl;
   }
 
   std::cout << GridLogMessage << "Finished!" << std::endl;

@@ -1,5 +1,7 @@
 #pragma once
 
+// Each propagator is 2GB; each node has 94GB memory. if load all light and strange wall props, need to use at least 8 nodes to be efficient.
+
 
 namespace Grid {
 
@@ -138,11 +140,11 @@ LatticeColourMatrix Env::get_gaugeTransform() const {
 // #ifdef USE_MY_PROPAGATOR
 std::vector<LatticePropagator> Env::get_wall(char quark, bool useCoulombSink/* = false */) const {
   int T = grid->_fdimensions[Tdir];
-  // std::cout << "before allocating vector of wall source propagators" << std::endl; // print memory usage
-  // print_memory();
+  std::cout << "before allocating vector of wall source propagators" << std::endl; // print memory usage
+  print_memory();
   std::vector<LatticePropagator> wall_props(T, grid); 
-  // std::cout << "after allocating vector of wall source propagators" << std::endl;
-  // print_memory();
+  std::cout << "after allocating vector of wall source propagators" << std::endl;
+  print_memory();
 
   for(int t=0; t<T; ++t) readScidac_prop_f2d(wall_props[t], wall_path(t, quark));                   // The wall propagator's sink should be in Coulomb gauge
 

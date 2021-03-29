@@ -109,9 +109,9 @@ int main(int argc, char* argv[])
     vector<vector<Complex>> table2d_Q1 = table3d_to_table2d(table3d_Q1);  // table2d[tK][vt], with xt=0
     vector<vector<Complex>> table2d_Q2 = table3d_to_table2d(table3d_Q2);
     vector<vector<Complex>> table2d_sBar_d = table3d_to_table2d(table3d_sBar_d);
-    std::cout << "traj [" << traj << "] amplitude Q1: " << table2d_Q1 << std::endl;
-    std::cout << "traj [" << traj << "] amplitude Q2: " << table2d_Q2 << std::endl;
-    std::cout << "traj [" << traj << "] amplitude sBar_d T2 diagram b: " << table2d_sBar_d << std::endl;
+    std::cout << "traj [" << traj << "] table2d_Q1: " << table2d_Q1 << std::endl;
+    std::cout << "traj [" << traj << "] table2d_Q2: " << table2d_Q2 << std::endl;
+    std::cout << "traj [" << traj << "] table2d sBar_d T2 diagram b: " << table2d_sBar_d << std::endl;
 
   } // end of traj loop
 

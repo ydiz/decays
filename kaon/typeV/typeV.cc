@@ -124,12 +124,12 @@ int main(int argc, char* argv[])
     vector<vector<Complex>> table2d_D2Q2 = table3d_to_table2d(table3d_D2Q2);
     vector<vector<Complex>> table2d_sBar_d_D1 = table3d_to_table2d(table3d_sBar_d_D1);
     vector<vector<Complex>> table2d_sBar_d_D2 = table3d_to_table2d(table3d_sBar_d_D2);
-    std::cout << "traj [" << traj << "] amplitude D1Q1: " << table2d_D1Q1 << std::endl;
-    std::cout << "traj [" << traj << "] amplitude D1Q2: " << table2d_D1Q2 << std::endl;
-    std::cout << "traj [" << traj << "] amplitude D2Q1: " << table2d_D2Q1 << std::endl;
-    std::cout << "traj [" << traj << "] amplitude D2Q2: " << table2d_D2Q2 << std::endl;
-    std::cout << "traj [" << traj << "] amplitude sBar_d_D1: " << table2d_sBar_d_D1 << std::endl;
-    std::cout << "traj [" << traj << "] amplitude sBar_d_D2: " << table2d_sBar_d_D2 << std::endl;
+    std::cout << "traj [" << traj << "] table2d_D1Q1: " << table2d_D1Q1 << std::endl;
+    std::cout << "traj [" << traj << "] table2d_D1Q2: " << table2d_D1Q2 << std::endl;
+    std::cout << "traj [" << traj << "] table2d_D2Q1: " << table2d_D2Q1 << std::endl;
+    std::cout << "traj [" << traj << "] table2d_D2Q2: " << table2d_D2Q2 << std::endl;
+    std::cout << "traj [" << traj << "] table2d sBar_d_D1: " << table2d_sBar_d_D1 << std::endl;
+    std::cout << "traj [" << traj << "] table2d sBar_d_D2: " << table2d_sBar_d_D2 << std::endl;
 
   } // end of traj loop
 

@@ -1,6 +1,4 @@
-// p.s. make sure that const doGaugeTransTest = false in env_bnl.h.
-
-#include "/direct/sdcc+u/ydzhao/A2AGrid/read_compressed.h"
+#include "../read_compressed.h"
 #include "kaon/kaon.h" // do not know why, but kaon.h must be after a2a_field.h
 
 // On 16 nodes, it takes ~10min to solve for one point source
@@ -52,7 +50,14 @@ int main(int argc, char **argv)
 {
   cps::Start(&argc, &argv); // Grid_init(&argc,&argv) is called inside this function
 
-  int N_pts_sources = 50; // Number of point source to calculate in one job
+  int N_pts_sources = 1;  // FIXME: for test
+  // int N_pts_sources = 50; // Number of point source to calculate in one job
+
+  // string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/sequential";
+  string output_prefix = "."; // FIXME
+  string Umu_dir = "/global/cfs/cdirs/mp13/ydzhao/24ID/configurations";
+  string evec_prefix = "/global/cscratch1/sd/ydzhao/evecs";
+  string point_l_prefix = "/global/cscratch1/sd/ydzhao/point_l";
 
   int Ls_outer = 24, Ls_inner = 12;
   double mass = 0.00107, b = 2.5, M5 = 1.8;  // !! mass must be the mass of light quark
@@ -77,11 +82,6 @@ int main(int argc, char **argv)
   omega[9] = std::complex<double>(0.05608303440064219, 0.007537158177840385);
   omega[10] = std::complex<double>(0.0365221637144842, -0.03343945161367745);
   omega[11] = std::complex<double>(0.0365221637144842, 0.03343945161367745);
-
-  string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/sequential";
-  string Umu_dir = "/hpcgpfs01/work/lqcd/etap/chulwoo/evec/24ID1Gev/configurations";
-  string evec_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/evecs";
-  string point_l_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/point_l";
 
   int target_traj;
   if( GridCmdOptionExists(argv, argv+argc, "--traj") ) {

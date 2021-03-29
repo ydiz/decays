@@ -113,6 +113,7 @@ int main(int argc, char* argv[])
 
       LatticeKGG Euv(env.grid);
       EM_factor(Euv, v, env.M_K, max_uv_sep); // Must use kaon mass
+      // EM_factor(Euv, v, env.M_pi, max_uv_sep); // FIXME: for test; 
 
       for(int t_sep_idx=0; t_sep_idx<t_seps.size(); ++t_sep_idx) { // iterate through all possible separation between eta and kaon
         int t_sep = t_seps[t_sep_idx];
@@ -136,22 +137,22 @@ int main(int argc, char* argv[])
     
     std::cout << GridLogMessage << "Number of point sources: " << num_pt_src << std::endl;
     for(int t_sep_idx=0; t_sep_idx<t_seps.size(); ++t_sep_idx) table_rst[traj_idx][t_sep_idx] /= double(num_pt_src);
-    std::cout << "traj [" << traj << "]: " << table_rst[traj_idx] << std::endl;
+    std::cout << "traj [" << traj << "] JJ_pion: " << table_rst[traj_idx] << std::endl;
 
     ++traj_idx;
   } // end of traj loop
 
 
-  // For Test: Change EM factor to pion mass!! ; then, the following amplitude can be compared with ABJ prediction
-  double hadron_coef = 1./ (3 * std::sqrt(2)) * env.Z_V * env.Z_V * 2. * env.M_pi / env.N_pi;
-  vector<vector<Complex>> pion_form_factors = table_rst;
-  for(auto &x: pion_form_factors) {
-    for(auto &y: x) {
-      y *= hadron_coef;
-    }
-  }
-  std::cout << "Form Factor vs cutoff: " << pion_form_factors << std::endl;
-  std::cout << "ABJ prediction is 0.2724 GeV^-1" << std::endl;
+  // // For Test: Change EM factor to pion mass!! ; then, the following amplitude can be compared with ABJ prediction
+  // double hadron_coef = 1./ (3 * std::sqrt(2)) * env.Z_V * env.Z_V * 2. * env.M_pi / env.N_pi;
+  // vector<vector<Complex>> pion_form_factors = table_rst;
+  // for(auto &x: pion_form_factors) {
+  //   for(auto &y: x) {
+  //     y *= hadron_coef;
+  //   }
+  // }
+  // std::cout << "Form Factor with different tsep: " << pion_form_factors << std::endl;
+  // std::cout << "(If use pion mass) ABJ prediction is 0.2724 GeV^-1" << std::endl;
 
   std::cout << "Finished!" << std::endl;
   Grid_finalize();

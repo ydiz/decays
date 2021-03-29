@@ -85,6 +85,8 @@ int main(int argc, char* argv[])
     for(const auto &x: env.xgs_s) {
       std::cout << "# Point source: " << num_pt_src << std::endl;
       std::cout << "Point source: " << x << std::endl;
+      // print_memory();
+
       ++num_pt_src;
 
       LatticePropagator pl = env.get_point(x, 'l'); 

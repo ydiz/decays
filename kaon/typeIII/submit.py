@@ -3,11 +3,15 @@ import re
 import os
 import time
 import sys
+import glob
 
 def run_cmd(cmd):
   print(cmd)
   os.system(cmd)
   time.sleep(3)
+
+for f in glob.glob('slurm-*.out'):
+  os.remove(f)
 
 if len(sys.argv) != 2:
   print("There must be exactly one argument -- the trajectory number")
