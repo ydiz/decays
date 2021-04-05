@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
 
   } // end of traj loop
 
-  std::cout << "Finished!" << std::endl;
+  std::cout << GridLogMessage << "Finished!" << std::endl;
   Grid_finalize();
 
   return 0;

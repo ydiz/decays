@@ -1,60 +1,26 @@
-#include "../read_compressed.h"
-#include "kaon/kaon.h" // do not know why, but kaon.h must be after a2a_field.h
+// !! Old version Grid has a bug. In Grid/qcd/action/fermion/FourierAcceleratedPV.h, the boundary phase of WilsonTMFermion5D is not set. 
+// !! If this bug is not corrected, MADWF does not converge.
 
-// On 16 nodes, it takes ~10min to solve for one point source
+#include "kaon/kaon.h" 
+#include "../read_compressed_evec.h"
+
+// At BNL: On 16 nodes, it takes ~10min to solve for one point source
+// At Cori: On 32 nodes, it takes ~800s to solve for one point source, and ~11h for 50 point sources
 
 using namespace std;
 using namespace Grid;
 
-void load_compressed_evecs(const std::string &evec_dir, std::vector<double> &evals, std::vector<LatticeFermionF> &evecs_f, Grid::GridCartesian *FGrid_f, Grid::GridRedBlackCartesian *FrbGrid_f) {
-
-  USING_NAMESPACE_CPS
-
-  if(evec_dir == "None") {
-    std::cout << "Not using eigenvectors" << std::endl;
-  }
-  else {
-    typedef A2ApoliciesDoubleAutoAlloc A2Apolicies;
-    typedef A2Apolicies::FgridGFclass LatticeType;
-
-    DoArg do_arg;
-    if(!do_arg.Decode("do_arg.vml","do_arg")){
-      do_arg.Encode("do_arg.templ","do_arg");
-      VRB.Result("","main","Can't open do_arg.vml!\n");exit(1);
-    }   
-
-    int nthreads = omp_get_max_threads();
-    std::cout << "Number of threads " << nthreads << std::endl;
-    GJP.Initialize(do_arg);  // This sets the number of threads to 1
-    GJP.SetNthreads(nthreads);
-    std::cout << "Setting number of threads " << nthreads << std::endl;
-
-    //Initialize FGrid
-    FgridParams fgp;
-    fgp.mobius_scale = 4.0; //b+c 
-    LatticeType lattice(fgp);
-    lattice.ImportGauge();
-
-    std::cout << GridLogMessage << "Before reading compressed: " << std::endl;
-    zyd_read_compressed(evec_dir, FGrid_f, FrbGrid_f, lattice, evals, evecs_f);
-
-    std::cout << "Number of eigenvectors: " << evals.size()  << std::endl;
-  }
-}
-
-
-
-
-
 int main(int argc, char **argv)
 {
-  cps::Start(&argc, &argv); // Grid_init(&argc,&argv) is called inside this function
+  Grid_init(&argc, &argv);
+  // cps::Start(&argc, &argv); // Grid_init(&argc,&argv) is called inside this function
 
-  int N_pts_sources = 1;  // FIXME: for test
+  // int N_pts_sources = 1;  // FIXME: for test
   // int N_pts_sources = 50; // Number of point source to calculate in one job
+  int N_pts_sources = 100; // Number of point source to calculate in one job
 
-  // string output_prefix = "/hpcgpfs01/work/lqcd/qcdqedta/ydzhao/24ID_my_props/sequential";
-  string output_prefix = "."; // FIXME
+  string output_prefix = "/global/cfs/cdirs/mp13/ydzhao/24ID/sequential";
+  // string output_prefix = "."; // for test
   string Umu_dir = "/global/cfs/cdirs/mp13/ydzhao/24ID/configurations";
   string evec_prefix = "/global/cscratch1/sd/ydzhao/evecs";
   string point_l_prefix = "/global/cscratch1/sd/ydzhao/point_l";
@@ -159,7 +125,9 @@ int main(int argc, char **argv)
 
     vector<double> evals;
     vector<LatticeFermionF> evecs_f;
-    load_compressed_evecs(evec_dir, evals, evecs_f, FGrid_f, FrbGrid_f);  
+    int ngroups = 1;  // To save memory, Should be number of MPI processes per node
+    zyd_read_compressed_evecs(evec_dir, FrbGrid_f, evecs_f, evals, ngroups); 
+    // // load_compressed_evecs(evec_dir, evals, evecs_f, FGrid_f, FrbGrid_f);  
 
     /////////////////////////////////////////
     // Set Operators
@@ -198,7 +166,12 @@ int main(int argc, char **argv)
     // Calculate Sequential Propagators
     /////////////////////////////////////////
     
-    for(const vector<int> &v: new_pts) {
+    // for(const vector<int> &v: new_pts) {
+    for(int i=0; i<new_pts.size(); ++i) {
+
+      vector<int> v = new_pts[i];
+
+      cout << GridLogMessage << "Number of points: " << i << endl;
       cout << GridLogMessage << "v: " << v << endl;
 
       /////////////////////////////////////////

@@ -1,13 +1,9 @@
-// #include <headers/headers.h>
-// #include "../env.h"
 // #include "../util.h"
 #include "../kaon.h"
 
 
-using namespace qlat;
 using namespace std;
 using namespace Grid;
-using namespace Grid::QCD;
 
 
 template<typename T>
@@ -25,22 +21,20 @@ void cmdOptionToVector(const std::string &str,std::vector<T> &vec)
 }
 
 
-std::vector<int> gcoor({24, 24, 24, 64});
-
 int main(int argc, char* argv[])
 {
   Grid_init(&argc, &argv);
 
-  Env env(gcoor, "24ID");
-
-  LatticePropagator lat(env.grid);
-  readScidac_prop_f2d(lat, argv[1]);
-
+  GridCartesian *grid = SpaceTimeGrid::makeFourDimGrid(Coordinate({24,24,24,64}), GridDefaultSimd(4, vComplexD::Nsimd()), GridDefaultMpi());
 
   if(argc < 2) {
     std::cout << "argc must be larger than 1" << std::endl;
   }
-  else if(argc == 2) {
+
+  LatticePropagator lat(grid);
+  readScidac_prop_f2d(lat, argv[1]);
+
+  if(argc == 2) {
     std::cout << "[1,1,1,1]" << std::endl;
     print_grid_field_site(lat, {1,1,1,1});
 
