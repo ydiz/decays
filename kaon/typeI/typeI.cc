@@ -7,7 +7,9 @@ using namespace Grid;
 int main(int argc, char* argv[])
 {
 
+  std::cout << "Before Grid_init" << std::endl;
   Grid_init(&argc, &argv);
+  std::cout << "After Grid_init" << std::endl;
   // zyd_init_Grid_Qlattice(argc, argv);
  
 #ifdef CUTH_FREE_FIELD

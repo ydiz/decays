@@ -12,8 +12,8 @@ def run_cmd(cmd):
   time.sleep(3)
 
 
-trajs = [2020]
-# trajs = range(2010, 2070, 10)
+# trajs = [2020]
+trajs = range(2020, 2070, 10)
 
 #################################
 
@@ -23,11 +23,12 @@ for f in glob.glob('slurm-*.out'):
 prefix = "/global/cfs/cdirs/mp13/ydzhao/24ID/sequential"
 TOTAL_NUM_POINTS = 512
 POINTS_PER_JOB = 100  # number of propagators to calculate in one job
-point_l_path = "/global/cscratch1/sd/ydzhao/point_l"
+point_l_path = "/global/cfs/cdirs/mp13/ydzhao/24ID/point_l"
 
 for traj in trajs:
   if not os.path.isdir(os.path.join(point_l_path, str(traj))):
     print(f'Trajectory {traj} does not have point_l; skipping.')
+    continue
 
   with open("submit.sh", 'r+') as f:
     content = f.read()

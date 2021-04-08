@@ -23,7 +23,7 @@ int main(int argc, char **argv)
   // string output_prefix = "."; // for test
   string Umu_dir = "/global/cfs/cdirs/mp13/ydzhao/24ID/configurations";
   string evec_prefix = "/global/cscratch1/sd/ydzhao/evecs";
-  string point_l_prefix = "/global/cscratch1/sd/ydzhao/point_l";
+  string point_l_prefix = "/global/cfs/cdirs/mp13/ydzhao/24ID/point_l";
 
   int Ls_outer = 24, Ls_inner = 12;
   double mass = 0.00107, b = 2.5, M5 = 1.8;  // !! mass must be the mass of light quark
@@ -85,33 +85,6 @@ int main(int argc, char **argv)
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
 
     /////////////////////////////////////////
-    // Find point sources to calculate
-    /////////////////////////////////////////
-    makeFileDir(output_prefix + "/" + to_string(traj) + "/xyz", UGrid); // remove file name, and make directory
-    MPI_Barrier(MPI_COMM_WORLD);
-    std::cout << "makeFildDir " << output_prefix + "/" + to_string(traj) << std::endl;
-
-    vector<vector<int>> new_pts;
-    vector<vector<int>> all_pts = my_get_xgs(point_l_prefix + "/" + to_string(traj));
-    vector<vector<int>> completed_pts = my_get_xgs(output_prefix + "/" + to_string(traj));
-    for(const vector<int> &v: all_pts) {
-      if(find(completed_pts.begin(), completed_pts.end(), v) == completed_pts.end()) new_pts.push_back(v);
-      if(new_pts.size() >= N_pts_sources) break;
-    }
-    MPI_Barrier(MPI_COMM_WORLD);  // make sure every node has read complated_pts, before creating new files
-
-    if(UGrid->IsBoss()) { // use an empty file to indicate that this propagator is being calculated by another job
-      for(const vector<int> &v: new_pts) {
-        ofstream f(output_prefix + "/" + to_string(traj) + "/" + coor2str(v)); 
-        f.close();
-      }
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    std::cout << GridLogMessage << "Will calculate " << new_pts.size() << " point sources in this job" << std::endl;
-
-    if(new_pts.empty()) continue;
-
-    /////////////////////////////////////////
     // Read Gauge Field and do Gauge fixing
     /////////////////////////////////////////
     LatticeGaugeField Umu(UGrid);
@@ -162,6 +135,32 @@ int main(int argc, char **argv)
 
     MADWF<MobiusFermionD, ZMobiusFermionF, PVtype, SchurSolverF, GuessF> madwf(Dmob, Dzmob_f, PV_outer, SchurSolver_inner, guesser_inner, resid, 100);
 
+    /////////////////////////////////////////
+    // Find point sources to calculate
+    /////////////////////////////////////////
+    makeFileDir(output_prefix + "/" + to_string(traj) + "/xyz", UGrid); // remove file name, and make directory
+    MPI_Barrier(MPI_COMM_WORLD);
+    std::cout << "makeFildDir " << output_prefix + "/" + to_string(traj) << std::endl;
+
+    vector<vector<int>> new_pts;
+    vector<vector<int>> all_pts = my_get_xgs(point_l_prefix + "/" + to_string(traj));
+    vector<vector<int>> completed_pts = my_get_xgs(output_prefix + "/" + to_string(traj));
+    for(const vector<int> &v: all_pts) {
+      if(find(completed_pts.begin(), completed_pts.end(), v) == completed_pts.end()) new_pts.push_back(v);
+      if(new_pts.size() >= N_pts_sources) break;
+    }
+    MPI_Barrier(MPI_COMM_WORLD);  // make sure every node has read complated_pts, before creating new files
+
+    if(UGrid->IsBoss()) { // use an empty file to indicate that this propagator is being calculated by another job
+      for(const vector<int> &v: new_pts) {
+        ofstream f(output_prefix + "/" + to_string(traj) + "/" + coor2str(v)); 
+        f.close();
+      }
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+    std::cout << GridLogMessage << "Will calculate " << new_pts.size() << " point sources in this job" << std::endl;
+
+    if(new_pts.empty()) continue;
     /////////////////////////////////////////
     // Calculate Sequential Propagators
     /////////////////////////////////////////
