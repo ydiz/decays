@@ -4,51 +4,79 @@
 using namespace std;
 using namespace Grid;
 
-LatticeKGG calc_JJ_pion(const Coordinate &v, const std::vector<LatticePropagator> &wl, const LatticePropagator &pl, int tsep, double M_pi) {
+// LatticeKGG calc_JJ_pion(const Coordinate &v, const std::vector<LatticePropagator> &wl, const LatticePropagator &pl, int tsep, double M_pi) {
+//
+//   GridBase *grid = pl.Grid();
+//   const int T = grid->_fdimensions[3];
+//
+//   LatticeKGG rst(grid); 
+//
+//   std::vector<LatticePropagatorSite> wall_to_v(T);
+//   for(int i=0; i<T; ++i)	peekSite(wall_to_v[i], wl[i], v); 
+//
+//   autoView(rst_v, rst, CpuWrite);
+//   autoView(pl_v, pl, CpuRead);
+//   using vobj = typename LatticePropagator::vector_object;
+//   std::vector<LatticeView<vobj>> wl_v;
+//   for(int t=0; t<T; ++t) {
+//     autoView(view, wl[t], CpuRead)
+//     wl_v.push_back(vierst_site(mu, nu)()()w);
+//   }
+//
+//   // std::cout << GridLogMessage << "Before thread_for" << std::endl;
+//   thread_for(ss, grid->lSites(), {    // iterate over point u
+//     Coordinate lcoor, gcoor;
+//     localIndexToLocalGlobalCoor(grid, ss, lcoor, gcoor);
+//
+//     int t_pi = leftPoint(v[3], gcoor[3], T) - tsep; // t_wall = min(t_u, t_v) - t_sep
+//     if(t_pi < 0) t_pi += T; 
+//     int dist_v_wall = distance(v[3], t_pi, T); // distance from wall to v; always positive
+//
+//     LatticePropagatorSite wall_to_u, v_to_u;
+//     peekLocalSite(wall_to_u, wl_v[t_pi], lcoor);
+//     peekLocalSite(v_to_u, pl_v, lcoor);
+//
+//     LatticeKGGSite rst_site;
+//     for(int mu=0; mu<4; ++mu)
+//       for(int nu=0rst_site(mu, nu)()(); nu<4; ++nu) {
+//         rst_site(mu, nu)()() = 2. * real(trace(adj(wall_to_u) * gmu5[mu] * v_to_u * gmu[nu] * wall_to_v[t_pi]));
+//       }
+//
+//     rst_site *= std::exp(M_pi * dist_v_wall);  // Note: here must be M_pi, not M_K !! 
+//     pokeLocalSite(rst_site, rst_v, lcoor);
+//
+//   });
+//   return rst;
+// }
 
+// return exp(m_pi (t_pi - t_v)) <J(u)J(v) pi(t_pi)> as a function of u; 
+// This is later combined with half lattice Euv, so the region where t_u < t_v is not used
+LatticeKGG calc_JJ_pion(const Coordinate &v, const std::vector<LatticePropagator> &wl, 
+                        const LatticePropagator &pl, int tsep, double M_pi) 
+{
   GridBase *grid = pl.Grid();
   const int T = grid->_fdimensions[3];
 
-  LatticeKGG rst(grid); 
+  int t_pi = (v[3] - tsep + T) % T; // t_wall = t_v - t_sep; we always assume that t_u >= t_v
 
-  std::vector<LatticePropagatorSite> wall_to_v(T);
-  for(int i=0; i<T; ++i)	peekSite(wall_to_v[i], wl[i], v); 
+  LatticePropagatorSite wall_to_v;
+  peekSite(wall_to_v, wl[t_pi], v); 
 
-  autoView(rst_v, rst, CpuWrite);
-  autoView(pl_v, pl, CpuRead);
-  using vobj = typename LatticePropagator::vector_object;
-  std::vector<LatticeView<vobj>> wl_v;
-  for(int t=0; t<T; ++t) {
-    autoView(view, wl[t], CpuRead)
-    wl_v.push_back(view);
+  LatticeKGG rst(grid); rst = Zero();
+
+  for(int mu=0; mu<4; ++mu) {
+    for(int nu=0; nu<4; ++nu) {
+      if(mu==3 || nu==3 || mu==nu) continue;  // Euv is 0 for these sites.
+      LatticeComplex rst_mu_nu(grid);
+      rst_mu_nu = 2. * real(trace(adj(wl[t_pi]) * gmu5[mu] * pl * gmu[nu] * wall_to_v));
+      pokeLorentz(rst, rst_mu_nu, mu, nu);
+    }
   }
 
-  // std::cout << GridLogMessage << "Before thread_for" << std::endl;
-  thread_for(ss, grid->lSites(), {    // iterate over point u
-    Coordinate lcoor, gcoor;
-    localIndexToLocalGlobalCoor(grid, ss, lcoor, gcoor);
+  rst *= std::exp(M_pi * tsep);  // Note: here must be M_pi, not M_K !! 
 
-    int t_pi = leftPoint(v[3], gcoor[3], T) - tsep; // t_wall = min(t_u, t_v) - t_sep
-    if(t_pi < 0) t_pi += T; 
-    int dist_v_wall = distance(v[3], t_pi, T); // distance from wall to v; always positive
-
-    LatticePropagatorSite wall_to_u, v_to_u;
-    peekLocalSite(wall_to_u, wl_v[t_pi], lcoor);
-    peekLocalSite(v_to_u, pl_v, lcoor);
-
-    LatticeKGGSite rst_site;
-    for(int mu=0; mu<4; ++mu)
-      for(int nu=0; nu<4; ++nu) {
-        rst_site(mu, nu)()() = 2. * real(trace(adj(wall_to_u) * gmu5[mu] * v_to_u * gmu[nu] * wall_to_v[t_pi]));
-      }
-
-    rst_site *= std::exp(M_pi * dist_v_wall);  // Note: here must be M_pi, not M_K !! 
-    pokeLocalSite(rst_site, rst_v, lcoor);
-
-  });
   return rst;
 }
-
 
 int main(int argc, char* argv[])
 {
@@ -112,7 +140,8 @@ int main(int argc, char* argv[])
       LatticePropagator pl = env.get_point(v, 'l'); // pl = L(u, v)
 
       LatticeKGG Euv(env.grid);
-      EM_factor(Euv, v, env.M_K, max_uv_sep); // Must use kaon mass
+      EM_factor_half_lattice(Euv, v, env.M_K, max_uv_sep);
+      // EM_factor(Euv, v, env.M_K, max_uv_sep); // Must use kaon mass
       // EM_factor(Euv, v, env.M_pi, max_uv_sep); // FIXME: for test; 
 
       for(int t_sep_idx=0; t_sep_idx<t_seps.size(); ++t_sep_idx) { // iterate through all possible separation between eta and kaon
@@ -154,7 +183,7 @@ int main(int argc, char* argv[])
   // std::cout << "Form Factor with different tsep: " << pion_form_factors << std::endl;
   // std::cout << "(If use pion mass) ABJ prediction is 0.2724 GeV^-1" << std::endl;
 
-  std::cout << "Finished!" << std::endl;
+  std::cout << GridLogMessage << "Finished!" << std::endl;
   Grid_finalize();
   return 0;
 }

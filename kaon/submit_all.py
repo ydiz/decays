@@ -16,13 +16,15 @@ def run_cmd(cmd):
 # trajs = [2000] + list(range(2100, 2150, 10))
 # trajs = range(2150, 2260, 10)
 # trajs = [2010, 2020, 2070, 2080, 2090]
-trajs = [2030, 2040, 2050, 2060]
+# trajs = [2030, 2040, 2050, 2060]
+trajs = range(2000, 2260, 10)
 
 
 ########################  directories and diagrams
 
 root = os.getcwd()
-dirs = ['typeI', 'typeII', 'typeIII', 'typeIV_a', 'typeIV_b', 'typeV', 'c_s_eta', 'JJ_pion']
+# dirs = ['typeI', 'typeII', 'typeIII', 'typeIV_a', 'typeIV_b', 'typeV', 'c_s_eta', 'JJ_pion']
+dirs = ['JJ_pion']
 # dirs = ['typeI', 'typeII', 'JJ_pion']
 
 diagrams_dir = {
