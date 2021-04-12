@@ -105,12 +105,12 @@ int main(int argc, char* argv[])
 
     vector<vector<Complex>> table2d_Q1 = table3d_to_table2d(table3d_Q1);  // table2d[tK][vt], with xt=0
     vector<vector<Complex>> table2d_Q2 = table3d_to_table2d(table3d_Q2);
-    std::cout << "traj [" << traj << "] amplitude Q1: " << table2d_Q1 << std::endl;
-    std::cout << "traj [" << traj << "] amplitude Q2: " << table2d_Q2 << std::endl;
+    std::cout << "traj [" << traj << "] table2d_Q1: " << table2d_Q1 << std::endl;
+    std::cout << "traj [" << traj << "] table2d_Q2: " << table2d_Q2 << std::endl;
 
   } // end of traj loop
 
-  std::cout << "Finished!" << std::endl;
+  std::cout << GridLogMessage << "Finished!" << std::endl;
   Grid_finalize();
 
   return 0;

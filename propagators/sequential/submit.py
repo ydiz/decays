@@ -5,6 +5,7 @@ import os
 import time
 import glob
 import math
+from subprocess import check_output
 
 def run_cmd(cmd):
   print(cmd)
@@ -13,7 +14,8 @@ def run_cmd(cmd):
 
 
 # trajs = [2020]
-trajs = range(2020, 2070, 10)
+# trajs = range(2020, 2070, 10)
+trajs = range(1920, 1930, 10)
 
 #################################
 
@@ -24,14 +26,25 @@ prefix = "/global/cfs/cdirs/mp13/ydzhao/24ID/sequential"
 TOTAL_NUM_POINTS = 512
 POINTS_PER_JOB = 100  # number of propagators to calculate in one job
 point_l_path = "/global/cfs/cdirs/mp13/ydzhao/24ID/point_l"
+evecs_path = "/global/cscratch1/sd/ydzhao/evecs"
 
 for traj in trajs:
-  if not os.path.isdir(os.path.join(point_l_path, str(traj))):
+  if not os.path.isdir(f'{point_l_path}/{str(traj)}'):
     print(f'Trajectory {traj} does not have point_l; skipping.')
     continue
+  if not os.path.isdir(f'{evecs_path}/{str(traj)}'):
+    print(f'Trajectory {traj} does not have evecs; skipping.')
+    continue
+  evec_f = f"{evecs_path}/{str(traj)}/lanczos.output/00/0000000000.compressed"
+  evec_f_size = check_output(f"du -sh {evec_f}", shell=True).decode().split()[0]
+  if evec_f_size != "16G":
+    print(f"Trajectory {traj} evecs file size is not 16G; skipping.")
+    continue
+
 
   with open("submit.sh", 'r+') as f:
     content = f.read()
+    content = re.sub(r'#SBATCH -J (.*)', '#SBATCH -J ' + f'sequential.{traj}', content)
     content = re.sub(r'traj=(.+)', 'traj='+str(traj), content)
     f.truncate(0)   # erase all content of the file
     f.seek(0)       # truncate does not move file pointer

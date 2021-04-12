@@ -100,6 +100,7 @@ int main(int argc, char **argv)
     vector<LatticeFermionF> evecs_f;
     int ngroups = 1;  // To save memory, Should be number of MPI processes per node
     zyd_read_compressed_evecs(evec_dir, FrbGrid_f, evecs_f, evals, ngroups); 
+    std::cout << GridLogMessage << "After zyd_read_compressed_evecs" << std::endl;
     // // load_compressed_evecs(evec_dir, evals, evecs_f, FGrid_f, FrbGrid_f);  
 
     /////////////////////////////////////////

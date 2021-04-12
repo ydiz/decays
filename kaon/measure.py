@@ -3,9 +3,14 @@ import re
 import numpy as np
 import pickle
 
+# traj = 2000
+# trajs = range(2100, 2260, 10)
+trajs = range(2000, 2100, 10)
+
+##################################################################
+
 T = 64
 main_diagram_tseps = [6, 8, 10, 12, 14]
-# cs_eta_tseps = [10, 12, 14, 16, 18, 20, 22, 24]
 
 def get_array(text, keyword, var_name):
   rst = re.findall(keyword + r': \[(.*)\]', text)
@@ -50,8 +55,6 @@ all_data = {
 
     }
 
-# traj = 2000
-trajs = range(2100, 2150, 10)
 
 for traj in trajs:
   for file_prefix in all_data:
@@ -62,7 +65,6 @@ for traj in trajs:
       for keyword, var_name in all_data[file_prefix]:
         print(traj, var_name)
         exec(f"{var_name} = get_array(fcontent, keyword, var_name)")
-
 
   # print(typeI_D1aQ2)
   # print(typeII_D1aQ2)
