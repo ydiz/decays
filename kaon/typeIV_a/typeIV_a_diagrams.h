@@ -37,9 +37,11 @@ void typeIV_D1a(const std::vector<int> &v, int tK,
   }
   f_sBar_d = adj(ws[tK]) * g5 * pl;
 
-  rst_Q1 = trace(f_Q1_K * g + f_Q1_Kbar * adj(g));
+  rst_Q1 = trace(f_Q1_K * g + f_Q1_Kbar * adj(g)); // add contribution of K0bar
   rst_Q2 = trace(f_Q2_K * g + f_Q2_Kbar * adj(g));
+
   sBar_d_T2D1a = trace(f_sBar_d * g); 
+  sBar_d_T2D1a = 2. * real(sBar_d_T2D1a); // add contribution of K0bar
 
   int tsep = (v[3] - tK + T) % T;
   rst_Q1 *= std::exp(env.M_K * tsep);  // multiply all amplitudes by exp(M_K * (v0 - tK))
@@ -82,9 +84,11 @@ void typeIV_D2a(const std::vector<int> &v, int tK,
   }
   f_sBar_d = adj(ps) * g5 * wl[tK];
 
-  rst_Q1 = trace(f_Q1_K * g + f_Q1_Kbar * adj(g));
+  rst_Q1 = trace(f_Q1_K * g + f_Q1_Kbar * adj(g)); // add contribution of K0bar
   rst_Q2 = trace(f_Q2_K * g + f_Q2_Kbar * adj(g));
+
   sBar_d_T2D2a = trace(f_sBar_d * g); 
+  sBar_d_T2D2a = 2. * real(sBar_d_T2D2a); // add contribution of K0bar
 
   int tsep = (v[3] - tK + T) % T;
   rst_Q1 *= std::exp(env.M_K * tsep);  // multiply all amplitudes by exp(M_K * (v0 - tK))

@@ -29,6 +29,7 @@ void typeII_D1a(const std::vector<int> &x, int tK,
   for(int nu=0; nu<4; ++nu) A += Cv[nu] * Gv[nu];
 
   sBar_d_T1D1a = trace(g5 * A);  // for <JJ sbar d K0>
+  sBar_d_T1D1a = 2. * real(sBar_d_T1D1a);    // Contribution of K0_bar
 
   A = A + adj(A);  // Contribution of K0_bar
 
@@ -63,6 +64,7 @@ void typeII_D1b(const std::vector<int> &x, int tK,
   for(int nu=0; nu<4; ++nu) A += Fv[nu] * Cv[nu];
 
   sBar_d_T1D1b = trace(g5 * A);  // for <JJ sbar d K0>
+  sBar_d_T1D1b = 2. * real(sBar_d_T1D1b);    // Contribution of K0_bar
 
   A = A + adj(A);  // Contribution of K0_bar
 

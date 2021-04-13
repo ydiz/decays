@@ -29,10 +29,12 @@ void typeV(const std::vector<int> &v, int tK, LatticeComplex &rst_D1Q1, LatticeC
 
   LatticePropagator g_x = wl[tK] * adj(ws[tK]); 
 
-  sBar_d_D1 = f_D1 * trace(g5 * g_x);
-  sBar_d_D2 = f_D2 * trace(g5 * g_x);
+  // sBar_d_D1 = f_D1 * trace(g5 * g_x);
+  // sBar_d_D2 = f_D2 * trace(g5 * g_x);
+  sBar_d_D1 = f_D1 * 2. * real(trace(g5 * g_x)); // 2. * real(xxx) is for adding contribution of K0bar
+  sBar_d_D2 = f_D2 * 2. * real(trace(g5 * g_x));
 
-  g_x = g_x + adj(g_x);
+  g_x = g_x + adj(g_x);  // add contribution of K0bar
 
   rst_D1Q1 = Zero(); rst_D1Q2 = Zero(); rst_D2Q1 = Zero(); rst_D2Q2 = Zero();
   for(int rho=0; rho<4; ++rho) {
