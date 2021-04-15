@@ -68,7 +68,7 @@ LatticeKGG calc_JJ_pion(const Coordinate &v, const std::vector<LatticePropagator
     for(int nu=0; nu<4; ++nu) {
       if(mu==3 || nu==3 || mu==nu) continue;  // Euv is 0 for these sites.
       LatticeComplex rst_mu_nu(grid);
-      rst_mu_nu = 2. * real(trace(adj(wl[t_pi]) * gmu5[mu] * pl * gmu[nu] * wall_to_v));
+      rst_mu_nu = 2. * real(trace(adj(wl[t_pi]) * gmu5[mu] * pl * gmu[nu] * wall_to_v)); // two diagrams that are complex conjugate to each other
       pokeLorentz(rst, rst_mu_nu, mu, nu);
     }
   }
@@ -89,9 +89,12 @@ int main(int argc, char* argv[])
   Env env("FreeField_8nt8");
 #else
   vector<int> t_seps = {8, 10, 12, 14, 16};  
-  int max_uv_sep = 16;
+  // int max_uv_sep = 16;
+  int max_uv_sep = 32;
   Env env("24ID");
 #endif
+
+  const int T = env.grid->_fdimensions[3];
 
   int N_t_seps = t_seps.size();
   std::cout << "t_seps: " << t_seps << std::endl;
@@ -117,15 +120,16 @@ int main(int argc, char* argv[])
   std::cout << "traj_num: " << traj_num << std::endl;
   std::cout << std::string(20, '*') << std::endl;
 
-  vector<vector<Complex>> table_rst(traj_num); // table_rst[traj][tsep]
-  for(auto &x: table_rst) x.resize(N_t_seps);
-
+  
   // env.N_pt_src = 1;  // FIXME: keep only one point
   env.N_pt_src = -1;  // Use all points
 
   int traj_idx = 0;
   for(int traj = traj_start; traj <= traj_end; traj += traj_sep) {
     env.setup_traj(traj);
+
+    vector<vector<Complex>> table2d(N_t_seps); // table_rst[tsep][ut]; ut=0 is always the position of v
+    for(auto &x: table2d) x.resize(T, 0.);
 
     std::vector<LatticePropagator> wl = env.get_wall('l');
 
@@ -149,24 +153,31 @@ int main(int argc, char* argv[])
 
         LatticeKGG JJ_pi = calc_JJ_pion(v, wl, pl, t_sep, env.M_pi);
 
-        Complex rst = 0.;
+        LatticeComplex rst(env.grid); rst = Zero();
         for(int mu=0; mu<4; ++mu) { 
           for(int nu=0; nu<4; ++nu) { 
             if(mu==nu || mu==3 || nu == 3) continue; // Under these conditions, E_{mu,nu} = 0
             LatticeComplex E_munu = peekLorentz(Euv, mu, nu);
             LatticeComplex H_munu = peekLorentz(JJ_pi, mu, nu);
-            LatticeComplexSite tmp = sum(LatticeComplex(E_munu * H_munu));
-            rst += tmp()()();
+            rst += E_munu * H_munu;
           }
         }
-        table_rst[traj_idx][t_sep_idx] += rst;
+
+        vector<LatticeComplexSite> rst_ut;
+        sliceSum(rst, rst_ut, Tdir);
+
+        for(int ut=0; ut<T; ++ut) table2d[t_sep_idx][ut] += rst_ut[(ut+v[3])%T]()()();
       }
 
     } // end of point source loop
     
     std::cout << GridLogMessage << "Number of point sources: " << num_pt_src << std::endl;
-    for(int t_sep_idx=0; t_sep_idx<t_seps.size(); ++t_sep_idx) table_rst[traj_idx][t_sep_idx] /= double(num_pt_src);
-    std::cout << "traj [" << traj << "] JJ_pion: " << table_rst[traj_idx] << std::endl;
+    for(int t_sep_idx=0; t_sep_idx<t_seps.size(); ++t_sep_idx)  {
+      for(int ut=0; ut<T; ++ut) {
+        table2d[t_sep_idx][ut] /= double(num_pt_src);
+      }
+    }
+    std::cout << "traj [" << traj << "] JJ_pion: " << table2d << std::endl;
 
     ++traj_idx;
   } // end of traj loop

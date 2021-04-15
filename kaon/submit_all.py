@@ -24,7 +24,8 @@ trajs = range(2000, 2260, 10)
 
 root = os.getcwd()
 # dirs = ['typeI', 'typeII', 'typeIII', 'typeIV_a', 'typeIV_b', 'typeV', 'c_s_eta', 'JJ_pion']
-dirs = ['c_s_eta']
+dirs = ['typeII', 'typeIV_a', 'typeIV_b', 'typeV']
+# dirs = ['c_s_eta']
 # dirs = ['typeI', 'typeII', 'JJ_pion']
 
 diagrams_dir = {
@@ -83,13 +84,13 @@ for d in dirs:
   for traj in trajs:
     for diagram in diagrams:
 
-      output_file = f'./output/{diagram}.out.{traj}'
-      if os.path.exists(output_file):
-        if os.stat(output_file).st_size < 10000:  # Less than 10K
-          print(f"{d}/{output_file} is too small; will submit a job to redo this")
-        else:
-          print(f"{d}/{output_file} already exists; skipping this job")
-          continue
+      # output_file = f'./output/{diagram}.out.{traj}'
+      # if os.path.exists(output_file):
+      #   if os.stat(output_file).st_size < 10000:  # Less than 10K
+      #     print(f"{d}/{output_file} is too small; will submit a job to redo this")
+      #   else:
+      #     print(f"{d}/{output_file} already exists; skipping this job")
+      #     continue
 
       with open("submit.sh", 'r+') as f:
         content = f.read()

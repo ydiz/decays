@@ -153,7 +153,6 @@ int main(int argc, char* argv[])
     ++traj_idx;
   }
 
-  // Note: In python code, add coefficents, sqrt(2)/2 or -sqrt(2)/2  !!!!! This code calculates only the trace, without coefficient
   // Note: table_4d[traj][t_sep][t_K][x_t]; already shifted -> x_t=0 is the position of kaon
   for(const string &diagram: diagrams) {
     std::cout << std::string(40, '*') << std::endl;
