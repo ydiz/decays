@@ -5,12 +5,24 @@ import pickle
 
 # traj = 2000
 # trajs = range(2100, 2260, 10)
-trajs = range(2000, 2260, 10)
+# trajs = range(2000, 2260, 10)
+# trajs = [1010, 1030, 1040] + list(range(1900, 1980, 10)) + list(range(1990, 2260, 10))
+
+# trajs = sorted(set(range(1900, 2260, 10)) - set([1980])) 
+trajs = sorted(set(range(1010, 1280, 10)) - set([1020, 1060, 1100, 1180]))  # TBD: measure 1180 later (after typeIII 1180)
+print(trajs)
+# assert 0
+# trajs = [1050, 1070, 1110]  # wait for some diagrams
+# trajs = [1080, 1090]
 
 ##################################################################
 
+# for typeI and typeII, tseps = [6, 8, 10, 12, 14]
+# for type III, type IV, type V, I calculated all tseps
+# for cs diagrams, tseps = [10, 12, 14, 16, 18, 20, 22, 24]
+
 T = 64
-main_diagram_tseps = [6, 8, 10, 12, 14]
+tsep_max = 20  # for type III, IV and V, only keep  - tsep_max <= tK <= 0
 
 def get_array(text, keyword, var_name):
   rst = re.findall(keyword + r': \[(.*)\]', text)
@@ -19,13 +31,10 @@ def get_array(text, keyword, var_name):
   rst = re.findall(r'[\d\-.e+]+', rst)
   rst = np.array(rst, dtype=float)
   rst = rst[::2] + 1j * rst[1::2]
+  rst = rst.reshape((-1, 64))
 
-  if keyword != "JJ_pion":
-    rst = rst.reshape((-1, 64))
-
-  if var_name.startswith(('type', 'sBar_d')):  # for the diagrams to calculate <JJ Hw K> or <JJ sBar d K>
-    if rst.shape[0] == T:     # convert table2d from (T, T) to (tsep, T) so that all tables have the same shape
-      indices = [-x for x in main_diagram_tseps]
+  if var_name.startswith(('type', 'sBar_d')) and rst.shape[0] == T:  # for the diagrams to calculate <JJ Hw K> (type III, type IV, type V) and <JJ sBar d K> # convert table2d from (T, T) to (tsep_max, T) to save disk space 
+      indices = [-x for x in range(tsep_max)]
       rst = rst[indices]
 
   return rst
@@ -66,15 +75,7 @@ for traj in trajs:
         print(traj, var_name)
         exec(f"{var_name} = get_array(fcontent, keyword, var_name)")
 
-  # print(typeI_D1aQ2)
-  # print(typeII_D1aQ2)
-  # print(sBar_d_T1D1a)
-  # print(sBar_d_T2D1a)  # ?? Some sites  very large; 1e15 
-  # print(sBar_d_T2D2b.shape)  
-  # print(sBar_d_T3D2.shape)  
-  # print(JJ_pion)  
   # print(cs_Hw_T2D1Q2.shape)  
-
 
   arrays = [pair[1] for l in all_data.values() for pair in l]
   print(arrays)

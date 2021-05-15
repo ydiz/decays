@@ -67,6 +67,7 @@ int main(int argc, char* argv[])
 
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');
+    LatticePropagator Lxx = env.get_Lxx();
 
     if(env.N_pt_src != -1) env.xgs_l.resize(env.N_pt_src);
 
@@ -85,7 +86,6 @@ int main(int argc, char* argv[])
       LatticePropagator point_prop(env.grid);
       if(diagram=="typeIV_D1b") point_prop = env.get_point(u, 'l'); // pl = L(x, v) // for typeIV_D1a 
       else point_prop = env.get_point(u, 's'); // ps = H(x, v) // for typeIV_D2a
-      LatticePropagator Lxx = env.get_Lxx();
 
       for(int tK=0; tK<T; ++tK) {
         // LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid);
