@@ -8,12 +8,18 @@ import pickle
 # trajs = range(2000, 2260, 10)
 # trajs = [1010, 1030, 1040] + list(range(1900, 1980, 10)) + list(range(1990, 2260, 10))
 
+# trajs = sorted(set(range(1300, 1400, 10)) - set([1340])) # TBD: 1350 wait for Lxx; TBD: wait for sequential and add typeIII
 # trajs = sorted(set(range(1900, 2260, 10)) - set([1980])) 
-trajs = sorted(set(range(1010, 1280, 10)) - set([1020, 1060, 1100, 1180]))  # TBD: measure 1180 later (after typeIII 1180)
+# trajs = sorted(set(range(1010, 1630, 10)) - set([1020, 1060, 1100, 1340, 1620, 1830, 1920]))  # [1620, 1830, 1920] have one time slice missing
+
+# # TBD: wait for type III for the following trajs
+# trajs = sorted(set(range(1630, 1670, 10))) 
+
+trajs = sorted(set(range(1630, 1900, 10)) - set([1020, 1060, 1100, 1340, 1620, 1830, 1880, 1920]))   # [1620, 1830, 1920] have one time slice missing
+# trajs = [1890]
+
 print(trajs)
 # assert 0
-# trajs = [1050, 1070, 1110]  # wait for some diagrams
-# trajs = [1080, 1090]
 
 ##################################################################
 

@@ -13,10 +13,19 @@ def run_cmd(cmd):
   time.sleep(3)
 
 
-# trajs = [1920]
 # trajs = range(2020, 2070, 10)
-trajs = range(1970, 2000, 10)
-# trajs = [1010, 1030]
+# trajs = range(1970, 2000, 10)
+# trajs = range(1040, 1080, 10)
+# trajs = range(1050, 1130, 10)
+# trajs = range(1220, 1300, 10)
+# trajs = range(1300, 1400, 10)
+# trajs = range(1400, 1500, 10)
+# trajs = range(1620, 1670, 10)
+# trajs = range(1620, 1650, 10)
+# trajs = range(1730, 1800, 10)
+# trajs = [1740, 1770, 1780]
+trajs = [1820]
+# trajs = range(1800, 1900, 10)
 
 #################################
 

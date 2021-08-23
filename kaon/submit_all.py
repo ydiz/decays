@@ -10,11 +10,24 @@ def run_cmd(cmd):
   os.system(cmd)
   time.sleep(3)
 
+# TBD:
 
-trajs = [1220]
-# trajs = [1180] # Measure typeIII for these traj later
+trajs = [1770] # Measure typeIII
+# trajs = [1650, 1740, 1780, 1820, 1890] # Measure typeIII
+
+# trajs = range(1800, 1900, 10)
+
+# trajs = sorted(set(range(1650, 1900, 10)) - set([1650, 1740, 1770, 1780, 1820, 1890]))
+
+
+
+# trajs = [1670]
+
+# trajs = range(1680, 1790, 10)
 
 ##################################
+
+# trajs = range(1330, 1400, 10)
 
 # trajs = [1130, 1150]
 # trajs = range(2150, 2260, 10)
@@ -31,7 +44,6 @@ trajs = [1220]
 root = os.getcwd()
 # dirs = ['typeI', 'typeII', 'typeIII', 'typeIV_a', 'typeIV_b', 'typeV', 'c_s_eta', 'JJ_pion'] # all diagrams
 # dirs = ['typeI', 'typeII', 'typeIV_a', 'typeIV_b', 'typeV', 'c_s_eta', 'JJ_pion'] # all diagrams except typeIII
-# dirs = ['typeIV_b']
 dirs = ['typeIII']
 
 diagrams_dir = {
