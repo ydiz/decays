@@ -18,18 +18,19 @@ vector<vector<vector<vector<Complex>>>> initialize_typeV_table4d(int T, int num_
         table4d[tK][xt].resize(num_R);
         for(int R=0; R<num_R; ++R) {
           table4d[tK][xt][R].resize(T, 0.);
+        }
       }
     }
     return table4d;
 }
 
-vector<vector<LatticeComplexSite>> sum_typeV(const LatticeComplex &lat) {
+vector<vector<Complex>> sum_typeV(const LatticeComplex &lat) {
 
-  const int T = env.grid->_fdimensions[3];
-  int X = env.grid->_fdimensions[0], Y = env.grid->_fdimensions[1], Z = env.grid->_fdimensions[2];
+  const int T = lat.Grid()->_fdimensions[3];
+  int X = lat.Grid()->_fdimensions[0], Y = lat.Grid()->_fdimensions[1], Z = lat.Grid()->_fdimensions[2];
   int num_R = int(calc_3d_vec_norm(X-1, Y-1, Z-1));
 
-  vector<vector<LatticeComplexSite>> rst(T); // rst[xt][R]
+  vector<vector<Complex>> rst(T); // rst[xt][R]
   for(int xt=0; xt<T; ++xt) rst[xt].resize(num_R, 0.); // initialize with 0.
 
   autoView(lat_v, lat, CpuRead);
@@ -44,14 +45,14 @@ vector<vector<LatticeComplexSite>> sum_typeV(const LatticeComplex &lat) {
     const int x=gcoor[0], y=gcoor[1], z=gcoor[2], t=gcoor[3];
     double R = calc_3d_vec_norm(x, y, z);
 
-    rst[t][int(R)] += m;
+    rst[t][int(R)] += m()()();
   // });
   }
   return rst;
 }
 
-vector<vector<Complex>> typeV_table4d_to_table2d(const vector<vector<vector<vector<<Complex>>>> &table4d, 
-                                              int tsep_min=6, int tsep_max=14) { // table4d[tK][xt][R][vt] -> table2d[R][vt] with xt = 0
+vector<vector<Complex>> typeV_table4d_to_table2d(const vector<vector<vector<vector<Complex>>>> &table4d, 
+                                              int min_tsep=6, int max_tsep=14) { // table4d[tK][xt][R][vt] -> table2d[R][vt] with xt = 0
   int T = table4d.size();
   int num_R = table4d[0][0].size();
 
@@ -188,7 +189,7 @@ int main(int argc, char* argv[])
         // sliceSum(rst_D2Q2, rst_D2Q2_xt, Tdir);
         // sliceSum(sBar_d_D1, sBar_d_D1_xt, Tdir);
         // sliceSum(sBar_d_D2, sBar_d_D2_xt, Tdir);
-        vector<vector<LatticeComplexSite>> rst_D1Q1_xt_R, rst_D1Q2_xt_R, rst_D2Q1_xt_R, rst_D2Q2_xt_R, sBar_d_D1_xt_R, sBar_d_D2_xt_R;
+        vector<vector<Complex>> rst_D1Q1_xt_R, rst_D1Q2_xt_R, rst_D2Q1_xt_R, rst_D2Q2_xt_R, sBar_d_D1_xt_R, sBar_d_D2_xt_R;
         rst_D1Q1_xt_R = sum_typeV(rst_D1Q1);
         rst_D1Q2_xt_R = sum_typeV(rst_D1Q2);
         rst_D2Q1_xt_R = sum_typeV(rst_D2Q1);
@@ -197,12 +198,12 @@ int main(int argc, char* argv[])
         sBar_d_D2_xt_R = sum_typeV(sBar_d_D2);
         for(int xt=0; xt<T; ++xt) {
           for(int R=0; R<num_R; ++R) {
-            table4d_D1Q1[tK][xt][R][vt] += rst_D1Q1_xt[xt][R]()()() / double(pt_counts_slices[vt]); // divide by number of point sources on each time slice
-            table4d_D1Q2[tK][xt][R][vt] += rst_D1Q2_xt[xt][R]()()() / double(pt_counts_slices[vt]);
-            table4d_D2Q1[tK][xt][R][vt] += rst_D2Q1_xt[xt][R]()()() / double(pt_counts_slices[vt]); 
-            table4d_D2Q2[tK][xt][R][vt] += rst_D2Q2_xt[xt][R]()()() / double(pt_counts_slices[vt]);
-            table4d_sBar_d_D1[tK][xt][R][vt] += sBar_d_D1_xt[xt][R]()()() / double(pt_counts_slices[vt]);
-            table4d_sBar_d_D2[tK][xt][R][vt] += sBar_d_D2_xt[xt][R]()()() / double(pt_counts_slices[vt]);
+            table4d_D1Q1[tK][xt][R][vt] += rst_D1Q1_xt_R[xt][R] / double(pt_counts_slices[vt]); // divide by number of point sources on each time slice
+            table4d_D1Q2[tK][xt][R][vt] += rst_D1Q2_xt_R[xt][R] / double(pt_counts_slices[vt]);
+            table4d_D2Q1[tK][xt][R][vt] += rst_D2Q1_xt_R[xt][R] / double(pt_counts_slices[vt]); 
+            table4d_D2Q2[tK][xt][R][vt] += rst_D2Q2_xt_R[xt][R] / double(pt_counts_slices[vt]);
+            table4d_sBar_d_D1[tK][xt][R][vt] += sBar_d_D1_xt_R[xt][R] / double(pt_counts_slices[vt]);
+            table4d_sBar_d_D2[tK][xt][R][vt] += sBar_d_D2_xt_R[xt][R] / double(pt_counts_slices[vt]);
           }
         }
       }
