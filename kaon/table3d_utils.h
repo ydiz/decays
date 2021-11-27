@@ -1,5 +1,8 @@
+// using namespace Grid;
+
+namespace Grid {
+
 using namespace std;
-using namespace Grid;
 
 vector<vector<vector<Complex>>> initialize_table3d(int T) { // generate table3d[tK][xt][vt]; initialize it to 0
     vector<vector<vector<Complex>>> table3d(T);  
@@ -37,3 +40,4 @@ vector<vector<Complex>> table3d_to_table2d(const vector<vector<vector<Complex>>>
 
 
 
+}
