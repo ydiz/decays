@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
     // vector<vector<vector<Complex>>> table3d_sBar_d=initialize_table3d(T);
     vector<vector<vector<vector<Complex>>>> table4d_Q1 = control_R_initialize_table4d(fdims); // table4d[tK][xt][R][vt]
     vector<vector<vector<vector<Complex>>>> table4d_Q2 = control_R_initialize_table4d(fdims);
-    vector<vector<vector<vector<Complex>>>> table4d_sBar_d = control_R_initialize_table4d(fdims);
+    // vector<vector<vector<vector<Complex>>>> table4d_sBar_d = control_R_initialize_table4d(fdims); // for performance, not calculating sBar_d for now
 
     std::vector<LatticePropagator> wl = env.get_wall('l');
     std::vector<LatticePropagator> ws = env.get_wall('s');
@@ -96,6 +96,9 @@ int main(int argc, char* argv[])
       else point_prop = env.get_point(u, 's'); // ps = H(x, v) // for typeIV_D2a
 
       for(int tK=0; tK<T; ++tK) {
+
+        if( left_distance(ut, tK, T)<7 || left_distance(ut, tK, T)>17 ) continue; // FIXME: improve speed
+
         // LatticeComplex rst_Q1(env.grid), rst_Q2(env.grid);
         vector<vector<vector<Complex>>> rst_Q1_xt_R_vt, rst_Q2_xt_R_vt, sBar_d_xt_R_vt;
         amplitude_func[diagram](u, tK, rst_Q1_xt_R_vt, rst_Q2_xt_R_vt, sBar_d_xt_R_vt, env, wl, ws, point_prop, Lxx, max_uv_sep);
@@ -106,7 +109,7 @@ int main(int argc, char* argv[])
             for(int vt=0; vt<T; ++vt) {
               table4d_Q1[tK][xt][R][vt] += rst_Q1_xt_R_vt[xt][R][vt] / double(pt_counts_slices[ut]); // divide by number of point sources on each time slice  // Note: u0 is summed over by summing over all point sources.
               table4d_Q2[tK][xt][R][vt] += rst_Q2_xt_R_vt[xt][R][vt] / double(pt_counts_slices[ut]);
-              table4d_sBar_d[tK][xt][R][vt] += sBar_d_xt_R_vt[xt][R][vt] / double(pt_counts_slices[ut]);
+              // table4d_sBar_d[tK][xt][R][vt] += sBar_d_xt_R_vt[xt][R][vt] / double(pt_counts_slices[ut]);
             }
           }
         }
@@ -122,10 +125,10 @@ int main(int argc, char* argv[])
     // vector<vector<Complex>> table2d_sBar_d = table3d_to_table2d(table3d_sBar_d);
     vector<vector<Complex>> table2d_Q1 = control_R_table4d_to_table2d(table4d_Q1, min_tsep, max_tsep);  // table2d[R][vt], with xt=0
     vector<vector<Complex>> table2d_Q2 = control_R_table4d_to_table2d(table4d_Q2, min_tsep, max_tsep);
-    vector<vector<Complex>> table2d_sBar_d = control_R_table4d_to_table2d(table4d_sBar_d, min_tsep, max_tsep);
+    // vector<vector<Complex>> table2d_sBar_d = control_R_table4d_to_table2d(table4d_sBar_d, min_tsep, max_tsep);
     std::cout << "traj [" << traj << "] table2d_Q1: " << table2d_Q1 << std::endl;
     std::cout << "traj [" << traj << "] table2d_Q2: " << table2d_Q2 << std::endl;
-    std::cout << "traj [" << traj << "] table2d sBar_d T2 diagram b: " << table2d_sBar_d << std::endl;
+    // std::cout << "traj [" << traj << "] table2d sBar_d T2 diagram b: " << table2d_sBar_d << std::endl;
 
   } // end of traj loop
 

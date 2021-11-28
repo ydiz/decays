@@ -55,16 +55,19 @@ vector<vector<vector<Complex>>> product_and_sum_by_xt_R_vt(const LatticePropagat
 
   vector<vector<vector<Complex>>> table3d = control_R_initialize_table3d(fx.Grid()->_fdimensions); // table3d[xt][|vec{x}|][vt] // resize and set initial values to 0
 
-  int num_T = table3d.size();
+  int T = table3d.size();
   for(int delta_t=0; delta_t<table3d.size(); ++delta_t) { // delta_t :  vt = xt + delta_t
+
+    if(delta_t>=5 && delta_t<=T-4) continue; // only calculate v_t - xt in [-3, 4] // IMPORTANT: to improve performance
+
     LatticePropagator tmp = fx_fft * Cshift(gv_fft, Tdir, delta_t); // f(x) * g(v = x+delta_t)
     tmp = my_3D_backward_FFT_3D(tmp);
     LatticeComplex amplitude = trace(tmp);
 
     int num_R = table3d[0].size();
     vector<vector<Complex>> amplitude_by_xt_R = sum_T_R(amplitude, {0,0,0,0});
-    for(int xt=0; xt<num_T; ++xt) {
-      int vt = (xt + delta_t) % num_T;
+    for(int xt=0; xt<T; ++xt) {
+      int vt = (xt + delta_t) % T;
       for(int R=0; R<num_R; ++R) {
         table3d[xt][R][vt] = amplitude_by_xt_R[xt][R];
       }
@@ -146,7 +149,7 @@ vector<vector<vector<Complex>>> operator+(const vector<vector<vector<Complex>>> 
   return rst;
 }
 
-
+// Not calculating sBar_d_T2D1b_xt_R_vt for now
 void typeIV_D1b(const vector<int> &u, int tK, vector<vector<vector<Complex>>> &rst_Q1_xt_R_vt, 
               vector<vector<vector<Complex>>> &rst_Q2_xt_R_vt, vector<vector<vector<Complex>>> &sBar_d_T2D1b_xt_R_vt,
               Env &env, const vector<LatticePropagator> &wl, const vector<LatticePropagator> &ws, 
@@ -175,9 +178,6 @@ void typeIV_D1b(const vector<int> &u, int tK, vector<vector<vector<Complex>>> &r
   }
   g_v = - g_v; // g has a minus sign
 
-  // vector<LatticePropagatorSite> g_vt;
-  // sliceSum(g_v, g_vt, Tdir);
-
   // calculate contraction
   LatticePropagator f_Q1_K(env.grid), f_Q1_Kbar(env.grid), f_Q2_K(env.grid), f_Q2_Kbar(env.grid), f_sBar_d(env.grid);
   f_Q1_K = Zero(); f_Q1_Kbar = Zero(); f_Q2_K = Zero(); f_Q2_Kbar = Zero();
@@ -192,18 +192,18 @@ void typeIV_D1b(const vector<int> &u, int tK, vector<vector<vector<Complex>>> &r
 
   rst_Q1_xt_R_vt = product_and_sum_by_xt_R_vt(f_Q1_K, g_v) + product_and_sum_by_xt_R_vt(f_Q1_Kbar, adj(g_v)); // trace(f_Q1_K_xt[xt] * g_v[vt] + f_Q1_Kbar_xt[xt] * adj(g_v[vt]))
   rst_Q2_xt_R_vt = product_and_sum_by_xt_R_vt(f_Q2_K, g_v) + product_and_sum_by_xt_R_vt(f_Q2_Kbar, adj(g_v)); // trace(f_Q2_K_xt[xt] * g_v[vt] + f_Q2_Kbar_xt[xt] * adj(g_v[vt]))
-  sBar_d_T2D1b_xt_R_vt = product_and_sum_by_xt_R_vt(f_sBar_d, g_v);
+  // sBar_d_T2D1b_xt_R_vt = product_and_sum_by_xt_R_vt(f_sBar_d, g_v);
   
   int tsep = (u[3] - tK + T) % T; 
   double exp_factor = std::exp(env.M_K * tsep);
   for(int xt=0; xt<T; ++xt) {
     for(int R=0; R<num_R; ++R) {
       for(int vt=0; vt<T; ++vt) {
-        sBar_d_T2D1b_xt_R_vt[xt][R][vt] = 2. * real(sBar_d_T2D1b_xt_R_vt[xt][R][vt]); // add contribution of K0bar
+        // sBar_d_T2D1b_xt_R_vt[xt][R][vt] = 2. * real(sBar_d_T2D1b_xt_R_vt[xt][R][vt]); // add contribution of K0bar
+        // sBar_d_T2D1b_xt_R_vt[xt][R][vt] *= exp_factor;
 
         rst_Q1_xt_R_vt[xt][R][vt] *= exp_factor;  // multiply all amplitudes by exp(M_K * (u0 - tK))
         rst_Q2_xt_R_vt[xt][R][vt] *= exp_factor;
-        sBar_d_T2D1b_xt_R_vt[xt][R][vt] *= exp_factor;
       }
     }
   }
@@ -240,10 +240,6 @@ void typeIV_D2b(const vector<int> &u, int tK, vector<vector<vector<Complex>>> &r
   }
   g_v = - g_v; // g has a minus sign
 
-  // // LatticePropagatorSite g = sum(g_v);
-  // vector<LatticePropagatorSite> g_vt;
-  // sliceSum(g_v, g_vt, Tdir);
-
   // calculate contraction
   LatticePropagator f_Q1_K(env.grid), f_Q1_Kbar(env.grid), f_Q2_K(env.grid), f_Q2_Kbar(env.grid), f_sBar_d(env.grid);
   f_Q1_K = Zero(); f_Q1_Kbar = Zero(); f_Q2_K = Zero(); f_Q2_Kbar = Zero();
@@ -258,18 +254,18 @@ void typeIV_D2b(const vector<int> &u, int tK, vector<vector<vector<Complex>>> &r
 
   rst_Q1_xt_R_vt = product_and_sum_by_xt_R_vt(f_Q1_K, g_v) + product_and_sum_by_xt_R_vt(f_Q1_Kbar, adj(g_v)); // trace(f_Q1_K_xt[xt] * g_v[vt] + f_Q1_Kbar_xt[xt] * adj(g_v[vt]))
   rst_Q2_xt_R_vt = product_and_sum_by_xt_R_vt(f_Q2_K, g_v) + product_and_sum_by_xt_R_vt(f_Q2_Kbar, adj(g_v)); // trace(f_Q2_K_xt[xt] * g_v[vt] + f_Q2_Kbar_xt[xt] * adj(g_v[vt]))
-  sBar_d_T2D2b_xt_R_vt = product_and_sum_by_xt_R_vt(f_sBar_d, g_v);
+  // sBar_d_T2D2b_xt_R_vt = product_and_sum_by_xt_R_vt(f_sBar_d, g_v);
 
   int tsep = (u[3] - tK + T) % T;
   double exp_factor = std::exp(env.M_K * tsep);
   for(int xt=0; xt<T; ++xt) {
     for(int R=0; R<num_R; ++R) {
       for(int vt=0; vt<T; ++vt) {
-        sBar_d_T2D2b_xt_R_vt[xt][R][vt] = 2. * real(sBar_d_T2D2b_xt_R_vt[xt][R][vt]); // add contribution of K0bar
+        // sBar_d_T2D2b_xt_R_vt[xt][R][vt] = 2. * real(sBar_d_T2D2b_xt_R_vt[xt][R][vt]); // add contribution of K0bar
+        // sBar_d_T2D2b_xt_R_vt[xt][R][vt] *= exp_factor;
 
         rst_Q1_xt_R_vt[xt][R][vt] *= exp_factor;  // multiply all amplitudes by exp(M_K * (u0 - tK))
         rst_Q2_xt_R_vt[xt][R][vt] *= exp_factor;
-        sBar_d_T2D2b_xt_R_vt[xt][R][vt] *= exp_factor;
       }
     }
   }
