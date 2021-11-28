@@ -5,6 +5,24 @@
 using namespace std;
 using namespace Grid;
 
+vector<vector<int>> select_half_point_sources(vector<vector<int>> &xgs) {
+
+  sort(xgs.begin(), xgs.end(), [](const vector<int> &v1, const vector<int> &v2) {return v1[3]<v2[3];});
+
+  vector<vector<int>> xgs_new;
+
+  int i=0, j=0;
+  while(i<xgs.size()) {
+    while(j<xgs.size()-1 && xgs[j][3]==xgs[j+1][3]) ++j; // j points to the last element with the same time coordinate
+
+    int n = j - i + 1;
+    for(int k=i; k<=i+(n-1)/2; ++k) xgs_new.push_back(xgs[k]);
+
+    j += 1;
+    i = j;
+  }
+  return xgs_new;
+}
 
 int main(int argc, char* argv[])
 {
@@ -82,6 +100,10 @@ int main(int argc, char* argv[])
     std::vector<int> pt_counts_slices(T, 0);
     for(const auto &pt: env.xgs_l) ++pt_counts_slices[pt[3]]; // Number of point sources on each time slice
     for(int i=0; i<T; ++i) assert(pt_counts_slices[i] > 0); // Must have at least one point source on each time slice
+
+    std::cout << "Only keep half of the point sources" << std::endl;
+    env.xgs_l = select_half_point_sources(env.xgs_l);
+    std::cout << "Number the point sources:" << env.xgs_l.size() << std::endl;
 
     int num_pt_src = 0;
     for(const auto &u: env.xgs_l) {  // point source is u
