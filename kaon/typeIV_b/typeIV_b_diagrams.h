@@ -73,19 +73,19 @@ void typeIV_D1b(const std::vector<int> &u, int tK, std::vector<std::vector<Compl
   LatticeKGG Euv(env.grid);
   EM_factor_left_half(Euv, u, env.M_K, max_uv_sep); // EM factor centered at u
 
-  // g = \sum_u gnu g5 L(u, v)^dagger gmu g5 L(u, tK)
-  LatticePropagator g_u(env.grid);  g_u = Zero();
+  // g = - \sum_v gmu g5 L(v, u)^dagger gnu g5 L(v, tK) E_munu(r=u-v)
+  LatticePropagator g_v(env.grid);  g_v = Zero();
   for(int mu=0; mu<4; ++mu) {
     for(int nu=0; nu<4; ++nu) {
       if(mu==3 || nu==3 || mu==nu) continue;  // For these indicies, Euv_munu = 0
       LatticeComplex Euv_munu = PeekIndex<LorentzIndex>(Euv, mu, nu);
-      g_u += gmu5[mu] * adj(pl) * gmu5[nu] * wl[tK] * Euv_munu;
+      g_v += gmu5[mu] * adj(pl) * gmu5[nu] * wl[tK] * Euv_munu;
     }
   }
-  g_u = - g_u; // g has a minus sign
+  g_v = - g_v; // g has a minus sign
 
   vector<LatticePropagatorSite> g_vt;
-  sliceSum(g_u, g_vt, Tdir);
+  sliceSum(g_v, g_vt, Tdir);
 
   // calculate contraction
   LatticePropagator f_Q1_K(env.grid), f_Q1_Kbar(env.grid), f_Q2_K(env.grid), f_Q2_Kbar(env.grid), f_sBar_d(env.grid);
@@ -138,20 +138,20 @@ void typeIV_D2b(const std::vector<int> &u, int tK, std::vector<std::vector<Compl
   LatticeKGG Euv(env.grid);
   EM_factor_left_half(Euv, u, env.M_K, max_uv_sep); // EM factor centered at u
 
-  // g = \sum_u gnu g5 L(u, v)^dagger gmu g5 L(u, tK)
-  LatticePropagator g_u(env.grid);  g_u = Zero();
+  // g = - \sum_v gmu g5 L(v, u)^dagger gnu g5 L(v, tK) E_munu(r=u-v)
+  LatticePropagator g_v(env.grid);  g_v = Zero();
   for(int mu=0; mu<4; ++mu) {
     for(int nu=0; nu<4; ++nu) {
       if(mu==3 || nu==3 || mu==nu) continue;  // For these indicies, Euv_munu = 0
       LatticeComplex Euv_munu = PeekIndex<LorentzIndex>(Euv, mu, nu);
-      g_u += adj(ws[tK]) * gmu5[nu] * ps * gmu5[mu] * Euv_munu;
+      g_v += adj(ws[tK]) * gmu5[nu] * ps * gmu5[mu] * Euv_munu;
     }
   }
-  g_u = - g_u; // g has a minus sign
+  g_v = - g_v; // g has a minus sign
 
-  // LatticePropagatorSite g = sum(g_u);
+  // LatticePropagatorSite g = sum(g_v);
   vector<LatticePropagatorSite> g_vt;
-  sliceSum(g_u, g_vt, Tdir);
+  sliceSum(g_v, g_vt, Tdir);
 
   // calculate contraction
   LatticePropagator f_Q1_K(env.grid), f_Q1_Kbar(env.grid), f_Q2_K(env.grid), f_Q2_Kbar(env.grid), f_sBar_d(env.grid);
