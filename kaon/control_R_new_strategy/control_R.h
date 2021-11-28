@@ -12,6 +12,7 @@ inline double calc_3d_vec_norm(int x, int y, int z) {
 inline int get_relative_dist(int x, int x0, int X) { // return a value in (-X/2, X/2]
   int dist = x - x0;
   if(dist > X/2) dist -= X;
+  else if(dist <= -X/2) dist += X;
   return dist;
 }
 
