@@ -3,8 +3,8 @@ import re
 import numpy as np
 import pickle
 
-# trajs = sorted(set(range(2100, 2260, 10)) - set([1020, 1060, 1100, 1340, 1620, 1830, 1880, 1920, 1980]))   # [1620, 1830, 1920, 1980] have one time slice missing
-trajs = [2250]
+trajs = sorted(set(range(1920, 2260, 10)) - set([1020, 1060, 1100, 1340, 1620, 1830, 1880, 1920, 1980]))   # [1620, 1830, 1920, 1980] have one time slice missing
+# trajs = [2250]
 print(trajs)
 # assert 0
 
@@ -33,8 +33,12 @@ def get_array(text, keyword, var_name):
   return rst
 
 all_data = {
-    'control_R_new_strategy/typeIV_a/output_new_strategy/typeIV_D1a.out': [('table2d_Q1', 'typeIV_D1Q1'), ('table2d_Q2', 'typeIV_D1Q2')],  
-    # 'typeV/output_new_strategy/typeV.out': [('table2d_D1Q1', 'typeV_D1Q1'), ('table2d_D1Q2', 'typeV_D1Q2'), ('table2d_D2Q1', 'typeV_D2Q1'), ('table2d_D2Q2', 'typeV_D2Q2'), ('table2d sBar_d_D1', 'sBar_d_T3D1'), ('table2d sBar_d_D2', 'sBar_d_T3D2')],  
+    'control_R_new_strategy/typeIII/output_new_strategy/typeIII_D1a.out': [('table2d_Q1', 'typeIII_D1aQ1'), ('table2d_Q2', 'typeIII_D1aQ2')],  
+    'control_R_new_strategy/typeIII/output_new_strategy/typeIII_D1b.out': [('table2d_Q1', 'typeIII_D1bQ1'), ('table2d_Q2', 'typeIII_D1bQ2')],  
+    'control_R_new_strategy/typeIV_a/output_new_strategy/typeIV_D1a.out': [('table2d_Q1', 'typeIV_D1aQ1'), ('table2d_Q2', 'typeIV_D1aQ2')],  
+
+    'control_R_new_strategy/typeV/output_new_strategy/typeV.out': [('table2d_D1Q1', 'typeV_D1Q1'), ('table2d_D1Q2', 'typeV_D1Q2'), ('table2d_D2Q1', 'typeV_D2Q1'), ('table2d_D2Q2', 'typeV_D2Q2')],  
+    # 'control_R_new_strategy/typeV/output_new_strategy/typeV.out': [('table2d_D1Q1', 'typeV_D1Q1'), ('table2d_D1Q2', 'typeV_D1Q2'), ('table2d_D2Q1', 'typeV_D2Q1'), ('table2d_D2Q2', 'typeV_D2Q2'), ('table2d sBar_d_D1', 'sBar_d_T3D1'), ('table2d sBar_d_D2', 'sBar_d_T3D2')],  
     }
 
 
@@ -54,6 +58,6 @@ for traj in trajs:
   print(arrays)
   rst = {array: eval(array) for array in arrays}  # map from variable name to variable
 
-  pickle.dump(rst, open(f'all_results_typeIII_typeIV_control_R/{traj}.pkl', 'wb'))
+  pickle.dump(rst, open(f'all_results_control_R/{traj}.pkl', 'wb'))
   # pickle.dump(rst, open(f'all_results_typeV_control_R/{traj}.pkl', 'wb'))
 

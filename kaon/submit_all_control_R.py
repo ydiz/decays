@@ -13,7 +13,7 @@ def run_cmd(cmd):
 # trajs = range(1900, 2010, 10)
 # trajs = range(1010, 1170, 10)
 trajs = range(2000, 2260, 10)
-trajs = range(2000, 2250, 10)
+trajs = range(1920, 2000, 10)
 # trajs = [2250]
 # trajs = [1920]
 

@@ -97,13 +97,15 @@ int main(int argc, char* argv[])
 
     if(env.N_pt_src != -1) env.xgs_l.resize(env.N_pt_src);
 
+    std::cout << "Only keep half of the point sources" << std::endl;
+    env.xgs_l = select_half_point_sources(env.xgs_l);
+    std::cout << "Number the point sources:" << env.xgs_l.size() << std::endl;
+
+
     std::vector<int> pt_counts_slices(T, 0);
     for(const auto &pt: env.xgs_l) ++pt_counts_slices[pt[3]]; // Number of point sources on each time slice
     for(int i=0; i<T; ++i) assert(pt_counts_slices[i] > 0); // Must have at least one point source on each time slice
 
-    std::cout << "Only keep half of the point sources" << std::endl;
-    env.xgs_l = select_half_point_sources(env.xgs_l);
-    std::cout << "Number the point sources:" << env.xgs_l.size() << std::endl;
 
     int num_pt_src = 0;
     for(const auto &u: env.xgs_l) {  // point source is u
