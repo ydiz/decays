@@ -208,11 +208,11 @@ std::string Env::point_path(char quark) const {
   else assert(0);
   std::cout << "reading from " << path << std::endl;
 
-  if(!dirExists(path)) {
-    std::cout << "!!!!!!!!!!!! point src directory does not exist: " << path << std::endl;
-    assert(0);
-    return "";
-  }
+  // if(!dirExists(path)) {
+  //   std::cout << "!!!!!!!!!!!! point src directory does not exist: " << path << std::endl;
+  //   assert(0);
+  //   return "";
+  // }
 
   return path;
 }
