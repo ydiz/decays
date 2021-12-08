@@ -19,10 +19,16 @@ def run_cmd(cmd):
 # trajs = range(1100, 1200, 10)
 # trajs = range(1000, 1550, 10)
 # trajs = range(1550, 1800, 10)
-trajs = [1090, 1130]
-# trajs = [2250]
-# trajs = [1910]
+# trajs = [1090, 1130] # typeIV_b is missing these two configurations
+# trajs = range(1880, 2260, 10)
+# trajs = range(2190, 2230, 10)
+# trajs = range(1570, 1680, 10)
+# trajs = range(1680, 1710, 10)
+# trajs = range(1530, 1560, 10)
+# trajs = [1560]
 
+# TBD:
+trajs = range(1850, 1880, 10)
 
 ########################  directories and diagrams
 
@@ -31,7 +37,8 @@ root = os.getcwd() + '/control_R_new_strategy'
 # dirs = ['typeV']
 # dirs = ['typeIII', 'typeIV_a', 'typeIV_b']
 # dirs = ['typeIII', 'typeIV_a']
-dirs = ['typeIV_b']
+# dirs = ['typeIV_b']
+dirs = ['c_s_eta']
 
 diagrams_dir = {
     # 'typeI': ["typeI_D1a", "typeI_D1b", "typeI_D2a", "typeI_D2b"],
@@ -40,7 +47,8 @@ diagrams_dir = {
     'typeIV_a': ["typeIV_D1a"],
     'typeIV_b': ["typeIV_D1b"],
     'typeV': ["typeV"],
-    # 'c_s_eta': ['c_s_eta'],
+
+    'c_s_eta': ['c_s_eta'],
     # 'JJ_pion': ['JJ_pi']
     }
 
@@ -61,9 +69,9 @@ for traj in trajs:
   if not os.path.isdir(point_l_dir + '/' + str(traj)):
     print(f"traj {traj} does not have point_l propagators; skipping this trajectory")
     continue
-  # if not os.path.isdir(point_s_dir + '/' + str(traj)):
-  #   print(f"traj {traj} does not have point_s propagators; skipping this trajectory")
-  #   continue
+  if not os.path.isdir(point_s_dir + '/' + str(traj)):
+    print(f"traj {traj} does not have point_s propagators; skipping this trajectory")
+    continue
   if not os.path.isfile(Lxx_dir + '/Lxx.' + str(traj)):
     print(f"traj {traj} does not have Lxx; skipping this trajectory")
     continue

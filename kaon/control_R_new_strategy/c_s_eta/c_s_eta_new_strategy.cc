@@ -6,10 +6,10 @@ using namespace Grid;
 
 #ifdef CUTH_FREE_FIELD
 #define NUM_XT 4
-#define NUM_R 4
+// #define NUM_R 4
 #else
 #define NUM_XT 19
-#define NUM_R 25
+// #define NUM_R 15  # MUST be smaller than 12 * sqrt(3) ~= 20
 #endif
 
 
@@ -17,15 +17,14 @@ using namespace Grid;
 vector<vector<vector<Complex>>> init_3d_vec(int N_t_seps, const Coordinate &fdims) {
 
   // const int T = fdims[3];
-  // int X = fdims[0], Y = fdims[1], Z = fdims[2];
-  // int num_R = 1 + int(calc_3d_vec_norm(X/2, Y/2, Z/2));
+  int X = fdims[0], Y = fdims[1], Z = fdims[2];
+  int num_R = 1 + int(calc_3d_vec_norm(X/2, Y/2, Z/2));
   vector<vector<vector<Complex>>> diagram(N_t_seps);
   for(auto &x: diagram) {
     // x.resize(T);
     x.resize(NUM_XT);
     for(auto &y: x) {
-      // y.resize(num_R, 0.);
-      y.resize(NUM_R, 0.);
+      y.resize(num_R, 0.);
     }
   }
   return diagram;
@@ -92,6 +91,8 @@ int main(int argc, char* argv[])
     vector<LatticePropagator> wl = env.get_wall('l');
     vector<LatticePropagator> ws = env.get_wall('s');
 
+
+    // env.xgs_l.resize(10); // FIXME
 
     int num_pt_src = 0;
     for(const auto &v: env.xgs_l) {  // v is position of eta
@@ -171,7 +172,7 @@ int main(int argc, char* argv[])
           // for(int xt=0; xt<rst.size(); ++xt) 
           //   for(int R=0; R<rst[0].size(); ++R) {
           for(int xt=0; xt<NUM_XT; ++xt) 
-            for(int R=0; R<NUM_R; ++R) {
+            for(int R=0; R<rst[0].size(); ++R) {
               table_3d[diagram][t_sep_idx][xt][R] += rst[(t_K+xt)%T][R]; // shift tK to 0
             }
         }
