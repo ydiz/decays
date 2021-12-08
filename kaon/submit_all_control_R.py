@@ -28,7 +28,8 @@ def run_cmd(cmd):
 # trajs = [1560]
 
 # TBD:
-trajs = range(1850, 1880, 10)
+trajs = range(1850, 1870, 10)
+trajs = range(1370, 1410, 10)
 
 ########################  directories and diagrams
 

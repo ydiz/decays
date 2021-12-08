@@ -203,7 +203,8 @@ std::string Env::point_path(char quark) const {
   std::string path;
   if(ensemble=="24ID") {
     if(quark == 'l') path = "/global/cfs/cdirs/mp13/ydzhao/24ID/point_l/" + std::to_string(traj);
-    else path = "/global/cscratch1/sd/ydzhao/point_s/" + std::to_string(traj);
+    // else path = "/global/cscratch1/sd/ydzhao/point_s/" + std::to_string(traj);
+    else path = "/global/cfs/cdirs/mp13/ydzhao/24ID/point_s/" + std::to_string(traj);
   }
   else assert(0);
   std::cout << "reading from " << path << std::endl;
@@ -222,7 +223,8 @@ std::string Env::point_path(const std::vector<int> &src, char quark) const {
   std::string path;
   if(ensemble=="24ID") {
     if(quark == 'l') path = "/global/cfs/cdirs/mp13/ydzhao/24ID/point_l/" + std::to_string(traj) + "/" + coor2str(src);
-    else path = "/global/cscratch1/sd/ydzhao/point_s/" + std::to_string(traj) + "/" + coor2str(src);
+    // else path = "/global/cscratch1/sd/ydzhao/point_s/" + std::to_string(traj) + "/" + coor2str(src);
+    else path = "/global/cfs/cdirs/mp13/ydzhao/24ID/point_s/" + std::to_string(traj) + "/" + coor2str(src);
   }
   // if(ensemble=="24ID") {path = "/global/cfs/cdirs/mp13/ydzhao/24ID/point_" + std::string(1, quark) + "/" + std::to_string(traj) + "/" + coor2str(src);
   // else assert(0);
